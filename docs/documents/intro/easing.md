@@ -22,7 +22,6 @@ app = playground({
 
   create: function() {
 
-    this.easings = ["linear", "inQuint", "outElastic"];
     this.delta = 0;
     this.duration = 1;    
 
@@ -38,23 +37,18 @@ app = playground({
 
     this.layer.clear("#222");
 
-    for(var i = 0; i < this.easings.length; i++) {
-      
-      var easing = this.easings[i];
+    var scale = this.ease(this.delta / this.duration, "outBounce");
 
-      var scale = this.ease(this.delta / this.duration, easing);
+    this.layer.save();
 
-      this.layer.save();
+    this.layer.fillStyle("#e2543e");
 
-      this.layer.fillStyle("#e2543e");
+    this.layer.translate(this.center.x, this.center.y);
+    this.layer.scale(1.0 - scale * 0.5, 1 + scale);
+    this.layer.fillRect(-50, -50, 100, 100);
 
-      this.layer.translate(100 + 140 * i, this.center.y);
-      this.layer.scale(1.0 - scale * 0.5, 1 + scale);
-      this.layer.fillRect(-50, -50, 100, 100);
+    this.layer.restore();
 
-      this.layer.restore();
-
-    }
     
   },
 

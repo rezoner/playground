@@ -1,6 +1,8 @@
 {}
 
 
+* [Home](<?=cms::url("")?>)
+
 * Introduction
   * [Getting started](<?=cms::url("intro/getting-started")?>)
   * [Rendering](<?=cms::url("intro/rendering")?>)

@@ -4,11 +4,13 @@ var files = [
 
   "license.txt",
 
+  "src/lib/CanvasQuery.js",
+  
   "src/lib/Whammy.js",
   "src/lib/Ease.js",
+  "src/Utils.js",
 
   "src/Playground.js",
-  "src/Utils.js",
   
   "src/Events.js",
   "src/States.js",

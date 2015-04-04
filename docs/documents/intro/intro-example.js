@@ -28,10 +28,39 @@ var app = playground({
   create: function() {
 
     this.loadImage("mouse", "keys");
+    this.loadSounds("mouse", "keyboard");
 
     this.grad = this.layer.createLinearGradient(0, 0, 0, 20);
     this.grad.addColorStop(0, "#000")
     this.grad.addColorStop(1.0, "transparent");
+
+  },
+
+  ready: function() {
+
+    this.sound.alias("mousedown", "mouse", 0.7, 1.8);
+    this.sound.alias("mouseup", "mouse", 0.5, 1.5);
+    this.sound.alias("keyboard", "keyboard", 0.5, 1.5);
+
+  },
+
+  keydown: function(data) {
+
+    if(["q", "w", "e", "r"].indexOf(data.key) === -1) return;
+
+    this.playSound("keyboard");
+
+  },
+
+  mousedown: function() {
+    
+    this.playSound("mousedown");
+
+  },
+
+  mouseup: function() {
+    
+    this.playSound("mouseup");
 
   },
 

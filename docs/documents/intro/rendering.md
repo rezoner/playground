@@ -4,7 +4,7 @@
 
 ## Rendering
 
-A default renderer of playground is built on top of a [Canvas](http://www.html5canvastutorials.com) element wrapped inside a `layer` that gives you some [extra features](http://canvasquery.com) that canvas doesn't have.
+A default renderer of playground is built on top of __&lt;Canvas&gt;__ element in a wrapper that gives you some [extra features](http://canvasquery.com) that canvas doesn't have.
 
 run
 ```javascript

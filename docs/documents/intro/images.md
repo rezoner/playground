@@ -4,7 +4,7 @@
 
 ## Loading an image
 
-To load an image simply use `.loadImage` during `create` stage.
+Take [this image](<?=cms::url('images/ship.png')?>) and put it in `images/` folder.
 
 run
 ```javascript
