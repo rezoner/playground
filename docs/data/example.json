@@ -1,0 +1,6 @@
+{
+  "name": "Destroyer",
+  "health": 10,
+  "armor": 2,
+  "damage": 8
+}

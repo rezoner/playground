@@ -1,0 +1,11 @@
+{
+
+  "sun": {
+    "image": "sun",
+    "width": 256,
+    "height": 256,
+    "frames": 32,
+    "duration": 2
+  }
+
+}

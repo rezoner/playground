@@ -1,0 +1,149 @@
+@ximport url(http://fonts.googleapis.com/css?family=Dosis);
+
+@import url(http://fonts.googleapis.com/css?family=Ubuntu);
+@import url(http://fonts.googleapis.com/css?family=Inconsolata);
+
+@font-face {
+  font-family: 'pf_arma_five';
+  src: url('fonts/pf_arma_five.eot');
+  src: url('fonts/pf_arma_five.woff') format('woff'), url('fonts/pf_arma_five.ttf') format('truetype'), url('fonts/pf_arma_five.svg') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+    margin: 0;
+    color: #aaa;
+    background: #272822;
+    font-family: "Ubuntu";
+    font-size: 15px;
+    line-height: 32px;
+    letter-spacing: 0px;
+    margin-top: 16px;
+}
+
+pre {
+  line-height: 20px;
+  font-family: "Lucida Console", Monaco, monospace;
+  background: #eaeef3;
+  font-size: 16px;
+  /* border-left: #68c 4px solid;   */
+  
+  white-space: pre-wrap; 
+  border-radius: 3px;
+  padding: 10px;
+}
+
+li > code, p > code, em { font-family: "Lucida Console", Monaco, monospace; font-style: normal; background: rgba(255,255,255,0.1); padding: 3px 6px; border: 1px solid rgba(0,0,0,0.1); color: #aaa; border-radius: 8px; margin: 0 4px;}
+
+code { font-family: inherit;}
+
+h1, h2, h3, h4 { font-weight: normal; font-size: 24px;  color: #ccc; color: #0af; margin: 0; padding: 16px 0; text-shadow: 0 0 3px #000; }
+
+
+a { text-decoration: none; padding: 4px; color: #fff; }
+a:visited { color: #fff;}
+a:hover { color: #fff;}
+
+#content { width: 800px; margin-left: 340px; }
+
+.color-1 { color: #08c; }
+.color-2 { color: #08c; }
+.color-3 { color: #08c; }
+
+.basicjs { color: #88f; font-size: 80%; }
+
+
+h1 { padding-bottom: 32px; }
+
+.example-container { 
+  margin: 32px 0;
+  height: 300px;
+}
+
+xcanvas { border: 1px solid rgba(0,0,0,0.1); padding: 6px; margin-right: 6px; margin-bottom: 6px }
+
+
+.xeditable+pre:before { content: "double click for live edit mode"; opacity: 0.3; text-align: right; width: 100%; display: block;  }
+.xeditable+pre:hover { outline: 2px solid #afc8e7 }
+
+.editable+pre { cursor: pointer }
+
+#wip { background: #fea; padding: 4px; color: #420; display: none }
+.experimental { background: #000; padding: 4px; color: #a80; display: none; }
+
+
+li { list-style: none; }
+ul { padding-left: 24px; }
+
+
+#sidebar { position: fixed; height: 100%; overflow-y: auto; width: 260px; background: #ccc; top: 0; color: #777; z-index: 200; line-height: 26px }
+#sidebar ul { padding: 0; border-bottom: 2px solid #ccc; margin-bottom: 6px; padding-bottom: 6px; }
+#sidebar > ul { padding-left: 16px; }
+#sidebar ul ul { padding-left: 24px; }
+#sidebar li.xslightly-selected { background: rgba(255, 255, 255, 0.8); border-radius: 8px; }
+#sidebar li { font-size: 19px;}
+#sidebar li a { font-size: 15px;}
+#sidebar .spacer { height: 64px; }
+
+#sidebar a { color: #444; }
+
+.center { text-align: center }
+
+#top { position: fixed; right: 16px; }
+
+#top p { line-height: 16px; padding: 0; margin: 0; font-size: 13px;  text-align: center }
+
+
+
+#disqus_thread { margin-top: 64px; border-top: 8px solid #444; }
+
+
+h1 sup { font-size: 12px }
+
+desc { font-size: 18px;}
+
+
+#content li:before { width: 8px; height: 8px; background: #444; display: inline-block; content: ""; position: absolute; margin-left: -16px; margin-top: 11px; vertical-align: top; }
+
+xa.selected { background: #a00; color: #fff !important; border-radius: 2px; }
+a.selected { background: rgba(0,0,0,0.3); color: #fff !important; border-radius: 4px; padding: 4px 8px;}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 5px;
+    background-color: rgba(0,0,0,0.6);
+
+}
+::-webkit-scrollbar:hover {
+}
+
+::-webkit-scrollbar-thumb {
+    background: #0af;
+    -webkit-border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active  {
+    background: #ccc;
+
+}
+
+#bottom { padding: 32px 0;}
+
+.side { position: absolute; left: 8px; }
+
+.side { width: 300px; border-right: 4px solid #222; padding: 16px;  text-align: center; background: rgba(0,0,0,0.1); margin-top: 16px;}
+
+
+#social { text-align: center; padding-bottom: 24px; }
+
+#social a { font-weight: bold; border-radius: 4px; padding: 0px 6px; display: inline-block; margin-top: 9px; color: #fff; }
+
+.twitter { background: #00a0d2; border: 2px solid #0af; box-shadow: 0 4px 0px #06a; }
+.gratipay { background: #eb8a29; border: 2px solid #fa0; box-shadow: 0 4px 0px #a60; margin-right: 8px }
+.github { background: #9a9a9a; border: 2px solid #aaa; box-shadow: 0 4px 0px #666;}
+
+.showcase xa { display: inline-block; width: 320px; }
+.showcase img { width: 240px; }
+.showcase xa:xbefore { position: absolute; width: 320px; height: 320px; background: url(files/crt-overlay.png); display: block; content: " test"; z-index: 10}
