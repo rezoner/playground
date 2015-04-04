@@ -1,0 +1,6 @@
+/*     
+  PlaygroundJS r2
+  http://playgroundjs.com
+  (c) 2012-2015 http://rezoner.net
+  Playground may be freely distributed under the MIT license.
+*/
