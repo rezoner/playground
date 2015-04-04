@@ -29,8 +29,7 @@ PLAYGROUND.States.prototype = {
       state.app = this.app;
 
       this.trigger("createstate", {
-        prev: this.current,
-        next: state
+        state: state
       });
 
       if (state.create) state.create();
@@ -42,13 +41,15 @@ PLAYGROUND.States.prototype = {
     if (this.current) {
       this.trigger("leavestate", {
         prev: this.current,
-        next: state
+        next: state,
+        state: this.current
       });
     }
 
     this.trigger("enterstate", {
       prev: this.current,
-      next: state
+      next: state,
+      state: state
     });
 
     this.current = state;

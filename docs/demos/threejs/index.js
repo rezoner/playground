@@ -12,6 +12,8 @@ var app = playground({
 
     this.loadObject("pirateShip");
 
+    this.loadSounds("armada");
+
     this.loadImage("seaHeightMap");
 
     this.loadTexture("trail");
@@ -25,6 +27,8 @@ var app = playground({
   ready: function() {
 
     this.setState(app.game);
+    var music = this.music.play("armada", true);
+    this.music.fadeIn(music);
 
   }
 
@@ -33,6 +37,7 @@ var app = playground({
 app.game = {
 
   createTerrain: function() {
+    
     var data = cq(app.images.seaHeightMap).getImageData(0, 0, 256, 256).data;
 
     var normPixels = []
@@ -62,9 +67,10 @@ app.game = {
     plane.rotation.x = -Math.PI / 2;
     plane.position.y = -6;
 
-    this.scene.add(ppp = plane);
+    this.scene.add(plane);
 
     app.renderer.setClearColor(0x00ccff, 1);
+
   },
 
   create: function() {
@@ -158,23 +164,6 @@ app.game = {
 
     this.postProcessing();
 
-    /* line trail */
-
-    var material = new THREE.LineBasicMaterial({
-      color: 0xffffff,
-      lineWidth: 4
-    });
-
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(
-      new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(0, 10, 0),
-      new THREE.Vector3(0, 0, 10)
-    );
-
-    var line = new THREE.Line(geometry, material);
-    this.scene.add(line);
-
   },
 
   postProcessing: function() {
@@ -247,13 +236,17 @@ app.game = {
 
     /* trail */
 
+    /*
+
     var material = new THREE.SpriteMaterial({
       map: app.textures.trail,
       color: 0xffffff
     });
+
     var sprite = new THREE.Sprite(material);
     sprite.position = this.ship.position;
     this.scene.add(sprite);
+    */
 
   },
 

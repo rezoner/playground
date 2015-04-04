@@ -8,7 +8,6 @@ Playground.js is a game oriented javascript framework that gives you access to e
 
 <?=cms::compose('documents/intro/intro-example.js')?>
 
-
 ## How does it look like?
 
 ```javascript
@@ -70,5 +69,5 @@ Yes, if:
 
 ## I want to give it a go
 
-Straight ahead to [Getting Started]()
+Straight ahead to [Getting Started](<?=cms::url("intro/getting-started")?>)
 

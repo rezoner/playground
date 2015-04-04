@@ -48,7 +48,6 @@ app = playground({
     this.layer.fillRect(-50, -50, 100, 100);
 
     this.layer.restore();
-
     
   },
 
@@ -62,3 +61,5 @@ app = playground({
 
 });
 ```
+
+[Read more](<?=cms::url('playground-ease')?>) about easings in playground.

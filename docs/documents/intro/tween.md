@@ -4,7 +4,7 @@
 
 # Tween
 
-A tween is an animation of a value from A to B using given equation.
+A tween is an animation of a value from A to B using given easing equation.
 
 There is a simple tweening engine in playground.
 

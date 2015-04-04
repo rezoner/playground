@@ -7,8 +7,8 @@
         
       <meta property="og:title" content="Playground JS"> 
       <meta property="og:image" content="http://canvasquery.com/canvasquery.png"> 
-      <meta property="og:description" content="Canvas for gamedevelopers. Out of box - mouse, keyboard, scaling, loading images.">
-      <meta name="description" content="Canvas for gamedevelopers. Out of box - mouse, keyboard, scaling, loading images.">
+      <meta property="og:description" content="Playground. Essential framework for javascript gamedevelopers.">
+      <meta name="description" content="Playground. Essential framework for javascript gamedevelopers.">
 
       <style>
         @import url(<?=cms::url('main.css')?>);
@@ -26,7 +26,6 @@
   <body>
     
     <script src="<?=cms::url('script/basic.js')?>"></script>
-    <script src="<?=cms::url('script/canvasquery.js')?>"></script>
     <script src="<?=cms::url('script/playground.js')?>"></script>
     <script src="<?=cms::url('script/inline-editor.js')?>"></script>
 
@@ -40,7 +39,7 @@
     <div id="sidebar">    
 
       <div id="social">
-        <a class=github href="http://github.com/rezoner/CanvasQuery/">github</a>
+        <a class=github href="http://github.com/rezoner/playground/">github</a>
         <a class=twitter href="https://twitter.com/rezoner">twitter</a>
         <a class=gratipay href="https://gratipay.com/rezoner/">gratipay</a>
       </div>
@@ -73,6 +72,16 @@
 
     
 
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-9065813-20', 'auto');
+      ga('send', 'pageview');
+
+    </script>
 
   </body>
 </html>

@@ -113,6 +113,8 @@ PLAYGROUND.Application = function(args) {
   setTimeout(function() {
 
     app.emitLocalEvent("create");
+
+    app.setState(PLAYGROUND.DefaultState);
     app.handleResize();
     app.setState(PLAYGROUND.LoadingScreen);
 
@@ -369,7 +371,7 @@ PLAYGROUND.Application.prototype = {
 
   render: function() {
 
-    this.layer.clear("#000");
+    
 
   }
 

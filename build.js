@@ -4,14 +4,12 @@ var files = [
 
   "license.txt",
 
-  "src/lib/CanvasQuery.js",
-  
   "src/lib/Whammy.js",
   "src/lib/Ease.js",
-  "src/Utils.js",
 
   "src/Playground.js",
-  
+  "src/Utils.js",
+
   "src/Events.js",
   "src/States.js",
   "src/Application.js",
@@ -28,13 +26,32 @@ var files = [
   "src/VideoRecorder.js",
   "src/Atlases.js",
   "src/Fonts.js",
-  "src/LoadingScreen.js",
   "src/DefaultState.js",
-  "src/Transitions.js",
-  "src/Layer.js"
-  
+  "src/LoadingScreen.js"
+
 ];
 
-var output = cat(files);
+var builds = {
 
-output.to("build/playground.js");
+  "playground.js": [
+    "src/lib/CanvasQuery.js",
+    "src/Layer/Layer.js",
+    "src/Layer/Transitions.js",
+    "src/Layer/LoadingScreen.js"
+  ],
+
+  "playground.raw.js": [
+
+  ]
+
+};
+
+for (var key in builds) {
+
+  var extra = builds[key];
+
+  var output = cat(files.concat(extra));
+  
+  output.to("build/" + key);
+
+}

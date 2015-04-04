@@ -10,7 +10,6 @@ PLAYGROUND.LoadingScreen = {
 
     this.logo.addEventListener("load", function() {
       self.ready = true;
-      self.createElements();
     });
 
     this.logo.src = this.logoRaw;
@@ -49,48 +48,40 @@ PLAYGROUND.LoadingScreen = {
 
     } else {
 
-      if (this.animation.finished) {
-        this.locked = false;
-        this.app.container.removeChild(this.wrapper);
-      }
+      if (this.animation.finished) this.locked = false;
 
     }
 
   },
 
-  createElements: function() {
+  ready: function() {
 
-    this.width = window.innerWidth * 0.6 | 0;
-    this.height = window.innerHeight * 0.1 | 0;
-
-    this.wrapper = document.createElement("div");
-    this.wrapper.style.width = this.width + "px";
-    this.wrapper.style.height = this.height + "px";
-    this.wrapper.style.background = "#000";
-    this.wrapper.style.border = "4px solid #fff";
-    this.wrapper.style.position = "absolute";
-    this.wrapper.style.left = (window.innerWidth / 2 - this.width / 2 | 0) + "px";
-    this.wrapper.style.top = (window.innerHeight / 2 - this.height / 2 | 0) + "px";
-    this.wrapper.style.zIndex = 100;
-
-    this.app.container.appendChild(this.wrapper);
-
-
-    this.progressBar = document.createElement("div");
-    this.progressBar.style.width = "0%";
-    this.progressBar.style.height = this.height + "px";
-    this.progressBar.style.background = "#fff";
-
-    this.wrapper.appendChild(this.progressBar);
 
   },
-
 
   render: function() {
 
     if (!this.ready) return;
 
-    this.progressBar.style.width = (this.current * 100 | 0) + "%";
+    this.app.layer.clear(this.background);
+
+    this.app.layer.fillStyle("#fff");
+
+    this.app.layer.save();
+
+    this.app.layer.globalCompositeOperation("lighter");
+    this.app.layer.align(0.5, 0.5);
+    this.app.layer.drawImage(this.logo, this.app.center.x, this.app.center.y);
+
+    var w = this.current * this.logo.width;
+
+    this.app.layer.fillStyle("#fff");
+
+    this.app.layer.fillRect(this.app.center.x, this.app.center.y + 32, w, 12);
+    this.app.layer.fillRect(this.app.center.x, this.app.center.y + 32, this.logo.width, 4);
+
+    this.app.layer.restore();
+
 
 
   }

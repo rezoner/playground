@@ -8,11 +8,9 @@
 */
 (function() {
 
-  var appProperties = {};
-
   /* texture loader */
 
-  appProperties.loadTexture = function(path) {
+  PLAYGROUND.Application.prototype.loadTexture = function(path) {
 
     if (!this.textures) this.textures = {};
 
@@ -20,7 +18,7 @@
 
     var app = this;
 
-    var assetPath = this.assetPath(path, "textures", "png");
+    var assetPath = this.getAssetEntry(path, "textures", "png");
 
     if (this.textures[assetPath.key]) return;
 
@@ -30,13 +28,13 @@
 
     loader.load(
 
-      assetPath.path,
+      assetPath.url,
 
       function(texture) {
 
         app.textures[assetPath.key] = texture;
 
-        app.loader.ready(resourceName);
+        app.loader.success(resourceName);
 
       }
     );
@@ -45,7 +43,7 @@
 
   /* object loader */
 
-  appProperties.loadObject = function(path) {
+  PLAYGROUND.Application.prototype.loadObject = function(path) {
 
     var app = this;
 
@@ -53,7 +51,7 @@
 
     var loaderID = "object " + path;
 
-    var assetPath = this.assetPath(path, "objects", "json");
+    var assetPath = this.getAssetEntry(path, "objects", "json");
 
     if (this.objects[assetPath.key]) return;
 
@@ -63,92 +61,80 @@
 
     loader.load(
 
-      assetPath.path,
+      assetPath.url,
 
       function(object) {
 
         app.objects[assetPath.key] = object;
 
-        app.loader.ready(loaderID);
+        app.loader.success(loaderID);
 
       }
     );
 
   };
 
-  playground.plugins.three = {
+  PLAYGROUND.Three = function(app) {
 
-    /* called once when application object is instantiated */
+    console.log("NO CO JEST KURWA")
 
-    app: function(app, config) {
+    this.app = app;
 
-      playground.extend(app, appProperties);
+    app.on("create", this.create.bind(this));
+    app.on("resize", this.resize.bind(this));
+    app.on("createstate", this.createstate.bind(this));
 
-      /* plugin means simply listening to some events */
+  };
 
-      app.on({
+  PLAYGROUND.Three.plugin = true;
 
-        create: function() {
+  PLAYGROUND.Three.prototype = {
 
-          this.renderer = new THREE.WebGLRenderer({
-            antialiasing: true
-          });
+    create: function() {
 
-          document.body.appendChild(app.renderer.domElement);
-
-        },
-
-        resize: function() {
-
-          this.renderer.setSize(this.width / this.pixelate, this.height / this.pixelate);
-          this.renderer.domElement.style.width = window.innerWidth + "px";
-          this.renderer.domElement.style.height = window.innerHeight + "px";
-        }
-
+      this.app.renderer = new THREE.WebGLRenderer({
+        antialiasing: true
       });
+
+      document.body.appendChild(this.app.renderer.domElement);
 
     },
 
-    /* called once on a state when apllication enters it for the first time */
+    resize: function() {
 
-    state: function(state, config) {
+      this.app.renderer.setSize(this.app.width / this.app.pixelate, this.app.height / this.app.pixelate);
+      this.app.renderer.domElement.style.width = window.innerWidth + "px";
+      this.app.renderer.domElement.style.height = window.innerHeight + "px";
 
-      state._updateViewport = function() {
+      this.updateViewport(this.app.state);
 
-        this.camera.aspect = this.app.width / this.app.height;
-        this.camera.updateProjectionMatrix();
+    },
 
-      };
+    updateViewport: function(state) {
 
-      /* plugin means simply listening to some events */
+      state.camera.aspect = this.app.width / this.app.height;
+      state.camera.updateProjectionMatrix();
 
-      state.on({
+    },
 
-        create: function() {
 
-          this.scene = new THREE.Scene();
+    createstate: function(data) {
 
-          this.camera = new THREE.PerspectiveCamera(75, 0, 0.1, 1000);
+      var state = data.state;
 
-          this.camera.position.z = 5;
+      state.scene = new THREE.Scene();
 
-          this._updateViewport();
+      state.camera = new THREE.PerspectiveCamera(75, 0, 0.1, 1000);
 
-        },
+      state.camera.position.z = 5;
 
-        resize: function() {
+      this.updateViewport(state);
 
-          this._updateViewport();
+    },
 
-        },
+    render: function() {
 
-        render: function() {
-
-          // app.renderer.render(this.scene, this.camera);
-
-        }
-
-      });
+      // app.renderer.render(this.scene, this.camera);
 
     }
 
