@@ -40,6 +40,8 @@ code { font-family: inherit;}
 
 h1, h2, h3, h4 { font-weight: normal; font-size: 24px;  color: #ccc; color: #0af; margin: 0; padding: 16px 0; text-shadow: 0 0 3px #000; }
 
+h3 { color: #aaa; border-bottom: 2px solid #444; font-size: 22px;}
+
 
 a { text-decoration: none; padding: 4px; color: #fff; }
 a:visited { color: #fff;}

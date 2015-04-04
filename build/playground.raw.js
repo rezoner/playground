@@ -1085,9 +1085,9 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if (this.loader.ready) {
+//    if (this.loader.ready) {
       if (this[event]) this[event](data);
-    }
+//    }
 
     if (this.state[event]) this.state[event](data);
 

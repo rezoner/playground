@@ -54,7 +54,7 @@ var app = new PLAYGROUND.Application({
 Yes, if:
 
 * You spend more and more time bending some engine to your will rather than implementing what you need.
-* You have a kind of mindset that tells you have to take part in Ludum Dare
+* The voices in your head are telling you to participate in Ludum Dare
 
 ## Not convinced. Show me something cool.
 

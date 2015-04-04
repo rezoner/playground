@@ -27,7 +27,9 @@ var app = playground({
   ready: function() {
 
     this.setState(app.game);
+    
     var music = this.music.play("armada", true);
+
     this.music.fadeIn(music);
 
   }
