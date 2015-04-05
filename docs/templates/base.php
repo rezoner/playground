@@ -1,14 +1,14 @@
 <!doctype html>
 <html>
   <head>
-      <title>Playground JS</title>
+      <title><?=$meta['title']?></title>
       
       <meta charset="utf-8"> 
         
-      <meta property="og:title" content="Playground JS"> 
-      <meta property="og:image" content="http://canvasquery.com/canvasquery.png"> 
-      <meta property="og:description" content="Playground. Essential framework for javascript gamedevelopers.">
-      <meta name="description" content="Playground. Essential framework for javascript gamedevelopers.">
+      <meta property="og:title" content="<?=$meta['title']?>"> 
+      <meta property="og:image" content="http://playgroundjs.com/<?=$meta['thumb']?>"> 
+      <meta property="og:description" content="<?=$meta['description']?>">
+      <meta name="description" content="<?=$meta['description']?>">
 
       <style>
         @import url(<?=cms::url('main.css')?>);

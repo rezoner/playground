@@ -26,9 +26,9 @@ cms::$path = $path;
 
 $meta = cms::readMeta("documents/$path.md");
 
-if(!isset($meta['thumb'])) $meta['thumb'] = "canvasquery.png";
-if(!isset($meta['title'])) $meta['title'] = "Canvas Query";
-if(!isset($meta['description'])) $meta['description'] = "Canvas for gamedevelopers. Out of box - mouse, keyboard, scaling, loading images.";
+if(!isset($meta['thumb'])) $meta['thumb'] = "playgroundjs.png";
+if(!isset($meta['title'])) $meta['title'] = "Playground.js - Essential framework for javascript gamedevelopers.";
+if(!isset($meta['description'])) $meta['description'] = "Essential framework for javascript gamedevelopers.";
 
 $base = isset($meta['base']) ? $meta['base'] : "base";
 

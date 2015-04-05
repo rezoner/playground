@@ -65,6 +65,10 @@ Yes, if:
   <a href="http://rezoner.net/labs/limbs/"><img src="<?=cms::url("files/thumbs/limbs.png")?>"></a>
   <a href="http://hotlinetrail.rezoner.net/"><img src="<?=cms::url("files/thumbs/hotlinetrail.png")?>"></a>
   <a href="http://rezoner.net/labs/3d/a4/"><img src="<?=cms::url("files/thumbs/boats.png")?>"></a>
+  <a href="http://playgroundjs.com/demos/threejs/"><img src="<?=cms::url("files/thumbs/three-boat.png")?>"></a>
+  <a href="http://playgroundjs.com/three"><img src="<?=cms::url("files/thumbs/three-car.png")?>"></a>
+  <a href="http://jackrugile.com/pongoo/"><img src="<?=cms::url("files/thumbs/jack-pong.png")?>"></a>
+
 </div>
 
 ## I want to give it a go
