@@ -27,7 +27,7 @@ var app = playground({
   
   create: function() {
 
-    this.loadImage("mouse", "keys");
+    this.loadImage("mouse", "keys", "logo");
     this.loadSounds("mouse", "keyboard");
 
     this.grad = this.layer.createLinearGradient(0, 0, 0, 20);
@@ -68,9 +68,15 @@ var app = playground({
 
     this.layer.clear("#1f201a");
 
+    /* logo */
+
+    app.layer.globalCompositeOperation("lighter").a(0.25);
+    app.layer.drawImage(this.images.logo, 32, 48);
+    app.layer.globalCompositeOperation("source-over").ra();
+
     /* keys */
 
-      app.layer.font("16px Arial").fillStyle("#888").textAlign("center");
+    app.layer.font("16px Arial").fillStyle("#888").textAlign("center");
 
     for(var i = 0; i < this.keys.length; i++) {
       var key = this.keys[i];

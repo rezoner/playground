@@ -4,8 +4,8 @@
 }
 
 <script src="script/three.min.js"></script>
-<script src="script/playground.raw.js"></script>
-<script src="script/playground.Three.js"></script>
+<script src="script/playground-base.js"></script>
+<script src="script/playground/playground.three.js"></script>
 
 # PLAYGROUND.js + THREE.js
 
@@ -35,13 +35,15 @@ var app = new PLAYGROUND.Application({
 });
 ```
 
+### 0. ZIP
+
+You can [download the project](<?=cms::url('standalone/three-car.zip')?>) and play with it or follow steps below.
+
 ### 1. Files
 
-Of course we are replacing renderer so we gonna need raw version of Playground.
-
 * Download [three.js](https://github.com/mrdoob/three.js/tree/master/build)
-* Download [playground.raw.js](https://github.com/rezoner/playground/blob/master/build/playground.raw.js) `playground without renderer`
-* Download [playground.Three.js](https://github.com/rezoner/playground/blob/master/plugins/playground.Three.js) `three loaders`
+* Download [playground-base.js](https://github.com/rezoner/playground/tree/master/build) `playground without renderer`
+* Download [playground.three.js](https://github.com/rezoner/playground/tree/master/plugins) `three loaders`
 * I've used [this car](https://clara.io/view/2aafff64-2305-4d66-98ff-ab51cb51a3b9/image) from Clara.io `rename it to car.json and put in objects/ folder`
 ### 2. Setup
 
@@ -64,8 +66,6 @@ app = new PLAYGROUND.Application({
     });
 
     this.container.appendChild(this.renderer.domElement);
-        
-    this.container.style.imageRendering = "pixelated";
 
     this.renderer.setClearColor(0x552200);
 
@@ -78,12 +78,23 @@ app = new PLAYGROUND.Application({
 
   resize: function() {
 
+    /* this is where the pixelation trick happens
+       we tell the renderer that the logical size
+       is this.pixelate times smaller */
+
     this.renderer.setSize(
       this.width / this.pixelate, 
       this.height / this.pixelate
     );
+
+    /* however we stretch the container to the window size */
+
     this.renderer.domElement.style.width = this.width + "px";
     this.renderer.domElement.style.height = this.height + "px";
+
+    /* and we tell chrome that we don't want to interpolate it */
+
+    this.container.style.imageRendering = "pixelated";
 
   },
 
@@ -92,6 +103,7 @@ app = new PLAYGROUND.Application({
     this.setState(ENGINE.Game);
 
     var music = this.music.play("midnight", true);
+    
     this.music.fadeIn(music);
 
   },
@@ -132,7 +144,8 @@ ENGINE.Game = {
     var material = new THREE.MeshBasicMaterial({ 
       color: 0x885511, side: THREE.DoubleSide 
     });
-    var road = new THREE.Mesh(geometry, material);
+
+    var road = new THREE.Mesh(geometry, material);    
     road.rotation.x = Math.PI / 2;
     this.scene.add(road);
 

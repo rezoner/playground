@@ -4,7 +4,7 @@
 
 ## Getting started
 
-This crash course requires [playground with default renderer](https://github.com/rezoner/playground/blob/master/build/playground.js)  built on top of __&lt;Canvas&gt;__ element.
+This crash course requires [playground.js with default renderer](https://github.com/rezoner/playground/tree/master/build)  built on top of __&lt;Canvas&gt;__ element.
 
 Or you can read about [integration with Three.js](<?=cms::url('three')?>)
 

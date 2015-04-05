@@ -12,11 +12,20 @@
 
     canvas { image-rendering: pixelated;}
 
+    #psst { position: absolute; z-index: 2; bottom: 8px; right: 8px; padding: 8px; background: rgba(0,0,0,0.5); color: #eee; font-size: 18px }
+    #music { position: absolute; z-index: 2; bottom: 8px; left: 8px; padding: 8px; background: rgba(0,0,0,0.5); color: #eee; font-size: 18px }
+
+    a { color: #c80 }
+
   </style>
 
 </head>
 
 <body>
+
+
+  <div id="psst">psst.... do you want to make something similar? <a href="http://playgroundjs.com/three">Look there</a></div>
+  <div id="music">or is it the tune you are looking for? <a href="https://soundcloud.com/rezoner/piradice-english-armada">English Armada</a></div>
 
   <script src="../common/three.min.js"></script>
   <script src="../common/Utils.js"></script>

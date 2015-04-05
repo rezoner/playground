@@ -8,6 +8,12 @@ Playground.js is a game oriented javascript framework that gives you access to e
 
 <?=cms::compose('documents/intro/intro-example.js')?>
 
+[download](<?=cms::url('standalone/playground.zip')?>) playground template project with &lt;canvas&gt; based renderer
+
+[download](<?=cms::url('standalone/playground-base.zip')?>) playground template without any renderer.
+
+[download](https://github.com/rezoner/playground/tree/master/build) playground alone on GitHub
+
 ## How does it look like?
 
 ```javascript
@@ -41,7 +47,7 @@ var app = new PLAYGROUND.Application({
   keydown: function(data) {
 
     /* the key has been pressed */
-    /* playground will give you human readable data key names such as
+    /* playground will give you human readable key names such as
        shift, ctrl, alt, a, b, c, 1, 2, 3 */
 
   }

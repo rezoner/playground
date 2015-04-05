@@ -1,7 +1,7 @@
 {}
 
 
-* [Home](<?=cms::url("")?>)
+* [Home](<?=cms::url("")?>) [Download](https://github.com/rezoner/playground/tree/master/build)
 
 * Introduction
   * [Getting started](<?=cms::url("intro/getting-started")?>)
