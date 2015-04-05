@@ -154,6 +154,7 @@ PLAYGROUND.Application.prototype = {
 
     if (temp.length > 1) {
       var ext = temp.pop();
+      path = temp.join(".");
     } else {
       var ext = defaultExtension;
       basename += "." + defaultExtension;
@@ -188,9 +189,9 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-//    if (this.loader.ready) {
-      if (this[event]) this[event](data);
-//    }
+    //    if (this.loader.ready) {
+    if (this[event]) this[event](data);
+    //    }
 
     if (this.state[event]) this.state[event](data);
 
@@ -371,7 +372,7 @@ PLAYGROUND.Application.prototype = {
 
   render: function() {
 
-    
+
 
   }
 
