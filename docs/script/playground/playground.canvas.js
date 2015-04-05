@@ -1,29 +1,44 @@
-PLAYGROUND.Canvas = {
+/* pure <canvas> renderer for playground
+   that obeys application size, scale and smoothing */
 
-  plugin: true,
+PLAYGROUND.Renderer = function(app) {
 
-  app: {
+  this.app = app;
 
-    create: function(app, data) {
+  app.on("create", this.create.bind(this));
+  app.on("resize", this.resize.bind(this));
 
-      app.canvas = document.createElement("canvas");
-      
-      this.container.appendChild(app.canvas);
+};
 
-    },
+PLAYGROUND.Renderer.plugin = true;
 
-    resize: function(app, data) {
+PLAYGROUND.Renderer.prototype = {
 
-      var canvas = app.canvas;
+  create: function(data) {
 
-      canvas.width = app.width;
-      canvas.height = app.height;
+    this.app.canvas = document.createElement("canvas");
+    this.app.layer = this.app.canvas.getContext("2d");
 
-      canvas.canvas.style.transformOrigin = "0 0";
-      canvas.canvas.style.transform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
+  },
 
-    }
+  resize: function(data) {
 
+    var app = this.app;
+
+    app.canvas.width = app.width;
+    app.canvas.height = app.height;
+
+    app.canvas.style.transformOrigin = "0 0";
+    app.canvas.style.transform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
+        
+    /* disable interpolation for drawing context */
+    
+    app.layer.imageSmoothingEnabled = smoothing;
+
+    /* disable interpolation when scaling canvas in DOM */
+
+    app.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+    
   }
 
 };
