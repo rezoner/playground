@@ -1,63 +1,71 @@
-  PLAYGROUND.ThreeStarter = function(app) {
+/* 
+  a very basic three.js renderer
 
-    this.app = app;
+  one renderer per application
+  camera and scene for every state
+  
+*/
 
-    app.on("create", this.create.bind(this));
-    app.on("resize", this.resize.bind(this));
-    app.on("createstate", this.createstate.bind(this));
+PLAYGROUND.ThreeStarter = function(app) {
 
-  };
+  this.app = app;
 
-  PLAYGROUND.ThreeStarter.plugin = true;
+  app.on("create", this.create.bind(this));
+  app.on("resize", this.resize.bind(this));
+  app.on("createstate", this.createstate.bind(this));
 
-  PLAYGROUND.ThreeStarter.prototype = {
+};
 
-    create: function() {
+PLAYGROUND.ThreeStarter.plugin = true;
 
-      this.app.renderer = new THREE.WebGLRenderer({
-        antialiasing: true
-      });
+PLAYGROUND.ThreeStarter.prototype = {
 
-      document.body.appendChild(this.app.renderer.domElement);
+  create: function() {
 
-    },
+    this.app.renderer = new THREE.WebGLRenderer({
+      antialiasing: true
+    });
 
-    resize: function() {
+    document.body.appendChild(this.app.renderer.domElement);
 
-      this.app.renderer.setSize(this.app.width / this.app.pixelate, this.app.height / this.app.pixelate);
-      this.app.renderer.domElement.style.width = window.innerWidth + "px";
-      this.app.renderer.domElement.style.height = window.innerHeight + "px";
+  },
 
-      this.updateViewport(this.app.state);
+  resize: function() {
 
-    },
+    this.app.renderer.setSize(this.app.width / this.app.pixelate, this.app.height / this.app.pixelate);
+    this.app.renderer.domElement.style.width = window.innerWidth + "px";
+    this.app.renderer.domElement.style.height = window.innerHeight + "px";
 
-    updateViewport: function(state) {
+    this.updateViewport(this.app.state);
 
-      state.camera.aspect = this.app.width / this.app.height;
-      state.camera.updateProjectionMatrix();
+  },
 
-    },
+  updateViewport: function(state) {
+
+    state.camera.aspect = this.app.width / this.app.height;
+    state.camera.updateProjectionMatrix();
+
+  },
 
 
-    createstate: function(data) {
+  createstate: function(data) {
 
-      var state = data.state;
+    var state = data.state;
 
-      state.scene = new THREE.Scene();
+    state.scene = new THREE.Scene();
 
-      state.camera = new THREE.PerspectiveCamera(75, 0, 0.1, 1000);
+    state.camera = new THREE.PerspectiveCamera(75, 0, 0.1, 1000);
 
-      state.camera.position.z = 5;
+    state.camera.position.z = 5;
 
-      this.updateViewport(state);
+    this.updateViewport(state);
 
-    },
+  },
 
-    render: function() {
+  render: function() {
 
-      // app.renderer.render(this.scene, this.camera);
+    app.renderer.render(this.scene, this.camera);
 
-    }
+  }
 
-  };
+};
