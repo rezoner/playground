@@ -1,6 +1,6 @@
 # Plugins
 
-Naming conentions:
+Naming conventions:
 
 file: `playground.pluginname.js`
 
@@ -21,6 +21,8 @@ PLAYGROUND.Application.prototype.getRandomNumber = function(max) {
 ## Automated plugins
 
 Plugins are constructors that get automatically instantiated at application creation time. Plugins are event driven - in particular they listen to PLAYGROUND.Application events.
+
+*TODO: provide list of events*
 
 ## Basic plugin
 
