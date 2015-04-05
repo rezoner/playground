@@ -1,3 +1,5 @@
+/* scanlines plugin for playground's default renderer */
+
 PLAYGROUND.Scanlines = function(app) {
 
   this.app = app;
