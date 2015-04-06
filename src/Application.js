@@ -306,9 +306,14 @@ PLAYGROUND.Application.prototype = {
 
         this.loader.add(entry.url);
 
-        request.onload = function() {
+        request.onload = function(evt) {
+          var xhr = evt.target;
 
           console.log("ENTRY", entry);
+
+          if (xhr.status !== 200) {
+            return app.loader.error(entry.url);
+          }
 
           if (entry.ext === "json") {
             app.data[entry.key] = JSON.parse(this.responseText);
