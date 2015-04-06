@@ -45,7 +45,7 @@ h3 { color: #aaa; border-bottom: 2px solid #444; font-size: 22px;}
 
 a { text-decoration: none; padding: 4px; color: #fff; }
 a:visited { color: #fff;}
-a:hover { color: #fff;}
+a:hover { color: #fff; text-decoration: underline;}
 
 #content { width: 800px; margin-left: 340px; }
 

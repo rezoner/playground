@@ -55,6 +55,6 @@ run
 });
 ```
 
-Read more about [Mouse and Touch](http://localhost/playground/docs/playground-mouse)
+Read more about [Mouse and Touch](<?=cms::url('playground-mouse')?>)
 
-Read more about [Keyboard](http://localhost/playground/docs/playground-keyboard)
+Read more about [Keyboard](<?=cms::url('playground-keyboard')?>)
