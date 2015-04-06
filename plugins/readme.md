@@ -166,7 +166,7 @@ Regarding `this.paths.base` the value of entry will be as following:
 }
 ```
 
-Because in playground user can override it and use folders to group keys.
+Another example with more complex key provided by user.
 
 ```javascript
 var entry = this.getAssetEntry("candies/red.jpg", "images", "png");
