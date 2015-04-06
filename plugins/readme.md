@@ -89,7 +89,7 @@ playground({
 });
 ```
 
-First of all you must obey user's preference of assets path. To do so you can utilize 
+First of all you should (must) obey user's preference of assets path. To do so you can utilize 
 
 ```javascript
 this.getAssetEntry(key, folder, defaultExtension);
@@ -135,16 +135,6 @@ PLAYGROUND.Application.prototype.loadImage = function(name) {
 
 ## getAssetEntry
 
-At first it might look like unnecessary overhead but getAssetPath takes a lot of work from you and introduces consistency in assets naming.
-
-Consider that user can change prefered folder for assets by overriding `this.paths.base`. Also he may want to load a different extension than default:
-
-Consider `soldier.png`, `soldier.jpg` for both the key is `this.images.soldier`
-
-At least user may want to group their assets `units/tank` or `units/tank.png`
-
-Without `getAssetPath` you would have to manage all these cases by yourself.
-
 Let's see some examples:
 
 ```javascript
@@ -156,11 +146,11 @@ Regarding `this.paths.base` the value of entry will be as following:
 ```javascript
 {
 
-  /* the key that you should use to store the asset */
+  /* normalized key that you should use to store the asset */
 
   key: "candy",
 
-  /* by a rule of thumb just use to url to load file */
+  /* by a rule of thumb is to use the url to load a file */
 
   url: "images/candy.png",
 
@@ -169,9 +159,10 @@ Regarding `this.paths.base` the value of entry will be as following:
 
   path: "images/candy",
 
-  /* extension dedicted from key vs defaultExtension */
+  /* extension matched from key - otherwise defaultExtension */
 
   ext: "png"
+
 }
 ```
 
@@ -183,16 +174,16 @@ var entry = this.getAssetEntry("candies/red.jpg", "images", "png");
 
 ```javascript
 {
-  key: "sweets/red",
-  url: "images/sweets/red.jpg",
-  path: "images/sweets/red",
+  key: "candies/red",
+  url: "images/candies/red.jpg",
+  path: "images/candies/red",
   ext: "jpg"
 }
 ```
 
 ## TODO
 
-* Define a convention for providing user-desired configs for plugins. For both state and application.
+* Establish a convention for providing user-desired configs for plugins. For both state and application.
 
 For example (a config in state):
 
@@ -205,8 +196,6 @@ ENGINE.Game = {
 
 };
 ```
-
-For global Usage:
  
 * Way to describe dependancies (no no package managers, just verbal information for end-user)
 * Resolve conflicts - for example two renderers make no sense
