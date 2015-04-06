@@ -1203,10 +1203,9 @@ PLAYGROUND.Application.prototype = {
 
         this.loader.add(entry.url);
 
-        request.onload = function(evt) {
-          var xhr = evt.target;
+        request.onload = function(event) {
 
-          console.log("ENTRY", entry);
+          var xhr = event.target;
 
           if (xhr.status !== 200) {
             return app.loader.error(entry.url);
@@ -1219,6 +1218,7 @@ PLAYGROUND.Application.prototype = {
           }
 
           app.loader.success(entry.url);
+        
         }
 
         request.send();
