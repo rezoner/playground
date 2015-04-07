@@ -19,7 +19,8 @@
       "threejs", 
       "webgl",
       "playground",
-      "framework"
+      "framework",
+      "modules"
     ],
     "license": "MIT",
     "ignore": [
