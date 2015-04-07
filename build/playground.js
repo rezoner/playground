@@ -262,7 +262,6 @@ window.Whammy = function() {
     toWebM: h
   }
 }();
-
 /*     
 
   Ease 1.0

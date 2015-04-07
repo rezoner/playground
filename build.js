@@ -55,6 +55,3 @@ for (var key in builds) {
   output.to("build/" + key);
 
 }
-
-cp("-f", "build/playground.js", "docs/script/playground.js");
-cp("-f", "build/playground-base.js", "docs/script/playground-base.js");
