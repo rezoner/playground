@@ -1,6 +1,0 @@
-{
-
-}
-
-# Playground - assets
-

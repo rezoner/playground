@@ -58,14 +58,3 @@ for (var key in builds) {
 
 cp("-f", "build/playground.js", "docs/script/playground.js");
 cp("-f", "build/playground-base.js", "docs/script/playground-base.js");
-cp("-fR", "plugins/", "docs/script/playground/");
-
-cp("-f", "build/playground.js", "docs/standalone/playground/script/lib/playground.js");
-cp("-f", "build/playground-base.js", "docs/standalone/playground-base/script/lib/playground.js");
-
-var prevDir = pwd();
-cd("docs/standalone/");
-exec("zip -r playground.zip playground/*");
-exec("zip -r playground-base.zip playground-base/*");
-cd(prevDir);
-
