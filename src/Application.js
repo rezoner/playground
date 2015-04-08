@@ -106,8 +106,6 @@ PLAYGROUND.Application = function(args) {
     but forbid rendering some unexisting images
   */
 
-  app.firstBatch = true;
-
   this.loader.once("ready", function() {
 
     app.firstBatch = false;
@@ -131,6 +129,8 @@ PLAYGROUND.Application = function(args) {
     /* game loop */
 
     PLAYGROUND.GameLoop(app);
+
+    app.firstBatch = true;
 
   });
 
