@@ -133,6 +133,8 @@ PLAYGROUND.Application = function(args) {
       app.setState(PLAYGROUND.DefaultState);
 
       app.emitLocalEvent("ready");
+      app.handleResize();
+      
 
     });
 
