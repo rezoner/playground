@@ -185,7 +185,7 @@ PLAYGROUND.Mouse.prototype = {
           absDeltaXY = 0,
           fn;
 
-        event.type = "mousewheel";
+        orgEvent.type = "mousewheel";
 
         // Old school scrollwheel delta
         if (orgEvent.wheelDelta) {
@@ -216,7 +216,7 @@ PLAYGROUND.Mouse.prototype = {
 
         callback(self.mousewheelEvent);
 
-        event.preventDefault();
+        orgEvent.preventDefault();
 
       }, 40), false);
     }

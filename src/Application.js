@@ -100,7 +100,17 @@ PLAYGROUND.Application = function(args) {
 
   this.loadFoo(0.5);
 
+  /* 
+    if we are using loader for the very first time
+    events should only go through states to allow loadingScreen
+    but forbid rendering some unexisting images
+  */
+
+  app.firstBatch = true;
+
   this.loader.once("ready", function() {
+
+    app.firstBatch = false;
 
     app.setState(PLAYGROUND.DefaultState);
 
@@ -177,7 +187,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if (this[event]) this[event](data);
+    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
 
   },
 
@@ -189,9 +199,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    //    if (this.loader.ready) {
-    if (this[event]) this[event](data);
-    //    }
+    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
 
     if (this.state[event]) this.state[event](data);
 
@@ -321,7 +329,7 @@ PLAYGROUND.Application.prototype = {
           }
 
           app.loader.success(entry.url);
-        
+
         }
 
         request.send();

@@ -14,7 +14,6 @@ PLAYGROUND.Transitions.plugin = true;
 
 PLAYGROUND.Transitions.prototype = {
 
-
   enterstate: function(data) {
 
     this.screenshot = this.app.layer.cache();

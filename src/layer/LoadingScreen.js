@@ -14,10 +14,11 @@ PLAYGROUND.LoadingScreen = {
 
     this.logo.src = this.logoRaw;
 
-    this.background = "#000";
+    this.background = "#272822";
+    this.app.container.style.background = "#272822";
 
     if (window.getComputedStyle) {
-      this.background = window.getComputedStyle(document.body).backgroundColor || "#000";
+      // this.background = window.getComputedStyle(document.body).backgroundColor || "#000";
     }
 
 
@@ -68,9 +69,8 @@ PLAYGROUND.LoadingScreen = {
     this.app.layer.fillStyle("#fff");
 
     this.app.layer.save();
-
-    this.app.layer.globalCompositeOperation("lighter");
     this.app.layer.align(0.5, 0.5);
+    this.app.layer.globalCompositeOperation("lighter");
     this.app.layer.drawImage(this.logo, this.app.center.x, this.app.center.y);
 
     var w = this.current * this.logo.width;

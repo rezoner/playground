@@ -15,6 +15,11 @@ PLAYGROUND.Renderer.prototype = {
 
     this.app.layer = cq().appendTo(this.app.container);
 
+    if (!this.app.customContainer) {
+      this.app.container.style.margin = "0px";
+      this.app.container.style.overflow = "hidden";
+    }
+
   },
 
   resize: function(data) {

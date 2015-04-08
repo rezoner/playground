@@ -996,7 +996,17 @@ PLAYGROUND.Application = function(args) {
 
   this.loadFoo(0.5);
 
+  /* 
+    if we are using loader for the very first time
+    events should only go through states to allow loadingScreen
+    but forbid rendering some unexisting images
+  */
+
+  app.firstBatch = true;
+
   this.loader.once("ready", function() {
+
+    app.firstBatch = false;
 
     app.setState(PLAYGROUND.DefaultState);
 
@@ -1073,7 +1083,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if (this[event]) this[event](data);
+    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
 
   },
 
@@ -1085,9 +1095,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    //    if (this.loader.ready) {
-    if (this[event]) this[event](data);
-    //    }
+    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
 
     if (this.state[event]) this.state[event](data);
 
@@ -1217,7 +1225,7 @@ PLAYGROUND.Application.prototype = {
           }
 
           app.loader.success(entry.url);
-        
+
         }
 
         request.send();
@@ -1827,7 +1835,7 @@ PLAYGROUND.Mouse.prototype = {
           absDeltaXY = 0,
           fn;
 
-        event.type = "mousewheel";
+        orgEvent.type = "mousewheel";
 
         // Old school scrollwheel delta
         if (orgEvent.wheelDelta) {
@@ -1858,7 +1866,7 @@ PLAYGROUND.Mouse.prototype = {
 
         callback(self.mousewheelEvent);
 
-        event.preventDefault();
+        orgEvent.preventDefault();
 
       }, 40), false);
     }
@@ -5098,6 +5106,11 @@ PLAYGROUND.Renderer.prototype = {
 
     this.app.layer = cq().appendTo(this.app.container);
 
+    if (!this.app.customContainer) {
+      this.app.container.style.margin = "0px";
+      this.app.container.style.overflow = "hidden";
+    }
+
   },
 
   resize: function(data) {
@@ -5134,7 +5147,6 @@ PLAYGROUND.Transitions = function(app) {
 PLAYGROUND.Transitions.plugin = true;
 
 PLAYGROUND.Transitions.prototype = {
-
 
   enterstate: function(data) {
 
@@ -5219,10 +5231,11 @@ PLAYGROUND.LoadingScreen = {
 
     this.logo.src = this.logoRaw;
 
-    this.background = "#000";
+    this.background = "#272822";
+    this.app.container.style.background = "#272822";
 
     if (window.getComputedStyle) {
-      this.background = window.getComputedStyle(document.body).backgroundColor || "#000";
+      // this.background = window.getComputedStyle(document.body).backgroundColor || "#000";
     }
 
 
@@ -5273,9 +5286,8 @@ PLAYGROUND.LoadingScreen = {
     this.app.layer.fillStyle("#fff");
 
     this.app.layer.save();
-
-    this.app.layer.globalCompositeOperation("lighter");
     this.app.layer.align(0.5, 0.5);
+    this.app.layer.globalCompositeOperation("lighter");
     this.app.layer.drawImage(this.logo, this.app.center.x, this.app.center.y);
 
     var w = this.current * this.logo.width;
