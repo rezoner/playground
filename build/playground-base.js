@@ -1060,6 +1060,11 @@ PLAYGROUND.Application.prototype = {
 
   getAssetEntry: function(path, folder, defaultExtension) {
 
+    /* translate folder according to user provided paths 
+       or leave as is */
+
+    var folder = this.paths[folder] || (folder + "/");
+
     var fileinfo = path.match(/(.*)\..*/);
     var key = fileinfo ? fileinfo[1] : path;
 
@@ -1074,12 +1079,10 @@ PLAYGROUND.Application.prototype = {
       basename += "." + defaultExtension;
     }
 
-
-
     return {
       key: key,
-      url: this.paths.base + folder + "/" + basename,
-      path: this.paths.base + folder + "/" + path,
+      url: this.paths.base + folder + basename,
+      path: this.paths.base + folder + path,
       ext: ext
     };
 
@@ -3072,7 +3075,6 @@ PLAYGROUND.LoadingScreen = {
     this.wrapper.style.zIndex = 100;
 
     this.app.container.appendChild(this.wrapper);
-
 
     this.progressBar = document.createElement("div");
     this.progressBar.style.width = "0%";

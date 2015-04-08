@@ -74,7 +74,6 @@ PLAYGROUND.LoadingScreen = {
 
     this.app.container.appendChild(this.wrapper);
 
-
     this.progressBar = document.createElement("div");
     this.progressBar.style.width = "0%";
     this.progressBar.style.height = this.height + "px";
