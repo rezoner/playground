@@ -43,14 +43,10 @@ PLAYGROUND.LoadingScreen = {
 
   step: function(delta) {
 
-    if (!this.app.loader.ready) {
-
-      this.current = this.current + Math.abs(this.app.loader.progress - this.current) * delta;
-
-    } else {
-
+    if (this.locked) {
       if (this.animation.finished) this.locked = false;
-
+    } else {
+      this.current = this.current + Math.abs(this.app.loader.progress - this.current) * delta;
     }
 
   },

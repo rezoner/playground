@@ -72,6 +72,20 @@ PLAYGROUND.Application = function(args) {
 
   PLAYGROUND.Sound(this);
 
+  /* window resize */
+
+  window.addEventListener("resize", this.handleResize.bind(this));
+
+  /* assets containers */
+
+  this.images = {};
+  this.atlases = {};
+  this.data = {};
+
+  this.loader = new PLAYGROUND.Loader(this);
+
+  this.loadFoo(0.25);
+
   /* create plugins in the same way */
 
   this.plugins = [];
@@ -84,55 +98,49 @@ PLAYGROUND.Application = function(args) {
 
   }
 
-  /* window resize */
-
-  window.addEventListener("resize", this.handleResize.bind(this));
-
-  /* assets containers */
-
-  this.images = {};
-  this.atlases = {};
-  this.data = {};
-
   /* flow */
 
-  this.loader = new PLAYGROUND.Loader(this);
+  this.emitGlobalEvent("preload");
 
-  this.loadFoo(0.5);
+  this.firstBatch = true;
 
-  /* 
-    if we are using loader for the very first time
-    events should only go through states to allow loadingScreen
-    but forbid rendering some unexisting images
-  */
+  function onPreloadEnd() {
 
-  this.loader.once("ready", function() {
+    app.loadFoo(0.25);
 
-    app.firstBatch = false;
+    /* run everything in the next frame */
 
-    app.setState(PLAYGROUND.DefaultState);
+    setTimeout(function() {
 
-    app.emitLocalEvent("ready");
+      app.emitLocalEvent("create");
 
-  });
+      app.setState(PLAYGROUND.DefaultState);
+      app.handleResize();
+      app.setState(PLAYGROUND.LoadingScreen);
 
-  /* run everything in the next frame */
+      /* game loop */
 
-  setTimeout(function() {
+      PLAYGROUND.GameLoop(app);
 
-    app.emitLocalEvent("create");
+    });
 
-    app.setState(PLAYGROUND.DefaultState);
-    app.handleResize();
-    app.setState(PLAYGROUND.LoadingScreen);
+    /* stage proper loading step */
 
-    /* game loop */
+    app.loader.once("ready", function() {
 
-    PLAYGROUND.GameLoop(app);
+      app.firstBatch = false;
 
-    app.firstBatch = true;
+      app.setState(PLAYGROUND.DefaultState);
 
-  });
+      app.emitLocalEvent("ready");
+
+    });
+
+
+  };
+
+
+  this.loader.once("ready", onPreloadEnd);
 
 };
 
