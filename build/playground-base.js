@@ -1674,7 +1674,7 @@ PLAYGROUND.Mouse = function(app, element) {
   this.buttons = {};
 
   this.preventContextMenu = true;
-  
+
   this.mousemoveEvent = {};
   this.mousedownEvent = {};
   this.mouseupEvent = {};
@@ -1701,6 +1701,8 @@ PLAYGROUND.Mouse = function(app, element) {
     document.mozExitPointerLock ||
     document.webkitExitPointerLock;
 
+
+  this.handleResize();
 };
 
 PLAYGROUND.Mouse.prototype = {
