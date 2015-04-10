@@ -1,4 +1,4 @@
-# playground
+# Playground.js
 
 Out-of-box access to essentials like mouse, keyboard, sound and well designed architecture that you can expand to your needs.
 
