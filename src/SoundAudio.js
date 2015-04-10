@@ -5,7 +5,7 @@ PLAYGROUND.SoundAudio = function(app) {
   var canPlayMp3 = (new Audio).canPlayType("audio/mp3");
   var canPlayOgg = (new Audio).canPlayType('audio/ogg; codecs="vorbis"');
 
-  if (this.app.preferedAudioFormat = "mp3") {
+  if (this.app.preferedAudioFormat === "mp3") {
 
     if (canPlayMp3) this.audioFormat = "mp3";
     else this.audioFormat = "ogg";

@@ -134,7 +134,7 @@ PLAYGROUND.Application = function(args) {
 
       app.emitLocalEvent("ready");
       app.handleResize();
-      
+
 
     });
 
@@ -212,7 +212,11 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
+    if ((!this.firstBatch || this.loader.ready) && this.event) this.event(event, data);
+
     if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
+
+    if (this.state.event) this.state.event(event, data);
 
     if (this.state[event]) this.state[event](data);
 

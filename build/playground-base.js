@@ -1030,7 +1030,7 @@ PLAYGROUND.Application = function(args) {
 
       app.emitLocalEvent("ready");
       app.handleResize();
-      
+
 
     });
 
@@ -1108,7 +1108,11 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
+    if ((!this.firstBatch || this.loader.ready) && this.event) this.event(event, data);
+
     if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
+
+    if (this.state.event) this.state.event(event, data);
 
     if (this.state[event]) this.state[event](data);
 
@@ -2243,7 +2247,7 @@ PLAYGROUND.SoundAudio = function(app) {
   var canPlayMp3 = (new Audio).canPlayType("audio/mp3");
   var canPlayOgg = (new Audio).canPlayType('audio/ogg; codecs="vorbis"');
 
-  if (this.app.preferedAudioFormat = "mp3") {
+  if (this.app.preferedAudioFormat === "mp3") {
 
     if (canPlayMp3) this.audioFormat = "mp3";
     else this.audioFormat = "ogg";
