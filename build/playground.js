@@ -3108,7 +3108,7 @@ PLAYGROUND.LoadingScreen = {
 };
 /*     
 
-  Canvas Query 1.24
+  Canvas Query r2
   
   http://canvasquery.com
   
@@ -3663,6 +3663,19 @@ PLAYGROUND.LoadingScreen = {
 
     },
 
+    strokeRect: function() {
+
+      if (this.alignX || this.alignY) {
+        arguments[0] -= arguments[2] * this.alignX | 0;
+        arguments[1] -= arguments[3] * this.alignY | 0;
+      }
+
+      cq.fastApply(this.context.strokeRect, this.context, arguments);
+
+      return this;
+
+    },
+
     drawImage: function() {
 
       if (this.alignX || this.alignY) {
@@ -3800,7 +3813,6 @@ PLAYGROUND.LoadingScreen = {
 
       return this;
     },
-
 
     textWithBackground: function(text, x, y, background, padding) {
       var w = this.measureText(text).width;
