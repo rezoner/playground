@@ -1,30 +1,30 @@
 # Plugins
 
-Naming conventions:
-
-file: `playground.pluginname.js`
-
-code: `PLAYGROUND.PluginName = function() { }`
-
-## Extending application functionality
-
-If you simply want to add a functionality that works the same way as `this.tween` or `this.loadImage` (application wise) just extend its prototype.
-
-```javascript
-PLAYGROUND.Application.prototype.getRandomNumber = function(max) {
-
-  return Math.random() * max;
-
-};
-```
-
-## Automated plugins
-
-Plugins are constructors that get automatically instantiated at application creation time. Plugins are event driven - in particular they listen to PLAYGROUND.Application events.
-
-*TODO: provide list of events*
+Plugins are functions called when PLAYGROUND.Aplication is instantiated.
 
 ## Basic plugin
+
+```javascript
+PLAYGROUND.MyPlugin = function(app) {
+
+  /* and that's it */
+  /* you get the newly instantiated application 
+     and you can listen to some events */
+
+  app.on("postrender", function() { });
+  app.on("enterstate", function() { });
+
+};
+
+/* you have to tell playground that this function is a plugin 
+   otherwise it will not get called */
+
+PLAYGROUND.MyPlugin.plugin = true;
+```
+
+## In fact plugins are constructors
+
+What playground really does is `new PLAYGROUND.MyPlugin` so you can perform some encapsulation without further noise.
 
 ```javascript
 PLAYGROUND.MyPlugin = function(app) {
@@ -38,11 +38,7 @@ PLAYGROUND.MyPlugin = function(app) {
   
 };
 
-/* tell playground to automatically call new PLAYGROUND.MyPlugin when application is being created */
-
 PLAYGROUND.MyPlugin.plugin = true;
-
-/* put the functionality in prototype */
 
 PLAYGROUND.MyPlugin.prototype = {
 
@@ -51,6 +47,10 @@ PLAYGROUND.MyPlugin.prototype = {
   enterstate: function(data) {
 
     data.state.bunny = new MYLIBRARY.Bunny;
+
+    /* let's forget the bunny - maybe you are using THREE.js
+       and you want a separate camera for each state? 
+       This is where you can automate it */
 
   },
 
@@ -65,9 +65,36 @@ PLAYGROUND.MyPlugin.prototype = {
 };
 ```
 
+## Extending Application
+
+If you want to extend the application itself - for example provide a new loader `this.loadMyCoolThing` extend its prototype.
+
+```javascript
+PLAYGROUND.Application.prototoype.loadMyCoolThing = function() {
+
+}
+```
+
 ## Integrating loaders
 
-Unfortunately every library/renderer has its own objects and loaders that you will need to adapt to playground's workflow (if you care about consistency - that is).
+Integration with playground's loader is very simple.
+
+```
+
+/* tell the loader that something has been added 
+   the loader doesn't care what it is */
+
+this.loader.add();
+
+/* tell the loader that your thing has been sucessfully loaded */
+
+this.load.success();
+
+/* tell the loader that your thing has failed */
+
+this.loader.error("provide some meaningful error to the user");
+
+```
 
 Let's assume there is no `loadImage` method and we want to add one that will be used this way:
 
@@ -89,13 +116,7 @@ playground({
 });
 ```
 
-First of all you should (must) obey user's preference of assets path. To do so you can utilize 
-
-```javascript
-this.getAssetEntry(key, folder, defaultExtension);
-```
-
-That I will explained after the example.
+And here we are adding loadImage method to PLAYGROUND.Application instances:
 
 ```javascript
 PLAYGROUND.Application.prototype.loadImage = function(name) {
@@ -135,6 +156,12 @@ PLAYGROUND.Application.prototype.loadImage = function(name) {
 
 ## getAssetEntry
 
+Is a helper for resolving path to asset with regards to what user provided in paths: { } variable.
+
+```javascript
+var entry = this.getAssetEntry(path, folder, defaultExtension);
+```
+
 Let's see some examples:
 
 ```javascript
@@ -146,7 +173,7 @@ Regarding `this.paths.base` the value of entry will be as following:
 ```javascript
 {
 
-  /* normalized key that you should use to store the asset */
+  /* normalized key that you can use to store the asset */
 
   key: "candy",
 
@@ -181,6 +208,16 @@ var entry = this.getAssetEntry("candies/red.jpg", "images", "png");
 }
 ```
 
+## Naming conventions
+
+Let filename reflect the variable you provide
+
+file: `playground.PluginName.js`
+code: `PLAYGROUND.PluginName = function() { }`
+
+file: `playground.pluginName.js`
+code: `PLAYGROUND.pluginName = function() { }`
+
 ## TODO
 
 * Establish a convention for providing user-desired configs for plugins. For both state and application.
@@ -200,3 +237,5 @@ ENGINE.Game = {
 * Way to describe dependancies (no no package managers, just verbal information for end-user)
 * Resolve conflicts - for example two renderers make no sense
 * Resolve naming conflicts - everyone wants to call his plugin PLAYGROUND.Renderer
+## Naming conventions 
+
