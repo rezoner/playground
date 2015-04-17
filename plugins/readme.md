@@ -79,8 +79,7 @@ PLAYGROUND.Application.prototoype.loadMyCoolThing = function() {
 
 Integration with playground's loader is very simple.
 
-```
-
+```javascript
 /* tell the loader that something has been added 
    the loader doesn't care what it is */
 
@@ -93,7 +92,6 @@ this.load.success();
 /* tell the loader that your thing has failed */
 
 this.loader.error("provide some meaningful error to the user");
-
 ```
 
 Let's assume there is no `loadImage` method and we want to add one that will be used this way:
