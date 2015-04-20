@@ -164,6 +164,12 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+  getPath: function(to) {
+
+    return this.paths.base + (this.paths[to] || (to + "/"));
+
+  },
+
   getAssetEntry: function(path, folder, defaultExtension) {
 
     /* translate folder according to user provided paths 
@@ -293,6 +299,45 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+  /* 
+    request a file over http 
+    it shall be later an abstraction using 'fs' in node-webkit
+
+    returns a promise
+  */
+
+  request: function(url) {
+
+    function promise(success, fail) {
+
+      var request = new XMLHttpRequest();
+
+      var app = this;
+
+      request.open("GET", url, true);
+
+      request.onload = function(event) {
+
+        var xhr = event.target;
+
+        if (xhr.status !== 200 && xhr.status !== 0) {
+
+          return fail(new Error("Failed to get " + url));
+
+        }
+
+        success(xhr);
+
+      }
+
+      request.send();
+
+    }
+
+    return new Promise(promise);
+
+  },
+
   /* imaginary timeout to delay loading */
 
   loadFoo: function(timeout) {
@@ -323,36 +368,30 @@ PLAYGROUND.Application.prototype = {
 
         var entry = this.getAssetEntry(arg, "data", "json");
 
-        var request = new XMLHttpRequest();
-
         var app = this;
 
-        request.open("GET", entry.url, true);
+        this.loader.add();
 
-        this.loader.add(entry.url);
+        this.request(entry.url).then(processData);
 
-        request.onload = function(event) {
-
-          var xhr = event.target;
-
-          if (xhr.status !== 200) {
-            return app.loader.error(entry.url);
-          }
+        function processData(request) {
 
           if (entry.ext === "json") {
-            app.data[entry.key] = JSON.parse(this.responseText);
+            app.data[entry.key] = JSON.parse(request.responseText);
           } else {
-            app.data[entry.key] = this.responseText;
+            app.data[entry.key] = request.responseText;
           }
 
           app.loader.success(entry.url);
 
         }
 
-        request.send();
+        return app.loader.error(entry.url);
 
       }
+      
     }
+  
   },
 
   /* images */

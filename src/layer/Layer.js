@@ -33,6 +33,9 @@ PLAYGROUND.Renderer.prototype = {
 
     layer.canvas.style.transformOrigin = "0 0";
     layer.canvas.style.transform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
+    layer.canvas.style.transformStyle = "preserve-3d";
+    layer.canvas.style.webkitTransformStyle = "preserve-3d";
+    
 
     layer.smoothing = this.app.smoothing;
     layer.update();
