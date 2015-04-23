@@ -28,33 +28,33 @@ PLAYGROUND.Application = function(args) {
 
   /* events */
 
-  this.emitLocalEvent = this.emitLocalEvent.bind(this);
-  this.emitGlobalEvent = this.emitGlobalEvent.bind(this);
+  // this.emitLocalEvent = this.emitLocalEvent.bind(this);
+  // this.emitGlobalEvent = this.emitGlobalEvent.bind(this);
 
   /* states manager */
 
   this.states = new PLAYGROUND.States(this);
-  this.states.on("event", this.emitLocalEvent);
+  this.states.on("event", this.emitLocalEvent, this);
 
   /* mouse */
 
   this.mouse = new PLAYGROUND.Mouse(this, this.container);
-  this.mouse.on("event", this.emitGlobalEvent);
+  this.mouse.on("event", this.emitGlobalEvent, this);
 
   /* touch */
 
   this.touch = new PLAYGROUND.Touch(this, this.container);
-  this.touch.on("event", this.emitGlobalEvent);
+  this.touch.on("event", this.emitGlobalEvent, this);
 
   /* keyboard */
 
   this.keyboard = new PLAYGROUND.Keyboard();
-  this.keyboard.on("event", this.emitGlobalEvent);
+  this.keyboard.on("event", this.emitGlobalEvent, this);
 
   /* gamepads */
 
   this.gamepads = new PLAYGROUND.Gamepads(this);
-  this.gamepads.on("event", this.emitGlobalEvent);
+  this.gamepads.on("event", this.emitGlobalEvent, this);
 
   /* tweens */
 

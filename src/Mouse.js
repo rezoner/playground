@@ -104,10 +104,11 @@ PLAYGROUND.Mouse.prototype = {
 
     if (this.app.mouseToTouch) {
       //      if (this.left) {
-      this.mousemoveEvent.identifier = this.app.keyboard.keys.ctrl ? 1 : 0;
+      this.mousemoveEvent.id = this.mousemoveEvent.identifier = 255;
       this.trigger("touchmove", this.mousemoveEvent);
       //      }
     } else {
+      this.mousemoveEvent.id = this.mousemoveEvent.identifier = 255;
       this.trigger("mousemove", this.mousemoveEvent);
     }
 
@@ -124,8 +125,9 @@ PLAYGROUND.Mouse.prototype = {
 
     this[buttonName] = true;
 
+    this.mousedownEvent.id = this.mousedownEvent.identifier = 255;
+
     if (this.app.mouseToTouch) {
-      this.mousedownEvent.identifier = this.app.keyboard.keys.ctrl ? 1 : 0;
       this.trigger("touchmove", this.mousedownEvent);
       this.trigger("touchstart", this.mousedownEvent);
     } else {
@@ -145,12 +147,18 @@ PLAYGROUND.Mouse.prototype = {
 
     this[buttonName] = false;
 
+    this.mouseupEvent.id = this.mouseupEvent.identifier = 255;
+
     if (this.app.mouseToTouch) {
-      this.mouseupEvent.identifier = this.app.keyboard.keys.ctrl ? 1 : 0;
+
       this.trigger("touchend", this.mouseupEvent);
+
     } else {
+
       this.trigger("mouseup", this.mouseupEvent);
+
     }
+    
   },
 
   mousewheel: function(e) {
@@ -159,7 +167,7 @@ PLAYGROUND.Mouse.prototype = {
     this.mousewheelEvent.y = this.mousemoveEvent.y;
     this.mousewheelEvent.button = ["none", "left", "middle", "right"][e.button];
     this.mousewheelEvent.original = e;
-    this.mousewheelEvent.identifier = 0;
+    this.mousewheelEvent.id = this.mousewheelEvent.identifier = 255;
 
     this[e.button] = false;
 

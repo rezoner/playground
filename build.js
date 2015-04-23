@@ -16,6 +16,7 @@ var files = [
   "src/GameLoop.js",
   "src/Gamepads.js",
   "src/Keyboard.js",
+  "src/Pointer.js",
   "src/Loader.js",
   "src/Mouse.js",
   "src/Sound.js",
@@ -50,9 +51,17 @@ for (var key in builds) {
 
   var extra = builds[key];
 
-  var output = cat(files.concat(extra));
-  
+  var all = files.concat(extra)
+  var output = "";
+
+  for (var i = 0; i < all.length; i++) {
+
+
+    output += "\n\n/* file: " + all[i] + " */\n\n";
+    output += cat(all[i]);
+
+  }
+
   output.to("build/" + key);
 
 }
-

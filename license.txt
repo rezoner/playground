@@ -1,6 +1,15 @@
 /*     
-  PlaygroundJS r2
+
+  PlaygroundJS r3
+  
   http://playgroundjs.com
+  
   (c) 2012-2015 http://rezoner.net
+  
   Playground may be freely distributed under the MIT license.
+
+  latest major changes:
+
+  + pointer = mouse + touch
+
 */

@@ -1,9 +1,25 @@
+
+
+/* file: license.txt */
+
 /*     
-  PlaygroundJS r2
+
+  PlaygroundJS r3
+  
   http://playgroundjs.com
+  
   (c) 2012-2015 http://rezoner.net
+  
   Playground may be freely distributed under the MIT license.
+
+  latest major changes:
+
+  + pointer = mouse + touch
+
 */
+
+
+/* file: src/lib/Whammy.js */
 
 /* whammy - https://github.com/antimatter15/whammy */
 
@@ -262,6 +278,9 @@ window.Whammy = function() {
     toWebM: h
   }
 }();
+
+/* file: src/lib/Ease.js */
+
 /*     
 
   Ease 1.0
@@ -659,6 +678,9 @@ window.ease = ease;
 
 })();
 
+
+/* file: src/Playground.js */
+
 PLAYGROUND = {};
 
 function playground(args) {
@@ -666,6 +688,9 @@ function playground(args) {
   return new PLAYGROUND.Application(args);
 
 };
+
+/* file: src/Utils.js */
+
 PLAYGROUND.Utils = {
 
   extend: function() {
@@ -742,15 +767,18 @@ PLAYGROUND.Utils = {
 
 PLAYGROUND.Utils.ease = ease;
 
+
+/* file: src/Events.js */
+
 PLAYGROUND.Events = function() {
 
-  this.listeners = {};  
+  this.listeners = {};
 
 };
 
 PLAYGROUND.Events.prototype = {
 
-    on: function(event, callback) {
+  on: function(event, callback, context) {
 
     if (typeof event === "object") {
       var result = {};
@@ -762,28 +790,41 @@ PLAYGROUND.Events.prototype = {
 
     if (!this.listeners[event]) this.listeners[event] = [];
 
-    this.listeners[event].push(callback);
+    var listener = {
+      once: false,
+      callback: callback,
+      context: context
+    };
 
-    return callback;
+    this.listeners[event].push(listener);
+
+    return listener;
   },
 
-  once: function(event, callback) {
-    callback.once = true;
+  once: function(event, callback, context) {
 
     if (!this.listeners[event]) this.listeners[event] = [];
 
-    this.listeners[event].push(callback);
+    var listener = {
+      once: true,
+      callback: callback,
+      context: context
+    };
 
-    return callback;
+    this.listeners[event].push(listener);
+
+    return listener;
   },
 
   off: function(event, callback) {
+
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
       if (this.listeners[event][i]._remove) {
         this.listeners[event].splice(i--, 1);
         len--;
       }
     }
+
   },
 
   trigger: function(event, data) {
@@ -791,17 +832,25 @@ PLAYGROUND.Events.prototype = {
     /* if you prefer events pipe */
 
     if (this.listeners["event"]) {
+
       for (var i = 0, len = this.listeners["event"].length; i < len; i++) {
-        this.listeners["event"][i](event, data);
+
+        var listener = this.listeners["event"][i];
+
+        listener.callback.call(listener.context || this, event, data);
+
       }
+
     }
 
     /* or subscribed to single event */
 
     if (this.listeners[event]) {
       for (var i = 0, len = this.listeners[event].length; i < len; i++) {
+
         var listener = this.listeners[event][i];
-        listener.call(this, data);
+
+        listener.callback.call(listener.context || this, data);
 
         if (listener.once) {
           this.listeners[event].splice(i--, 1);
@@ -809,9 +858,12 @@ PLAYGROUND.Events.prototype = {
         }
       }
     }
+    
   }
 
 };
+
+/* file: src/States.js */
 
 PLAYGROUND.States = function(app) {
 
@@ -894,6 +946,9 @@ PLAYGROUND.States.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.States.prototype, PLAYGROUND.Events.prototype);
+
+/* file: src/Application.js */
+
 PLAYGROUND.Application = function(args) {
 
   var app = this;
@@ -924,33 +979,33 @@ PLAYGROUND.Application = function(args) {
 
   /* events */
 
-  this.emitLocalEvent = this.emitLocalEvent.bind(this);
-  this.emitGlobalEvent = this.emitGlobalEvent.bind(this);
+  // this.emitLocalEvent = this.emitLocalEvent.bind(this);
+  // this.emitGlobalEvent = this.emitGlobalEvent.bind(this);
 
   /* states manager */
 
   this.states = new PLAYGROUND.States(this);
-  this.states.on("event", this.emitLocalEvent);
+  this.states.on("event", this.emitLocalEvent, this);
 
   /* mouse */
 
   this.mouse = new PLAYGROUND.Mouse(this, this.container);
-  this.mouse.on("event", this.emitGlobalEvent);
+  this.mouse.on("event", this.emitGlobalEvent, this);
 
   /* touch */
 
   this.touch = new PLAYGROUND.Touch(this, this.container);
-  this.touch.on("event", this.emitGlobalEvent);
+  this.touch.on("event", this.emitGlobalEvent, this);
 
   /* keyboard */
 
   this.keyboard = new PLAYGROUND.Keyboard();
-  this.keyboard.on("event", this.emitGlobalEvent);
+  this.keyboard.on("event", this.emitGlobalEvent, this);
 
   /* gamepads */
 
   this.gamepads = new PLAYGROUND.Gamepads(this);
-  this.gamepads.on("event", this.emitGlobalEvent);
+  this.gamepads.on("event", this.emitGlobalEvent, this);
 
   /* tweens */
 
@@ -1344,6 +1399,9 @@ PLAYGROUND.Application.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Application.prototype, PLAYGROUND.Events.prototype);
+
+/* file: src/GameLoop.js */
+
 PLAYGROUND.GameLoop = function(app) {
 
   app.lifetime = 0;
@@ -1375,6 +1433,9 @@ PLAYGROUND.GameLoop = function(app) {
   requestAnimationFrame(step);
 
 };
+
+/* file: src/Gamepads.js */
+
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -1535,6 +1596,9 @@ PLAYGROUND.Gamepads.prototype = {
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Gamepads.prototype, PLAYGROUND.Events.prototype);
 
+
+/* file: src/Keyboard.js */
+
 PLAYGROUND.Keyboard = function() {
 
   PLAYGROUND.Events.call(this);
@@ -1645,6 +1709,109 @@ PLAYGROUND.Keyboard.prototype = {
 PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototype);
 
 
+
+/* file: src/Pointer.js */
+
+PLAYGROUND.Pointer = function(app) {
+
+  this.app = app;
+
+  app.on("touchstart", this.touchstart, this);
+  app.on("touchend", this.touchend, this);
+  app.on("touchmove", this.touchmove, this);
+
+  app.on("mousemove", this.mousemove, this);
+  app.on("mousedown", this.mousedown, this);
+  app.on("mouseup", this.mouseup, this);
+
+  this.pointers = app.pointers = {};
+
+};
+
+PLAYGROUND.Pointer.plugin = true;
+
+PLAYGROUND.Pointer.prototype = {
+
+  updatePointer: function(pointer) {
+
+    this.pointers[pointer.id] = pointer;
+
+  },
+
+  removePointer: function(pointer) {
+
+    delete this.pointers[pointer.id];
+
+  },
+
+  touchstart: function(e) {
+
+    e.touch = true;
+
+    this.updatePointer(e);
+
+    this.app.emitGlobalEvent("pointerdown", e);
+
+  },
+
+  touchend: function(e) {
+
+    e.touch = true;
+
+    this.removePointer(e);
+
+    this.app.emitGlobalEvent("pointerup", e);
+
+  },
+
+  touchmove: function(e) {
+
+    e.touch = true;
+
+    this.updatePointer(e);
+
+    this.app.emitGlobalEvent("pointermove", e);
+
+  },
+
+  mousemove: function(e) {
+
+    e.mouse = true;
+
+    this.updatePointer(e);
+
+    this.app.emitGlobalEvent("pointermove", e);
+
+  },
+
+  mousedown: function(e) {
+
+    e.mouse = true;
+
+    this.app.emitGlobalEvent("pointerdown", e);
+
+  },
+
+  mouseup: function(e) {
+
+    e.mouse = true;
+
+    this.app.emitGlobalEvent("pointerup", e);
+
+  },
+
+  mousewheel: function(e) {
+
+    e.mouse = true;
+
+    this.app.emitGlobalEvent("pointerwheel", e);
+
+  }
+
+};
+
+/* file: src/Loader.js */
+
 /* Loader */
 
 PLAYGROUND.Loader = function(app) {
@@ -1704,6 +1871,9 @@ PLAYGROUND.Loader.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype);
+
+/* file: src/Mouse.js */
+
 PLAYGROUND.Mouse = function(app, element) {
 
   var self = this;
@@ -1810,10 +1980,11 @@ PLAYGROUND.Mouse.prototype = {
 
     if (this.app.mouseToTouch) {
       //      if (this.left) {
-      this.mousemoveEvent.identifier = this.app.keyboard.keys.ctrl ? 1 : 0;
+      this.mousemoveEvent.id = this.mousemoveEvent.identifier = 255;
       this.trigger("touchmove", this.mousemoveEvent);
       //      }
     } else {
+      this.mousemoveEvent.id = this.mousemoveEvent.identifier = 255;
       this.trigger("mousemove", this.mousemoveEvent);
     }
 
@@ -1830,8 +2001,9 @@ PLAYGROUND.Mouse.prototype = {
 
     this[buttonName] = true;
 
+    this.mousedownEvent.id = this.mousedownEvent.identifier = 255;
+
     if (this.app.mouseToTouch) {
-      this.mousedownEvent.identifier = this.app.keyboard.keys.ctrl ? 1 : 0;
       this.trigger("touchmove", this.mousedownEvent);
       this.trigger("touchstart", this.mousedownEvent);
     } else {
@@ -1851,12 +2023,18 @@ PLAYGROUND.Mouse.prototype = {
 
     this[buttonName] = false;
 
+    this.mouseupEvent.id = this.mouseupEvent.identifier = 255;
+
     if (this.app.mouseToTouch) {
-      this.mouseupEvent.identifier = this.app.keyboard.keys.ctrl ? 1 : 0;
+
       this.trigger("touchend", this.mouseupEvent);
+
     } else {
+
       this.trigger("mouseup", this.mouseupEvent);
+
     }
+    
   },
 
   mousewheel: function(e) {
@@ -1865,7 +2043,7 @@ PLAYGROUND.Mouse.prototype = {
     this.mousewheelEvent.y = this.mousemoveEvent.y;
     this.mousewheelEvent.button = ["none", "left", "middle", "right"][e.button];
     this.mousewheelEvent.original = e;
-    this.mousewheelEvent.identifier = 0;
+    this.mousewheelEvent.id = this.mousewheelEvent.identifier = 255;
 
     this[e.button] = false;
 
@@ -1934,6 +2112,9 @@ PLAYGROUND.Mouse.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Mouse.prototype, PLAYGROUND.Events.prototype);
+
+/* file: src/Sound.js */
+
 PLAYGROUND.Sound = function(app) {
 
   var audioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
@@ -1991,6 +2172,9 @@ PLAYGROUND.Application.prototype.loadSounds = function() {
   }
 
 };
+
+/* file: src/SoundWebAudioAPI.js */
+
 PLAYGROUND.SoundWebAudioAPI = function(app, audioContext) {
 
   this.app = app;
@@ -2279,6 +2463,9 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
   }
 
 };
+
+/* file: src/SoundAudio.js */
+
 PLAYGROUND.SoundAudio = function(app) {
 
   this.app = app;  
@@ -2380,6 +2567,9 @@ PLAYGROUND.SoundAudio.prototype = {
   }
 
 };
+
+/* file: src/Touch.js */
+
 PLAYGROUND.Touch = function(app, element) {
 
   PLAYGROUND.Events.call(this);
@@ -2389,10 +2579,6 @@ PLAYGROUND.Touch = function(app, element) {
   this.element = element;
 
   this.buttons = {};
-
-  this.touchmoveEvent = {};
-  this.touchstartEvent = {};
-  this.touchendEvent = {};
 
   this.touches = {};
 
@@ -2438,19 +2624,22 @@ PLAYGROUND.Touch.prototype = {
 
       var touch = e.changedTouches[i];
 
-      this.x = this.touchmoveEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
-      this.y = this.touchmoveEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+      touchmoveEvent = {}
 
-      this.touchmoveEvent.original = touch;
-      this.touchmoveEvent.identifier = touch.identifier;
+      this.x = touchmoveEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
+      this.y = touchmoveEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
 
-      this.touches[touch.identifier].x = this.touchmoveEvent.x;
-      this.touches[touch.identifier].y = this.touchmoveEvent.y;
+      touchmoveEvent.original = touch;
+      touchmoveEvent.id = touchmoveEvent.identifier = touch.identifier;
 
-      this.trigger("touchmove", this.touchmoveEvent);
+      this.touches[touch.identifier].x = touchmoveEvent.x;
+      this.touches[touch.identifier].y = touchmoveEvent.y;
 
-      e.preventDefault();
+      this.trigger("touchmove", touchmoveEvent);
+
     }
+
+    e.preventDefault();
 
   },
 
@@ -2460,19 +2649,24 @@ PLAYGROUND.Touch.prototype = {
 
       var touch = e.changedTouches[i];
 
-      this.x = this.touchstartEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
-      this.y = this.touchstartEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+      var touchstartEvent = {}
 
-      this.touchstartEvent.original = e.touch;
-      this.touchstartEvent.identifier = touch.identifier;
+      this.x = touchstartEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
+      this.y = touchstartEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+
+      touchstartEvent.original = e.touch;
+      touchstartEvent.id = touchstartEvent.identifier = touch.identifier;
 
       this.touches[touch.identifier] = {
-        x: this.touchstartEvent.x,
-        y: this.touchstartEvent.y
+        x: touchstartEvent.x,
+        y: touchstartEvent.y
       };
 
-      this.trigger("touchstart", this.touchstartEvent);
+      this.trigger("touchstart", touchstartEvent);
+
     }
+
+    e.preventDefault();
 
   },
 
@@ -2481,24 +2675,30 @@ PLAYGROUND.Touch.prototype = {
     for (var i = 0; i < e.changedTouches.length; i++) {
 
       var touch = e.changedTouches[i];
+      var touchendEvent = {};
 
-      this.touchendEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
-      this.touchendEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+      touchendEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
+      touchendEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
 
-      this.touchendEvent.original = touch;
-      this.touchendEvent.identifier = touch.identifier;
+      touchendEvent.original = touch;
+      touchendEvent.id = touchendEvent.identifier = touch.identifier;
 
       delete this.touches[touch.identifier];
 
-      this.trigger("touchend", this.touchendEvent);
+      this.trigger("touchend", touchendEvent);
 
     }
+
+    e.preventDefault();
 
   }
 
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Touch.prototype, PLAYGROUND.Events.prototype);
+
+/* file: src/Tween.js */
+
 PLAYGROUND.Tween = function(manager, context) {
 
   this.manager = manager;
@@ -2827,6 +3027,9 @@ PLAYGROUND.TweenManager.prototype = {
   }
 
 };
+
+/* file: src/VideoRecorder.js */
+
 /* Video recorder */
 
 PLAYGROUND.VideoRecorder = function(app, args) {
@@ -2907,6 +3110,9 @@ PLAYGROUND.Application.prototype.record = function(args) {
   this.videoRecorder.toggle(args);
 
 };
+
+/* file: src/Atlases.js */
+
 PLAYGROUND.Application.prototype.loadAtlases = function() {
 
   for (var i = 0; i < arguments.length; i++) {
@@ -2989,6 +3195,9 @@ PLAYGROUND.Application.prototype._loadAtlas = function(filename) {
 
   request.send();
 };
+
+/* file: src/Fonts.js */
+
 PLAYGROUND.Application.prototype.loadFont = function(name) {
 
   var styleNode = document.createElement("style");
@@ -3044,9 +3253,15 @@ PLAYGROUND.Application.prototype.loadFont = function(name) {
   check();
 
 };
+
+/* file: src/DefaultState.js */
+
 PLAYGROUND.DefaultState = {
 
 };
+
+/* file: src/LoadingScreen.js */
+
 PLAYGROUND.LoadingScreen = {
 
   /* basic loading screen using DOM */

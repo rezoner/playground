@@ -8,10 +8,6 @@ PLAYGROUND.Touch = function(app, element) {
 
   this.buttons = {};
 
-  this.touchmoveEvent = {};
-  this.touchstartEvent = {};
-  this.touchendEvent = {};
-
   this.touches = {};
 
   this.x = 0;
@@ -56,19 +52,22 @@ PLAYGROUND.Touch.prototype = {
 
       var touch = e.changedTouches[i];
 
-      this.x = this.touchmoveEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
-      this.y = this.touchmoveEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+      touchmoveEvent = {}
 
-      this.touchmoveEvent.original = touch;
-      this.touchmoveEvent.identifier = touch.identifier;
+      this.x = touchmoveEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
+      this.y = touchmoveEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
 
-      this.touches[touch.identifier].x = this.touchmoveEvent.x;
-      this.touches[touch.identifier].y = this.touchmoveEvent.y;
+      touchmoveEvent.original = touch;
+      touchmoveEvent.id = touchmoveEvent.identifier = touch.identifier;
 
-      this.trigger("touchmove", this.touchmoveEvent);
+      this.touches[touch.identifier].x = touchmoveEvent.x;
+      this.touches[touch.identifier].y = touchmoveEvent.y;
 
-      e.preventDefault();
+      this.trigger("touchmove", touchmoveEvent);
+
     }
+
+    e.preventDefault();
 
   },
 
@@ -78,19 +77,24 @@ PLAYGROUND.Touch.prototype = {
 
       var touch = e.changedTouches[i];
 
-      this.x = this.touchstartEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
-      this.y = this.touchstartEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+      var touchstartEvent = {}
 
-      this.touchstartEvent.original = e.touch;
-      this.touchstartEvent.identifier = touch.identifier;
+      this.x = touchstartEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
+      this.y = touchstartEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+
+      touchstartEvent.original = e.touch;
+      touchstartEvent.id = touchstartEvent.identifier = touch.identifier;
 
       this.touches[touch.identifier] = {
-        x: this.touchstartEvent.x,
-        y: this.touchstartEvent.y
+        x: touchstartEvent.x,
+        y: touchstartEvent.y
       };
 
-      this.trigger("touchstart", this.touchstartEvent);
+      this.trigger("touchstart", touchstartEvent);
+
     }
+
+    e.preventDefault();
 
   },
 
@@ -99,18 +103,21 @@ PLAYGROUND.Touch.prototype = {
     for (var i = 0; i < e.changedTouches.length; i++) {
 
       var touch = e.changedTouches[i];
+      var touchendEvent = {};
 
-      this.touchendEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
-      this.touchendEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
+      touchendEvent.x = (touch.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
+      touchendEvent.y = (touch.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
 
-      this.touchendEvent.original = touch;
-      this.touchendEvent.identifier = touch.identifier;
+      touchendEvent.original = touch;
+      touchendEvent.id = touchendEvent.identifier = touch.identifier;
 
       delete this.touches[touch.identifier];
 
-      this.trigger("touchend", this.touchendEvent);
+      this.trigger("touchend", touchendEvent);
 
     }
+
+    e.preventDefault();
 
   }
 

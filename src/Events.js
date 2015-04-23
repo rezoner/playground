@@ -1,12 +1,12 @@
 PLAYGROUND.Events = function() {
 
-  this.listeners = {};  
+  this.listeners = {};
 
 };
 
 PLAYGROUND.Events.prototype = {
 
-    on: function(event, callback) {
+  on: function(event, callback, context) {
 
     if (typeof event === "object") {
       var result = {};
@@ -18,28 +18,41 @@ PLAYGROUND.Events.prototype = {
 
     if (!this.listeners[event]) this.listeners[event] = [];
 
-    this.listeners[event].push(callback);
+    var listener = {
+      once: false,
+      callback: callback,
+      context: context
+    };
 
-    return callback;
+    this.listeners[event].push(listener);
+
+    return listener;
   },
 
-  once: function(event, callback) {
-    callback.once = true;
+  once: function(event, callback, context) {
 
     if (!this.listeners[event]) this.listeners[event] = [];
 
-    this.listeners[event].push(callback);
+    var listener = {
+      once: true,
+      callback: callback,
+      context: context
+    };
 
-    return callback;
+    this.listeners[event].push(listener);
+
+    return listener;
   },
 
   off: function(event, callback) {
+
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
       if (this.listeners[event][i]._remove) {
         this.listeners[event].splice(i--, 1);
         len--;
       }
     }
+
   },
 
   trigger: function(event, data) {
@@ -47,17 +60,25 @@ PLAYGROUND.Events.prototype = {
     /* if you prefer events pipe */
 
     if (this.listeners["event"]) {
+
       for (var i = 0, len = this.listeners["event"].length; i < len; i++) {
-        this.listeners["event"][i](event, data);
+
+        var listener = this.listeners["event"][i];
+
+        listener.callback.call(listener.context || this, event, data);
+
       }
+
     }
 
     /* or subscribed to single event */
 
     if (this.listeners[event]) {
       for (var i = 0, len = this.listeners[event].length; i < len; i++) {
+
         var listener = this.listeners[event][i];
-        listener.call(this, data);
+
+        listener.callback.call(listener.context || this, data);
 
         if (listener.once) {
           this.listeners[event].splice(i--, 1);
@@ -65,6 +86,7 @@ PLAYGROUND.Events.prototype = {
         }
       }
     }
+    
   }
 
 };
