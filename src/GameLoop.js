@@ -20,9 +20,10 @@ PLAYGROUND.GameLoop = function(app) {
     self.lifetime += dt;
     self.elapsed = dt;
 
-    self.emitGlobalEvent("step", dt)
-    self.emitGlobalEvent("render", dt)
-    self.emitGlobalEvent("postrender", dt)
+    self.emitGlobalEvent("step", dt);
+    self.emitGlobalEvent("prerender", dt);
+    self.emitGlobalEvent("render", dt);
+    self.emitGlobalEvent("postrender", dt);
 
   };
 
