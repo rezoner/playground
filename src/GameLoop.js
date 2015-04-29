@@ -2,13 +2,19 @@ PLAYGROUND.GameLoop = function(app) {
 
   app.lifetime = 0;
 
-  var self = app;
-
   var lastTick = Date.now();
+  var frame = 0;
 
   function step() {
 
     requestAnimationFrame(step);
+
+    if (app.frameskip) {
+      frame++;
+      if (frame === app.frameskip) {
+        frame = 0;
+      } else return;
+    }
 
     var delta = Date.now() - lastTick;
     lastTick = Date.now();
@@ -17,12 +23,12 @@ PLAYGROUND.GameLoop = function(app) {
 
     var dt = delta / 1000;
 
-    self.lifetime += dt;
-    self.elapsed = dt;
+    app.lifetime += dt;
+    app.elapsed = dt;
 
-    self.emitGlobalEvent("step", dt)
-    self.emitGlobalEvent("render", dt)
-    self.emitGlobalEvent("postrender", dt)
+    app.emitGlobalEvent("step", dt)
+    app.emitGlobalEvent("render", dt)
+    app.emitGlobalEvent("postrender", dt)
 
   };
 

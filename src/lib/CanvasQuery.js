@@ -670,6 +670,8 @@
       }
 
       this.putImageData(imgdata, 0, 0); // put image data to canvas
+
+      return this;
     },
 
 

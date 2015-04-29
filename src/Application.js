@@ -354,7 +354,7 @@ PLAYGROUND.Application.prototype = {
 
   /* data/json */
 
-  loadData: function() {
+   loadData: function() {
 
     for (var i = 0; i < arguments.length; i++) {
 
@@ -366,32 +366,36 @@ PLAYGROUND.Application.prototype = {
 
       } else {
 
-        var entry = this.getAssetEntry(arg, "data", "json");
-
-        var app = this;
-
-        this.loader.add();
-
-        this.request(entry.url).then(processData);
-
-        function processData(request) {
-
-          if (entry.ext === "json") {
-            app.data[entry.key] = JSON.parse(request.responseText);
-          } else {
-            app.data[entry.key] = request.responseText;
-          }
-
-          app.loader.success(entry.url);
-
-        }
-
-        return app.loader.error(entry.url);
+        this.loadDataItem(arg);
 
       }
-      
+
     }
-  
+
+  },
+
+  loadDataItem: function(name) {
+
+    var entry = this.getAssetEntry(name, "data", "json");
+
+    var app = this;
+
+    this.loader.add();
+
+    this.request(entry.url).then(processData);
+
+    function processData(request) {
+
+      if (entry.ext === "json") {
+        app.data[entry.key] = JSON.parse(request.responseText);
+      } else {
+        app.data[entry.key] = request.responseText;
+      }
+
+      app.loader.success(entry.url);
+
+    }
+
   },
 
   /* images */

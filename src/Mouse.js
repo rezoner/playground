@@ -145,8 +145,6 @@ PLAYGROUND.Mouse.prototype = {
     this.mouseupEvent.button = buttonName;
     this.mouseupEvent.original = e;
 
-    this[buttonName] = false;
-
     this.mouseupEvent.id = this.mouseupEvent.identifier = 255;
 
     if (this.app.mouseToTouch) {
@@ -158,6 +156,8 @@ PLAYGROUND.Mouse.prototype = {
       this.trigger("mouseup", this.mouseupEvent);
 
     }
+
+    this[buttonName] = false;
     
   },
 
