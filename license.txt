@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r3
+  PlaygroundJS r4
   
   http://playgroundjs.com
   
@@ -9,6 +9,13 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r4
+
+  + tweens with events
+  + context argument for events
+
+  r3
 
   + pointer = mouse + touch
 

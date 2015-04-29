@@ -1,5 +1,7 @@
 PLAYGROUND.Tween = function(manager, context) {
 
+  PLAYGROUND.Events.call(this);
+
   this.manager = manager;
   this.context = context;
 
@@ -123,8 +125,18 @@ PLAYGROUND.Tween.prototype = {
     if (this.index >= this.actions.length) {
 
       if (this.looped) {
+        
+        this.trigger("loop", {
+          tween: this
+        });
+
         this.index = 0;
       } else {
+
+        this.trigger("finished", {
+          tween: this
+        });
+
         this.finished = true;
         this.manager.remove(this);
         return;
@@ -194,6 +206,7 @@ PLAYGROUND.Tween.prototype = {
   },
 
   step: function(delta) {
+    
     this.delta += delta;
 
     if (!this.current) this.next();
@@ -263,6 +276,8 @@ PLAYGROUND.Tween.prototype = {
   }
 
 };
+
+PLAYGROUND.Utils.extend(PLAYGROUND.Tween.prototype, PLAYGROUND.Events.prototype);
 
 PLAYGROUND.TweenManager = function(app) {
 

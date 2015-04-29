@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r3
+  PlaygroundJS r4
   
   http://playgroundjs.com
   
@@ -13,6 +13,13 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r4
+
+  + tweens with events
+  + context argument for events
+
+  r3
 
   + pointer = mouse + touch
 
@@ -783,7 +790,7 @@ PLAYGROUND.Events.prototype = {
     if (typeof event === "object") {
       var result = {};
       for (var key in event) {
-        result[key] = this.on(key, event[key])
+        result[key] = this.on(key, event[key], context)
       }
       return result;
     }
@@ -802,6 +809,14 @@ PLAYGROUND.Events.prototype = {
   },
 
   once: function(event, callback, context) {
+
+    if (typeof event === "object") {
+      var result = {};
+      for (var key in event) {
+        result[key] = this.once(key, event[key], context)
+      }
+      return result;
+    }
 
     if (!this.listeners[event]) this.listeners[event] = [];
 
@@ -858,7 +873,7 @@ PLAYGROUND.Events.prototype = {
         }
       }
     }
-    
+
   }
 
 };
@@ -2711,6 +2726,8 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Touch.prototype, PLAYGROUND.Events.prototype)
 
 PLAYGROUND.Tween = function(manager, context) {
 
+  PLAYGROUND.Events.call(this);
+
   this.manager = manager;
   this.context = context;
 
@@ -2834,8 +2851,18 @@ PLAYGROUND.Tween.prototype = {
     if (this.index >= this.actions.length) {
 
       if (this.looped) {
+        
+        this.trigger("loop", {
+          tween: this
+        });
+
         this.index = 0;
       } else {
+
+        this.trigger("finished", {
+          tween: this
+        });
+
         this.finished = true;
         this.manager.remove(this);
         return;
@@ -2905,6 +2932,7 @@ PLAYGROUND.Tween.prototype = {
   },
 
   step: function(delta) {
+    
     this.delta += delta;
 
     if (!this.current) this.next();
@@ -2974,6 +3002,8 @@ PLAYGROUND.Tween.prototype = {
   }
 
 };
+
+PLAYGROUND.Utils.extend(PLAYGROUND.Tween.prototype, PLAYGROUND.Events.prototype);
 
 PLAYGROUND.TweenManager = function(app) {
 

@@ -11,7 +11,7 @@ PLAYGROUND.Events.prototype = {
     if (typeof event === "object") {
       var result = {};
       for (var key in event) {
-        result[key] = this.on(key, event[key])
+        result[key] = this.on(key, event[key], context)
       }
       return result;
     }
@@ -30,6 +30,14 @@ PLAYGROUND.Events.prototype = {
   },
 
   once: function(event, callback, context) {
+
+    if (typeof event === "object") {
+      var result = {};
+      for (var key in event) {
+        result[key] = this.once(key, event[key], context)
+      }
+      return result;
+    }
 
     if (!this.listeners[event]) this.listeners[event] = [];
 
@@ -86,7 +94,7 @@ PLAYGROUND.Events.prototype = {
         }
       }
     }
-    
+
   }
 
 };
