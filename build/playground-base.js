@@ -2760,6 +2760,14 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  discard: function() {
+
+    this.manager.discard(this.context, this);
+
+    return this;
+
+  },
+
   to: function(properties, duration, easing) {
     return this.add(properties, duration, easing);
   },
@@ -2851,7 +2859,7 @@ PLAYGROUND.Tween.prototype = {
     if (this.index >= this.actions.length) {
 
       if (this.looped) {
-        
+
         this.trigger("loop", {
           tween: this
         });
@@ -2932,7 +2940,7 @@ PLAYGROUND.Tween.prototype = {
   },
 
   step: function(delta) {
-    
+
     this.delta += delta;
 
     if (!this.current) this.next();
@@ -3023,6 +3031,18 @@ PLAYGROUND.TweenManager = function(app) {
 PLAYGROUND.TweenManager.prototype = {
 
   defaultEasing: "128",
+
+  discard: function(object, safe) {
+
+    for (var i = 0; i < this.tweens.length; i++) {
+      
+      var tween = this.tweens[i];
+
+      if(tween.context === object && tween !== safe) this.remove(tween);
+
+    }
+
+  },
 
   tween: function(context) {
 
