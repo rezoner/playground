@@ -1320,7 +1320,7 @@ PLAYGROUND.Application.prototype = {
 
   /* data/json */
 
-   loadData: function() {
+  loadData: function() {
 
     for (var i = 0; i < arguments.length; i++) {
 
@@ -1374,6 +1374,8 @@ PLAYGROUND.Application.prototype = {
 
   loadImages: function() {
 
+    var promises = [ ];
+
     for (var i = 0; i < arguments.length; i++) {
 
       var arg = arguments[i];
@@ -1382,36 +1384,64 @@ PLAYGROUND.Application.prototype = {
 
       if (typeof arg === "object") {
 
-        for (var key in arg) this.loadImages(arg[key]);
+        for (var key in arg) promises = promises.concat(this.loadImages(arg[key]));
 
       } else {
+
+        promises.push(this.loadOneImage(arg));
+
+      }
+    }
+
+    return Promise.all(promises);
+
+  },
+
+  loadOneImage: function(name) {
+
+    if (!this._imageLoaders) this._imageLoaders = {};
+
+    if (!this._imageLoaders[name]) {
+
+      var promise = function(resolve, reject) {
 
         /* if argument is not an object/array let's try to load it */
 
         var loader = this.loader;
 
-        var entry = this.getAssetEntry(arg, "images", "png");
+        var entry = this.getAssetEntry(name, "images", "png");
 
         this.loader.add(entry.path);
 
         var image = this.images[entry.key] = new Image;
 
         image.addEventListener("load", function() {
+          
+          resolve(image);
           loader.success(entry.url);
+
         });
 
         image.addEventListener("error", function() {
+
+          reject("can't load " + entry.url);
           loader.error(entry.url);
+
         });
 
         image.src = entry.url;
-      }
+
+      };
+
+      this._imageLoaders[name] = new Promise(promise);
+
     }
+
+    return this._imageLoaders[name];
+
   },
 
   render: function() {
-
-
 
   }
 
@@ -3053,7 +3083,7 @@ PLAYGROUND.TweenManager.prototype = {
     return tween;
 
   },
-
+ 
   step: function(delta) {
 
     this.delta += delta;
@@ -3062,12 +3092,12 @@ PLAYGROUND.TweenManager.prototype = {
 
       var tween = this.tweens[i];
 
-      tween.step(delta);
-
+      if (!tween._remove) tween.step(delta);
+      
       if (tween._remove) this.tweens.splice(i--, 1);
 
     }
-
+     
   },
 
   add: function(tween) {

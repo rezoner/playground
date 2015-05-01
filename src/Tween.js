@@ -327,7 +327,7 @@ PLAYGROUND.TweenManager.prototype = {
     return tween;
 
   },
-
+ 
   step: function(delta) {
 
     this.delta += delta;
@@ -336,12 +336,12 @@ PLAYGROUND.TweenManager.prototype = {
 
       var tween = this.tweens[i];
 
-      tween.step(delta);
-
+      if (!tween._remove) tween.step(delta);
+      
       if (tween._remove) this.tweens.splice(i--, 1);
 
     }
-
+     
   },
 
   add: function(tween) {
