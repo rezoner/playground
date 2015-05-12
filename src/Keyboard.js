@@ -69,7 +69,10 @@ PLAYGROUND.Keyboard.prototype = {
 
   },
 
+  bypassKeys: ["f12", "f5", "ctrl", "alt", "shift"],
+
   keydown: function(e) {
+
     if (e.which >= 48 && e.which <= 90) var keyName = String.fromCharCode(e.which).toLowerCase();
     else var keyName = this.keycodes[e.which];
 
@@ -83,11 +86,29 @@ PLAYGROUND.Keyboard.prototype = {
     this.trigger("keydown", this.keydownEvent);
 
     if (this.preventDefault && document.activeElement === document.body) {
-      e.returnValue = false;
-      e.keyCode = 0;
-      e.preventDefault();
-      e.stopPropagation();
+
+      var bypass = e.metaKey;
+
+      if (!bypass) {
+        for (var i = 0; i < this.bypassKeys.length; i++) {
+
+          if (this.keys[this.bypassKeys[i]]) {
+            bypass = true;
+            break
+          }
+
+        }
+      }
+
+      if (!bypass) {
+        e.returnValue = false;
+        e.keyCode = 0;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
     }
+
   },
 
   keyup: function(e) {
@@ -101,9 +122,9 @@ PLAYGROUND.Keyboard.prototype = {
     this.keys[keyName] = false;
 
     this.trigger("keyup", this.keyupEvent);
+
   }
 
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototype);
-

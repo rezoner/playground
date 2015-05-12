@@ -9,6 +9,7 @@
   Canvas Query may be freely distributed under the MIT license.
 
   ! fixed color parsers
+  ! reuse()
 
 */
 
@@ -377,6 +378,12 @@
       }
 
       return this.poolArray.pop();
+
+    },
+
+    reuse: function(canvas) {
+
+      this.poolArray.push(canvas);
 
     },
 
@@ -947,14 +954,15 @@
 
     },
 
-    polygon: function(array) {
+
+    polygon: function(array, x, y) {
 
       this.beginPath();
 
-      this.moveTo(array[0][0], array[0][1]);
+      this.moveTo(array[0][0] + x, array[0][1] + y);
 
       for (var i = 1; i < array.length; i++) {
-        this.lineTo(array[i][0], array[i][1]);
+        this.lineTo(array[i][0] + x, array[i][1] + y);
       }
 
       this.closePath();

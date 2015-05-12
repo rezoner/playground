@@ -408,7 +408,7 @@ PLAYGROUND.Application.prototype = {
 
   loadImages: function() {
 
-    var promises = [ ];
+    var promises = [];
 
     for (var i = 0; i < arguments.length; i++) {
 
@@ -425,6 +425,7 @@ PLAYGROUND.Application.prototype = {
         promises.push(this.loadOneImage(arg));
 
       }
+
     }
 
     return Promise.all(promises);
@@ -432,6 +433,8 @@ PLAYGROUND.Application.prototype = {
   },
 
   loadOneImage: function(name) {
+
+    var app = this;
 
     if (!this._imageLoaders) this._imageLoaders = {};
 
@@ -441,16 +444,18 @@ PLAYGROUND.Application.prototype = {
 
         /* if argument is not an object/array let's try to load it */
 
-        var loader = this.loader;
+        var loader = app.loader;
 
-        var entry = this.getAssetEntry(name, "images", "png");
+        var entry = app.getAssetEntry(name, "images", "png");
 
-        this.loader.add(entry.path);
+        app.loader.add(entry.path);
 
-        var image = this.images[entry.key] = new Image;
+        var image = new Image;
 
         image.addEventListener("load", function() {
-          
+
+          app.images[entry.key] = image;
+
           resolve(image);
           loader.success(entry.url);
 
@@ -467,7 +472,7 @@ PLAYGROUND.Application.prototype = {
 
       };
 
-      this._imageLoaders[name] = new Promise(promise);
+      app._imageLoaders[name] = new Promise(promise);
 
     }
 

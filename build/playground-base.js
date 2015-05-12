@@ -1374,7 +1374,7 @@ PLAYGROUND.Application.prototype = {
 
   loadImages: function() {
 
-    var promises = [ ];
+    var promises = [];
 
     for (var i = 0; i < arguments.length; i++) {
 
@@ -1391,6 +1391,7 @@ PLAYGROUND.Application.prototype = {
         promises.push(this.loadOneImage(arg));
 
       }
+
     }
 
     return Promise.all(promises);
@@ -1398,6 +1399,8 @@ PLAYGROUND.Application.prototype = {
   },
 
   loadOneImage: function(name) {
+
+    var app = this;
 
     if (!this._imageLoaders) this._imageLoaders = {};
 
@@ -1407,16 +1410,18 @@ PLAYGROUND.Application.prototype = {
 
         /* if argument is not an object/array let's try to load it */
 
-        var loader = this.loader;
+        var loader = app.loader;
 
-        var entry = this.getAssetEntry(name, "images", "png");
+        var entry = app.getAssetEntry(name, "images", "png");
 
-        this.loader.add(entry.path);
+        app.loader.add(entry.path);
 
-        var image = this.images[entry.key] = new Image;
+        var image = new Image;
 
         image.addEventListener("load", function() {
-          
+
+          app.images[entry.key] = image;
+
           resolve(image);
           loader.success(entry.url);
 
@@ -1433,7 +1438,7 @@ PLAYGROUND.Application.prototype = {
 
       };
 
-      this._imageLoaders[name] = new Promise(promise);
+      app._imageLoaders[name] = new Promise(promise);
 
     }
 
@@ -1454,6 +1459,8 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Application.prototype, PLAYGROUND.Events.prot
 PLAYGROUND.GameLoop = function(app) {
 
   app.lifetime = 0;
+  app.ops = 0;
+  app.opcost = 0;
 
   var lastTick = Date.now();
   var frame = 0;
@@ -1470,6 +1477,7 @@ PLAYGROUND.GameLoop = function(app) {
     }
 
     var delta = Date.now() - lastTick;
+
     lastTick = Date.now();
 
     if (delta > 1000) return;
@@ -1483,7 +1491,12 @@ PLAYGROUND.GameLoop = function(app) {
     app.emitGlobalEvent("render", dt)
     app.emitGlobalEvent("postrender", dt)
 
+    app.opcost = (Date.now() - lastTick) / 1000;
+    app.ops = 1000 / app.opcost;
+
   };
+
+
 
   requestAnimationFrame(step);
 
@@ -1725,7 +1738,10 @@ PLAYGROUND.Keyboard.prototype = {
 
   },
 
+  bypassKeys: ["f12", "f5", "ctrl", "alt", "shift"],
+
   keydown: function(e) {
+
     if (e.which >= 48 && e.which <= 90) var keyName = String.fromCharCode(e.which).toLowerCase();
     else var keyName = this.keycodes[e.which];
 
@@ -1739,11 +1755,29 @@ PLAYGROUND.Keyboard.prototype = {
     this.trigger("keydown", this.keydownEvent);
 
     if (this.preventDefault && document.activeElement === document.body) {
-      e.returnValue = false;
-      e.keyCode = 0;
-      e.preventDefault();
-      e.stopPropagation();
+
+      var bypass = e.metaKey;
+
+      if (!bypass) {
+        for (var i = 0; i < this.bypassKeys.length; i++) {
+
+          if (this.keys[this.bypassKeys[i]]) {
+            bypass = true;
+            break
+          }
+
+        }
+      }
+
+      if (!bypass) {
+        e.returnValue = false;
+        e.keyCode = 0;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
     }
+
   },
 
   keyup: function(e) {
@@ -1757,13 +1791,12 @@ PLAYGROUND.Keyboard.prototype = {
     this.keys[keyName] = false;
 
     this.trigger("keyup", this.keyupEvent);
+
   }
 
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototype);
-
-
 
 /* file: src/Pointer.js */
 
@@ -1958,7 +1991,7 @@ PLAYGROUND.Mouse = function(app, element) {
   this.enableMousewheel();
 
   this.element.addEventListener("contextmenu", function(e) {
-    if (self.preventContextMenu) e.preventDefault();
+    if (self.preventContextMenu && !e.metaKey) e.preventDefault();
   });
 
   element.requestPointerLock = element.requestPointerLock ||

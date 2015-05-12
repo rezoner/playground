@@ -1,6 +1,8 @@
 PLAYGROUND.GameLoop = function(app) {
 
   app.lifetime = 0;
+  app.ops = 0;
+  app.opcost = 0;
 
   var lastTick = Date.now();
   var frame = 0;
@@ -17,6 +19,7 @@ PLAYGROUND.GameLoop = function(app) {
     }
 
     var delta = Date.now() - lastTick;
+
     lastTick = Date.now();
 
     if (delta > 1000) return;
@@ -30,7 +33,12 @@ PLAYGROUND.GameLoop = function(app) {
     app.emitGlobalEvent("render", dt)
     app.emitGlobalEvent("postrender", dt)
 
+    app.opcost = (Date.now() - lastTick) / 1000;
+    app.ops = 1000 / app.opcost;
+
   };
+
+
 
   requestAnimationFrame(step);
 

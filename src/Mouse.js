@@ -27,7 +27,7 @@ PLAYGROUND.Mouse = function(app, element) {
   this.enableMousewheel();
 
   this.element.addEventListener("contextmenu", function(e) {
-    if (self.preventContextMenu) e.preventDefault();
+    if (self.preventContextMenu && !e.metaKey) e.preventDefault();
   });
 
   element.requestPointerLock = element.requestPointerLock ||
