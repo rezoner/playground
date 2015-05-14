@@ -1082,27 +1082,28 @@ PLAYGROUND.Application = function(args) {
 
       app.setState(PLAYGROUND.DefaultState);
       app.handleResize();
-      app.setState(PLAYGROUND.LoadingScreen);
+
+      if (PLAYGROUND.LoadingScreen) app.setState(PLAYGROUND.LoadingScreen);
 
       /* game loop */
 
       PLAYGROUND.GameLoop(app);
 
+      /* stage proper loading step */
+
+      app.loader.once("ready", function() {
+
+        app.firstBatch = false;
+
+        app.setState(PLAYGROUND.DefaultState);
+
+        app.emitLocalEvent("ready");
+        app.handleResize();
+
+      });
+
     });
 
-    /* stage proper loading step */
-
-    app.loader.once("ready", function() {
-
-      app.firstBatch = false;
-
-      app.setState(PLAYGROUND.DefaultState);
-
-      app.emitLocalEvent("ready");
-      app.handleResize();
-
-
-    });
 
 
   };
