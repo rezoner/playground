@@ -22,7 +22,7 @@
 
     if (this.textures[assetPath.key]) return;
 
-    this.loader.add(name);
+    this.loader.add(resourceName);
 
     var loader = new THREE.TextureLoader();
 
@@ -55,7 +55,7 @@
 
     if (this.objects[assetPath.key]) return;
 
-    this.loader.add(name);
+    this.loader.add(loaderID);
 
     var loader = new THREE.ObjectLoader();
 
