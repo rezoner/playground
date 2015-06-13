@@ -66,7 +66,7 @@ PLAYGROUND.Application = function(args) {
 
   /* video recorder */
 
-  this.videoRecorder = new PLAYGROUND.VideoRecorder(this);
+  // this.videoRecorder = new PLAYGROUND.VideoRecorder(this);
 
   /* sound */
 

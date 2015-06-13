@@ -784,7 +784,7 @@ PLAYGROUND.Application = function(args) {
 
   /* video recorder */
 
-  this.videoRecorder = new PLAYGROUND.VideoRecorder(this);
+  // this.videoRecorder = new PLAYGROUND.VideoRecorder(this);
 
   /* sound */
 
@@ -1506,6 +1506,7 @@ PLAYGROUND.Gamepads.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Gamepads.prototype, PLAYGROUND.Events.prototype);
+
 
 /* file: src/Keyboard.js */
 
