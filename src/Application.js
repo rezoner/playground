@@ -104,6 +104,8 @@ PLAYGROUND.Application = function(args) {
 
   this.firstBatch = true;
 
+  if (this.disabledUntilLoaded) this.skipEvents = true;
+
   function onPreloadEnd() {
 
     app.loadFoo(0.25);
@@ -128,6 +130,8 @@ PLAYGROUND.Application = function(args) {
       app.loader.once("ready", function() {
 
         app.firstBatch = false;
+
+        if (app.disabledUntilLoaded) app.skipEvents = false;
 
         app.setState(PLAYGROUND.DefaultState);
 
@@ -156,7 +160,9 @@ PLAYGROUND.Application.prototype = {
       images: "images/"
     },
     offsetX: 0,
-    offsetY: 0
+    offsetY: 0,
+    skipEvents: false,
+    disabledUntilLoaded: true
   },
 
   setState: function(state) {
@@ -207,7 +213,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
+    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
   },
 
@@ -219,9 +225,9 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.firstBatch || this.loader.ready) && this.event) this.event(event, data);
+    if ((!this.skipEvents || this.loader.ready) && this.event) this.event(event, data);
 
-    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
+    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
     if (this.state.event) this.state.event(event, data);
 
@@ -348,8 +354,11 @@ PLAYGROUND.Application.prototype = {
     this.loader.add("foo " + timeout);
 
     setTimeout(function() {
+
       loader.success("foo " + timeout);
+
     }, timeout * 1000);
+
 
   },
 
@@ -460,6 +469,10 @@ PLAYGROUND.Application.prototype = {
           resolve(image);
           loader.success(entry.url);
 
+          entry.image = image;
+
+          app.emitLocalEvent("imageready", entry);
+
         });
 
         image.addEventListener("error", function() {
@@ -480,6 +493,72 @@ PLAYGROUND.Application.prototype = {
     return this._imageLoaders[name];
 
   },
+
+  /* at this point it doesn't really load font
+     it just ensures the font has been loaded (use css font-face)
+  */
+
+  loadFont: function() {
+
+    var promises = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+
+      var arg = arguments[i];
+
+      promises.push(this.loadFontItem(arg));
+
+    }
+
+    return Promise.all(promises);
+
+  },
+
+  loadFonts: function() {
+
+    return this.loadFont.apply(this, arguments);
+
+  },
+
+  loadFontItem: function(name) {
+
+    var app = this;
+
+    if (!this._fontPromises) this._fontPromises = {};
+
+    if (!this._fontPromises[name]) {
+
+      var promise = function(resolve, reject) {
+
+        app.loader.add("font " + name);
+
+        var checkingTimer = setInterval(function() {
+
+          var base = cq(100, 32).font("14px somethingrandom").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
+          var test = cq(100, 32).font("14px '" + name + "'").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
+
+          if (!cq.compare(base, test)) {
+
+            app.loader.success("font" + name);
+
+            clearInterval(checkingTimer);
+
+            resolve();
+
+          }
+
+        });
+
+      }
+
+      this._fontPromises[name] = new Promise(promise);
+
+    }
+
+    return this._fontPromises[name];
+
+  },
+
 
   render: function() {
 

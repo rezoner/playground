@@ -7,9 +7,23 @@ PLAYGROUND.GameLoop = function(app) {
   var lastTick = Date.now();
   var frame = 0;
 
-  function step() {
+  function render(dt) {
 
-    requestAnimationFrame(step);
+    app.emitGlobalEvent("prerender", dt)
+    app.emitGlobalEvent("render", dt)
+    app.emitGlobalEvent("postrender", dt)
+
+  };
+
+  function step(dt) {
+
+    app.emitGlobalEvent("step", dt)
+
+  };
+
+  function gameLoop() {
+
+    requestAnimationFrame(gameLoop);
 
     if (app.frameskip) {
       frame++;
@@ -29,17 +43,14 @@ PLAYGROUND.GameLoop = function(app) {
     app.lifetime += dt;
     app.elapsed = dt;
 
-    app.emitGlobalEvent("step", dt)
-    app.emitGlobalEvent("render", dt)
-    app.emitGlobalEvent("postrender", dt)
+    step(dt);
+    render(dt);
 
     app.opcost = (Date.now() - lastTick) / 1000;
     app.ops = 1000 / app.opcost;
 
   };
 
-
-
-  requestAnimationFrame(step);
+  requestAnimationFrame(gameLoop);
 
 };

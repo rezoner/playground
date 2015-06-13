@@ -114,10 +114,10 @@ PLAYGROUND.Gamepads.prototype = {
         if (current.axes[1] < 0) buttons[12].pressed = true;
         if (current.axes[1] > 0) buttons[13].pressed = true;
 
-        previous.sticks[0].x = current.axes[0].value;
-        previous.sticks[0].y = current.axes[1].value;
-        previous.sticks[1].x = current.axes[2].value;
-        previous.sticks[1].y = current.axes[3].value;
+        previous.sticks[0].x = current.axes[0];
+        previous.sticks[0].y = current.axes[1];
+        previous.sticks[1].x = current.axes[2];
+        previous.sticks[1].y = current.axes[3];
 
       }
 

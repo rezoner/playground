@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r4
+  PlaygroundJS r5
   
   http://playgroundjs.com
   
@@ -9,6 +9,18 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r5
+
+  + game loop nicely split into render and step - check profiler
+  + fixed loader last item
+  + fixed some flow issues
+  + imageready event
+  + loadFont
+  + gamepad stick issue
+  + pointerwheel event
+  + updated CanvasQuery
+  - removed video recorder  
 
   r4
 

@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r4
+  PlaygroundJS r5
   
   http://playgroundjs.com
   
@@ -13,6 +13,18 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r5
+
+  + game loop nicely split into render and step - check profiler
+  + fixed loader last item
+  + fixed some flow issues
+  + imageready event
+  + loadFont
+  + gamepad stick issue
+  + pointerwheel event
+  + updated CanvasQuery
+  - removed video recorder  
 
   r4
 
@@ -25,266 +37,6 @@
 
 */
 
-
-/* file: src/lib/Whammy.js */
-
-/* whammy - https://github.com/antimatter15/whammy */
-
-window.Whammy = function() {
-  function h(a, b) {
-    for (var c = r(a), c = [{
-        id: 440786851,
-        data: [{
-          data: 1,
-          id: 17030
-        }, {
-          data: 1,
-          id: 17143
-        }, {
-          data: 4,
-          id: 17138
-        }, {
-          data: 8,
-          id: 17139
-        }, {
-          data: "webm",
-          id: 17026
-        }, {
-          data: 2,
-          id: 17031
-        }, {
-          data: 2,
-          id: 17029
-        }]
-      }, {
-        id: 408125543,
-        data: [{
-          id: 357149030,
-          data: [{
-            data: 1E6,
-            id: 2807729
-          }, {
-            data: "whammy",
-            id: 19840
-          }, {
-            data: "whammy",
-            id: 22337
-          }, {
-            data: s(c.duration),
-            id: 17545
-          }]
-        }, {
-          id: 374648427,
-          data: [{
-            id: 174,
-            data: [{
-              data: 1,
-              id: 215
-            }, {
-              data: 1,
-              id: 25541
-            }, {
-              data: 0,
-              id: 156
-            }, {
-              data: "und",
-              id: 2274716
-            }, {
-              data: "V_VP8",
-              id: 134
-            }, {
-              data: "VP8",
-              id: 2459272
-            }, {
-              data: 1,
-              id: 131
-            }, {
-              id: 224,
-              data: [{
-                data: c.width,
-                id: 176
-              }, {
-                data: c.height,
-                id: 186
-              }]
-            }]
-          }]
-        }]
-      }], e = 0, d = 0; e < a.length;) {
-      var g = [],
-        f = 0;
-      do g.push(a[e]), f += a[e].duration, e++; while (e < a.length && 3E4 > f);
-      var h = 0,
-        g = {
-          id: 524531317,
-          data: [{
-            data: d,
-            id: 231
-          }].concat(g.map(function(a) {
-            var b = t({
-              discardable: 0,
-              frame: a.data.slice(4),
-              invisible: 0,
-              keyframe: 1,
-              lacing: 0,
-              trackNum: 1,
-              timecode: Math.round(h)
-            });
-            h += a.duration;
-            return {
-              data: b,
-              id: 163
-            }
-          }))
-        };
-      c[1].data.push(g);
-      d += f
-    }
-    return m(c, b)
-  }
-
-  function r(a) {
-    for (var b = a[0].width, c = a[0].height, e = a[0].duration,
-        d = 1; d < a.length; d++) {
-      if (a[d].width != b) throw "Frame " + (d + 1) + " has a different width";
-      if (a[d].height != c) throw "Frame " + (d + 1) + " has a different height";
-      if (0 > a[d].duration || 32767 < a[d].duration) throw "Frame " + (d + 1) + " has a weird duration (must be between 0 and 32767)";
-      e += a[d].duration
-    }
-    return {
-      duration: e,
-      width: b,
-      height: c
-    }
-  }
-
-  function u(a) {
-    for (var b = []; 0 < a;) b.push(a & 255), a >>= 8;
-    return new Uint8Array(b.reverse())
-  }
-
-  function n(a) {
-    var b = [];
-    a = (a.length % 8 ? Array(9 - a.length % 8).join("0") : "") + a;
-    for (var c = 0; c < a.length; c += 8) b.push(parseInt(a.substr(c,
-      8), 2));
-    return new Uint8Array(b)
-  }
-
-  function m(a, b) {
-    for (var c = [], e = 0; e < a.length; e++) {
-      var d = a[e].data;
-      "object" == typeof d && (d = m(d, b));
-      "number" == typeof d && (d = n(d.toString(2)));
-      if ("string" == typeof d) {
-        for (var g = new Uint8Array(d.length), f = 0; f < d.length; f++) g[f] = d.charCodeAt(f);
-        d = g
-      }
-      f = d.size || d.byteLength || d.length;
-      g = Math.ceil(Math.ceil(Math.log(f) / Math.log(2)) / 8);
-      f = f.toString(2);
-      f = Array(7 * g + 8 - f.length).join("0") + f;
-      g = Array(g).join("0") + "1" + f;
-      c.push(u(a[e].id));
-      c.push(n(g));
-      c.push(d)
-    }
-    return b ? (c = p(c), new Uint8Array(c)) :
-      new Blob(c, {
-        type: "video/webm"
-      })
-  }
-
-  function p(a, b) {
-    null == b && (b = []);
-    for (var c = 0; c < a.length; c++) "object" == typeof a[c] ? p(a[c], b) : b.push(a[c]);
-    return b
-  }
-
-  function t(a) {
-    var b = 0;
-    a.keyframe && (b |= 128);
-    a.invisible && (b |= 8);
-    a.lacing && (b |= a.lacing << 1);
-    a.discardable && (b |= 1);
-    if (127 < a.trackNum) throw "TrackNumber > 127 not supported";
-    return [a.trackNum | 128, a.timecode >> 8, a.timecode & 255, b].map(function(a) {
-      return String.fromCharCode(a)
-    }).join("") + a.frame
-  }
-
-  function q(a) {
-    for (var b = a.RIFF[0].WEBP[0], c = b.indexOf("\u009d\u0001*"),
-        e = 0, d = []; 4 > e; e++) d[e] = b.charCodeAt(c + 3 + e);
-    e = d[1] << 8 | d[0];
-    c = e & 16383;
-    e = d[3] << 8 | d[2];
-    return {
-      width: c,
-      height: e & 16383,
-      data: b,
-      riff: a
-    }
-  }
-
-  function k(a) {
-    for (var b = 0, c = {}; b < a.length;) {
-      var e = a.substr(b, 4),
-        d = parseInt(a.substr(b + 4, 4).split("").map(function(a) {
-          a = a.charCodeAt(0).toString(2);
-          return Array(8 - a.length + 1).join("0") + a
-        }).join(""), 2),
-        g = a.substr(b + 4 + 4, d),
-        b = b + (8 + d);
-      c[e] = c[e] || [];
-      "RIFF" == e || "LIST" == e ? c[e].push(k(g)) : c[e].push(g)
-    }
-    return c
-  }
-
-  function s(a) {
-    return [].slice.call(new Uint8Array((new Float64Array([a])).buffer),
-      0).map(function(a) {
-      return String.fromCharCode(a)
-    }).reverse().join("")
-  }
-
-  function l(a, b) {
-    this.frames = [];
-    this.duration = 1E3 / a;
-    this.quality = b || .8
-  }
-  l.prototype.add = function(a, b) {
-    if ("undefined" != typeof b && this.duration) throw "you can't pass a duration if the fps is set";
-    if ("undefined" == typeof b && !this.duration) throw "if you don't have the fps set, you ned to have durations here.";
-    "canvas" in a && (a = a.canvas);
-    if ("toDataURL" in a) a = a.toDataURL("image/webp", this.quality);
-    else if ("string" != typeof a) throw "frame must be a a HTMLCanvasElement, a CanvasRenderingContext2D or a DataURI formatted string";
-    if (!/^data:image\/webp;base64,/ig.test(a)) throw "Input must be formatted properly as a base64 encoded DataURI of type image/webp";
-    this.frames.push({
-      image: a,
-      duration: b || this.duration
-    })
-  };
-  l.prototype.compile = function(a) {
-    return new h(this.frames.map(function(a) {
-      var c = q(k(atob(a.image.slice(23))));
-      c.duration = a.duration;
-      return c
-    }), a)
-  };
-  return {
-    Video: l,
-    fromImageArray: function(a, b, c) {
-      return h(a.map(function(a) {
-        a = q(k(atob(a.slice(23))));
-        a.duration = 1E3 / b;
-        return a
-      }), c)
-    },
-    toWebM: h
-  }
-}();
 
 /* file: src/lib/Ease.js */
 
@@ -1070,6 +822,8 @@ PLAYGROUND.Application = function(args) {
 
   this.firstBatch = true;
 
+  if (this.disabledUntilLoaded) this.skipEvents = true;
+
   function onPreloadEnd() {
 
     app.loadFoo(0.25);
@@ -1094,6 +848,8 @@ PLAYGROUND.Application = function(args) {
       app.loader.once("ready", function() {
 
         app.firstBatch = false;
+
+        if (app.disabledUntilLoaded) app.skipEvents = false;
 
         app.setState(PLAYGROUND.DefaultState);
 
@@ -1122,7 +878,9 @@ PLAYGROUND.Application.prototype = {
       images: "images/"
     },
     offsetX: 0,
-    offsetY: 0
+    offsetY: 0,
+    skipEvents: false,
+    disabledUntilLoaded: true
   },
 
   setState: function(state) {
@@ -1173,7 +931,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
+    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
   },
 
@@ -1185,9 +943,9 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.firstBatch || this.loader.ready) && this.event) this.event(event, data);
+    if ((!this.skipEvents || this.loader.ready) && this.event) this.event(event, data);
 
-    if ((!this.firstBatch || this.loader.ready) && this[event]) this[event](data);
+    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
     if (this.state.event) this.state.event(event, data);
 
@@ -1314,8 +1072,11 @@ PLAYGROUND.Application.prototype = {
     this.loader.add("foo " + timeout);
 
     setTimeout(function() {
+
       loader.success("foo " + timeout);
+
     }, timeout * 1000);
+
 
   },
 
@@ -1426,6 +1187,10 @@ PLAYGROUND.Application.prototype = {
           resolve(image);
           loader.success(entry.url);
 
+          entry.image = image;
+
+          app.emitLocalEvent("imageready", entry);
+
         });
 
         image.addEventListener("error", function() {
@@ -1447,6 +1212,72 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+  /* at this point it doesn't really load font
+     it just ensures the font has been loaded (use css font-face)
+  */
+
+  loadFont: function() {
+
+    var promises = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+
+      var arg = arguments[i];
+
+      promises.push(this.loadFontItem(arg));
+
+    }
+
+    return Promise.all(promises);
+
+  },
+
+  loadFonts: function() {
+
+    return this.loadFont.apply(this, arguments);
+
+  },
+
+  loadFontItem: function(name) {
+
+    var app = this;
+
+    if (!this._fontPromises) this._fontPromises = {};
+
+    if (!this._fontPromises[name]) {
+
+      var promise = function(resolve, reject) {
+
+        app.loader.add("font " + name);
+
+        var checkingTimer = setInterval(function() {
+
+          var base = cq(100, 32).font("14px somethingrandom").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
+          var test = cq(100, 32).font("14px '" + name + "'").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
+
+          if (!cq.compare(base, test)) {
+
+            app.loader.success("font" + name);
+
+            clearInterval(checkingTimer);
+
+            resolve();
+
+          }
+
+        });
+
+      }
+
+      this._fontPromises[name] = new Promise(promise);
+
+    }
+
+    return this._fontPromises[name];
+
+  },
+
+
   render: function() {
 
   }
@@ -1466,9 +1297,23 @@ PLAYGROUND.GameLoop = function(app) {
   var lastTick = Date.now();
   var frame = 0;
 
-  function step() {
+  function render(dt) {
 
-    requestAnimationFrame(step);
+    app.emitGlobalEvent("prerender", dt)
+    app.emitGlobalEvent("render", dt)
+    app.emitGlobalEvent("postrender", dt)
+
+  };
+
+  function step(dt) {
+
+    app.emitGlobalEvent("step", dt)
+
+  };
+
+  function gameLoop() {
+
+    requestAnimationFrame(gameLoop);
 
     if (app.frameskip) {
       frame++;
@@ -1488,18 +1333,15 @@ PLAYGROUND.GameLoop = function(app) {
     app.lifetime += dt;
     app.elapsed = dt;
 
-    app.emitGlobalEvent("step", dt)
-    app.emitGlobalEvent("render", dt)
-    app.emitGlobalEvent("postrender", dt)
+    step(dt);
+    render(dt);
 
     app.opcost = (Date.now() - lastTick) / 1000;
     app.ops = 1000 / app.opcost;
 
   };
 
-
-
-  requestAnimationFrame(step);
+  requestAnimationFrame(gameLoop);
 
 };
 
@@ -1621,10 +1463,10 @@ PLAYGROUND.Gamepads.prototype = {
         if (current.axes[1] < 0) buttons[12].pressed = true;
         if (current.axes[1] > 0) buttons[13].pressed = true;
 
-        previous.sticks[0].x = current.axes[0].value;
-        previous.sticks[0].y = current.axes[1].value;
-        previous.sticks[1].x = current.axes[2].value;
-        previous.sticks[1].y = current.axes[3].value;
+        previous.sticks[0].x = current.axes[0];
+        previous.sticks[0].y = current.axes[1];
+        previous.sticks[1].x = current.axes[2];
+        previous.sticks[1].y = current.axes[3];
 
       }
 
@@ -1664,7 +1506,6 @@ PLAYGROUND.Gamepads.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Gamepads.prototype, PLAYGROUND.Events.prototype);
-
 
 /* file: src/Keyboard.js */
 
@@ -1812,6 +1653,7 @@ PLAYGROUND.Pointer = function(app) {
   app.on("mousemove", this.mousemove, this);
   app.on("mousedown", this.mousedown, this);
   app.on("mouseup", this.mouseup, this);
+  app.on("mousewheel", this.mousewheel, this);
 
   this.pointers = app.pointers = {};
 
@@ -1936,15 +1778,15 @@ PLAYGROUND.Loader.prototype = {
 
   success: function(id) {
 
-    this.queue--;
+    this.queue--;   
 
     this.progress = 1 - this.queue / this.count;
 
     this.trigger("load", id);
 
     if (this.queue <= 0) {
-      this.trigger("ready");
       this.reset();
+      this.trigger("ready");
     }
     
   },
@@ -3152,89 +2994,6 @@ PLAYGROUND.TweenManager.prototype = {
 
 };
 
-/* file: src/VideoRecorder.js */
-
-/* Video recorder */
-
-PLAYGROUND.VideoRecorder = function(app, args) {
-
-  this.app = app;
-
-  this.app.on("step", this.step.bind(this));
-
-};
-
-PLAYGROUND.VideoRecorder.prototype = {
-
-  setup: function(args) {
-
-    this.region = false;
-
-    PLAYGROUND.Utils.extend(this, {
-      followMouse: false,
-      framerate: 20,
-      scale: 1.0
-    }, args);
-
-    if (!this.region) {
-      this.region = [0, 0, this.app.layer.width, this.app.layer.height];
-    }
-
-    this.playbackRate = this.framerate / 60;
-
-    this.layer = cq(this.region[2] * this.scale | 0, this.region[3] * this.scale | 0);
-  },
-
-  start: function(args) {
-    this.setup(args);
-    this.encoder = new Whammy.Video(this.framerate);
-    this.captureTimeout = 0;
-    this.recording = true;
-  },
-
-  step: function(delta) {
-
-    if (this.encoder) {
-
-      this.captureTimeout -= delta * 1000;
-
-      if (this.captureTimeout <= 0) {
-        this.captureTimeout = 1000 / this.framerate + this.captureTimeout;
-
-        this.layer.drawImage(this.app.layer.canvas, this.region[0], this.region[1], this.region[2], this.region[3], 0, 0, this.layer.width, this.layer.height);
-        this.encoder.add(this.layer.canvas);
-      }
-
-      this.app.screen.save().lineWidth(8).strokeStyle("#c00").strokeRect(0, 0, this.app.screen.width, this.app.screen.height).restore();
-    }
-
-  },
-
-  stop: function() {
-    if (!this.encoder) return;
-    var output = this.encoder.compile();
-    var url = (window.webkitURL || window.URL).createObjectURL(output);
-    window.open(url);
-    this.recording = false;
-
-    delete this.encoder;
-  },
-
-  toggle: function(args) {
-
-    if (this.encoder) this.stop();
-    else this.start(args);
-
-  }
-
-};
-
-PLAYGROUND.Application.prototype.record = function(args) {
-
-  this.videoRecorder.toggle(args);
-
-};
-
 /* file: src/Atlases.js */
 
 PLAYGROUND.Application.prototype.loadAtlases = function() {
@@ -3322,7 +3081,7 @@ PLAYGROUND.Application.prototype._loadAtlas = function(filename) {
 
 /* file: src/Fonts.js */
 
-PLAYGROUND.Application.prototype.loadFont = function(name) {
+PLAYGROUND.Application.prototype.loadFontOld = function(name) {
 
   var styleNode = document.createElement("style");
   styleNode.type = "text/css";

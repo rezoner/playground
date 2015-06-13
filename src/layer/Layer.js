@@ -39,7 +39,7 @@ PLAYGROUND.Renderer.prototype = {
     layer.canvas.style.webkitTransform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
     layer.canvas.style.webkitTransformStyle = "preserve-3d";
 
-    layer.smoothing = this.app.smoothing;
+    cq.smoothing = this.app.smoothing;
     layer.update();
 
     layer.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";

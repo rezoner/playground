@@ -4,7 +4,6 @@ var files = [
 
   "license.txt",
 
-  "src/lib/Whammy.js",
   "src/lib/Ease.js",
 
   "src/Playground.js",
@@ -24,7 +23,6 @@ var files = [
   "src/SoundAudio.js",
   "src/Touch.js",
   "src/Tween.js",
-  "src/VideoRecorder.js",
   "src/Atlases.js",
   "src/Fonts.js",
   "src/DefaultState.js",

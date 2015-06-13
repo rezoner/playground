@@ -9,6 +9,7 @@ PLAYGROUND.Pointer = function(app) {
   app.on("mousemove", this.mousemove, this);
   app.on("mousedown", this.mousedown, this);
   app.on("mouseup", this.mouseup, this);
+  app.on("mousewheel", this.mousewheel, this);
 
   this.pointers = app.pointers = {};
 

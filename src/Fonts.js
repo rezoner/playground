@@ -1,4 +1,4 @@
-PLAYGROUND.Application.prototype.loadFont = function(name) {
+PLAYGROUND.Application.prototype.loadFontOld = function(name) {
 
   var styleNode = document.createElement("style");
   styleNode.type = "text/css";

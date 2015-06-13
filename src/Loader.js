@@ -33,15 +33,15 @@ PLAYGROUND.Loader.prototype = {
 
   success: function(id) {
 
-    this.queue--;
+    this.queue--;   
 
     this.progress = 1 - this.queue / this.count;
 
     this.trigger("load", id);
 
     if (this.queue <= 0) {
-      this.trigger("ready");
       this.reset();
+      this.trigger("ready");
     }
     
   },
