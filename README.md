@@ -49,13 +49,20 @@ var app = playground({
   keydown: function(data) { },
   keyup: function(data) { },
 
+  /* pointer events (mouse + touch) */
+  
+  pointerdown: function(data) { },
+  pointerup: function(data) { },
+  pointermove: function(data) { },
+  pointerwheel: function(data) { },
+
   /* mouse trap */
   
   mousedown: function(data) { },
   mouseup: function(data) { },
   mousemove: function(data) { },
 
-  /* finger trap - ouch */
+  /* finger trap */
 
   touchstart: function(data) { },
   touchend: function(data) { },
