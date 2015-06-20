@@ -931,7 +931,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
+    if ((event !== "render" || !this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
   },
 
@@ -943,9 +943,9 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.skipEvents || this.loader.ready) && this.event) this.event(event, data);
+    if ((event !== "render" || !this.skipEvents || this.loader.ready) && this.event) this.event(event, data);
 
-    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
+    if ((event !== "render" || !this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
     if (this.state.event) this.state.event(event, data);
 

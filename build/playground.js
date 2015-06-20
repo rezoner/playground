@@ -931,7 +931,7 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
+    if ((event !== "render" || !this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
   },
 
@@ -943,9 +943,9 @@ PLAYGROUND.Application.prototype = {
 
     this.trigger(event, data);
 
-    if ((!this.skipEvents || this.loader.ready) && this.event) this.event(event, data);
+    if ((event !== "render" || !this.skipEvents || this.loader.ready) && this.event) this.event(event, data);
 
-    if ((!this.skipEvents || this.loader.ready) && this[event]) this[event](data);
+    if ((event !== "render" || !this.skipEvents || this.loader.ready) && this[event]) this[event](data);
 
     if (this.state.event) this.state.event(event, data);
 
@@ -4843,14 +4843,24 @@ PLAYGROUND.LoadingScreen = {
 
           var padding = t.padding;
 
+          this.drawImage(image, 
+            region[0] + padding, 
+            region[1] + padding, 
+            (region[2] - padding * 2), 
+            (region[3] - padding * 2), 
+            x + padding, y + padding, 
+            w - padding * 2, 
+            h - padding * 2
+          );
+
 
           this.drawImage(image, region[0], region[1] + padding, padding, region[3] - 2 * padding, x, y + padding, padding, h - padding * 2);
           this.drawImage(image, region[0] + region[2] - padding, region[1] + padding, padding, region[3] - 2 * padding, x + w - padding, y + padding, padding, h - padding * 2);
-          this.drawImage(image, region[0] + padding, region[1], region[2] - padding * 2, padding, x + padding, y, w - padding * 2, padding );
-          this.drawImage(image, region[0] + padding, region[1] + region[3] - padding, region[2] - padding * 2, padding, x + padding, y + h - padding, w - padding * 2, padding );
+          this.drawImage(image, region[0] + padding, region[1], region[2] - padding * 2, padding, x + padding, y, w - padding * 2, padding);
+          this.drawImage(image, region[0] + padding, region[1] + region[3] - padding, region[2] - padding * 2, padding, x + padding, y + h - padding, w - padding * 2, padding);
 
           this.drawImage(image, region[0], region[1], padding, padding, x, y, padding, padding);
-          this.drawImage(image, region[0], region[1] + region[3] -padding, padding, padding, x, y + h - padding, padding, padding);
+          this.drawImage(image, region[0], region[1] + region[3] - padding, padding, padding, x, y + h - padding, padding, padding);
           this.drawImage(image, region[0] + region[2] - padding, region[1], padding, padding, x + w - padding, y, padding, padding);
           this.drawImage(image, region[0] + region[2] - padding, region[1] + region[3] - padding, padding, padding, x + w - padding, y + h - padding, padding, padding);
 
