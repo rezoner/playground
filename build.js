@@ -62,4 +62,9 @@ for (var key in builds) {
 
   output.to("build/" + key);
 
+  output = 'var PLAYGROUND;\n' + output;
+  output += '\nmodule.exports = playground;';
+  output += 'playground.Application = PLAYGROUND.Application;';
+  output.to("build/commonjs/" + key);
+
 }

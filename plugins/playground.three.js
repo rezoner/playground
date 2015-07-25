@@ -1,77 +1,91 @@
 /*
-
   A bunch of helpers for Three.js
-
   It is still work in progress
-
 */
 
 (function() {
 
-  /* texture loader */
+  if (require) {
+    THREE = require('three');
+  }
 
-  PLAYGROUND.Application.prototype.loadTexture = function(path) {
 
-    if (!this.textures) this.textures = {};
+  var mixin = {
 
-    var resourceName = "texture " + path;
+    /* texture loader */
 
-    var app = this;
+    loadTexture: function(path) {
 
-    var assetPath = this.getAssetEntry(path, "textures", "png");
+      if (!this.textures) this.textures = {};
 
-    if (this.textures[assetPath.key]) return;
+      var resourceName = "texture " + path;
 
-    this.loader.add(resourceName);
+      var app = this;
 
-    var loader = new THREE.TextureLoader();
+      var assetPath = this.getAssetEntry(path, "textures", "png");
 
-    loader.load(
+      if (this.textures[assetPath.key]) return;
 
-      assetPath.url,
+      this.loader.add(resourceName);
 
-      function(texture) {
+      var loader = new THREE.TextureLoader();
 
-        app.textures[assetPath.key] = texture;
+      loader.load(
 
-        app.loader.success(resourceName);
+        assetPath.url,
 
-      }
-    );
+        function(texture) {
 
+          app.textures[assetPath.key] = texture;
+
+          app.loader.success(resourceName);
+
+        }
+      );
+
+    },
+
+    /* object loader */
+
+    loadObject: function(path) {
+
+      var app = this;
+
+      if (!this.objects) this.objects = {};
+
+      var loaderID = "object " + path;
+
+      var assetPath = this.getAssetEntry(path, "objects", "json");
+
+      if (this.objects[assetPath.key]) return;
+
+      this.loader.add(loaderID);
+
+      var loader = new THREE.ObjectLoader();
+
+      loader.load(
+
+        assetPath.url,
+
+        function(object) {
+
+          app.objects[assetPath.key] = object;
+
+          app.loader.success(loaderID);
+
+        }
+      );
+
+    }
   };
 
-  /* object loader */
+  if (typeof module === 'object') {
+    module.exports = mixin;
+  }
 
-  PLAYGROUND.Application.prototype.loadObject = function(path) {
-
-    var app = this;
-
-    if (!this.objects) this.objects = {};
-
-    var loaderID = "object " + path;
-
-    var assetPath = this.getAssetEntry(path, "objects", "json");
-
-    if (this.objects[assetPath.key]) return;
-
-    this.loader.add(loaderID);
-
-    var loader = new THREE.ObjectLoader();
-
-    loader.load(
-
-      assetPath.url,
-
-      function(object) {
-
-        app.objects[assetPath.key] = object;
-
-        app.loader.success(loaderID);
-
-      }
-    );
-
-  };
+  if (typeof PLAYGROUND !== 'undefined') {
+    PLAYGROUND.Application.prototype.loadTexture = mixin.loadTexture;
+    PLAYGROUND.Application.prototype.loadObject = mixin.loadObject;
+  }
 
 })();
