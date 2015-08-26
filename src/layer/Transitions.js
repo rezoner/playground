@@ -10,6 +10,7 @@ PLAYGROUND.Transitions = function(app) {
   this.lifetime = 0;
 
   app.transition = "split";
+  app.transitionDuration = 0.5;
 
 };
 
@@ -22,8 +23,10 @@ PLAYGROUND.Transitions.prototype = {
     this.screenshot = this.app.layer.cache();
 
     if (data.prev) {
+
       this.lifetime = 0;
       this.progress = 0;
+
     }
 
   },
@@ -44,7 +47,7 @@ PLAYGROUND.Transitions.prototype = {
 
     this.lifetime += delta;
 
-    this.progress = Math.min(this.lifetime / 0.5, 1);
+    this.progress = Math.min(this.lifetime / this.app.transitionDuration, 1);
 
   }
 
