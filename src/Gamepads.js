@@ -109,15 +109,73 @@ PLAYGROUND.Gamepads.prototype = {
 
       if (current.axes) {
 
-        if (current.axes[0] < 0) buttons[14].pressed = true;
-        if (current.axes[0] > 0) buttons[15].pressed = true;
-        if (current.axes[1] < 0) buttons[12].pressed = true;
-        if (current.axes[1] > 0) buttons[13].pressed = true;
+        if (Math.abs(current.axes[0]) > 0.01) {
+          if (current.axes[0] < 0) buttons[14].pressed = true;
+          if (current.axes[0] > 0) buttons[15].pressed = true;
+        }
+        
+        if (Math.abs(current.axes[1]) > 0.01) {
+          if (current.axes[1] < 0) buttons[12].pressed = true;
+          if (current.axes[1] > 0) buttons[13].pressed = true;
+        }
 
-        previous.sticks[0].x = current.axes[0];
-        previous.sticks[0].y = current.axes[1];
-        previous.sticks[1].x = current.axes[2];
-        previous.sticks[1].y = current.axes[3];
+        var stickChanged = false;
+        var stickA = false;
+        var stickB = false;
+
+        if (previous.sticks[0].x !== current.axes[0]) {
+
+          stickChanged = true;
+          stickA = true;
+
+        }
+
+        if (previous.sticks[0].y !== current.axes[1]) {
+
+          stickChanged = true;
+          stickA = true;
+
+        }
+
+        if (previous.sticks[1].x !== current.axes[2]) {
+
+          stickChanged = true;
+          stickB = true;
+
+        }
+
+        if (previous.sticks[1].y !== current.axes[3]) {
+
+          stickChanged = true;
+          stickB = true;
+
+        }
+
+        if (stickChanged) {
+
+          this.gamepadmoveEvent.old = [
+            Utils.extend({}, previous.sticks[0]),
+            Utils.extend({}, previous.sticks[1])
+          ];
+
+          previous.sticks[0].x = current.axes[0];
+          previous.sticks[0].y = current.axes[1];
+          previous.sticks[1].x = current.axes[2];
+          previous.sticks[1].y = current.axes[3];
+
+          this.gamepadmoveEvent.sticks = previous.sticks;
+
+          if (stickA) this.gamepadmoveEvent.a = previous.sticks[0];
+          else this.gamepadmoveEvent.a = false;
+
+          if (stickB) this.gamepadmoveEvent.b = previous.sticks[1];
+          else this.gamepadmoveEvent.b = false;
+
+          this.gamepadmoveEvent.gamepad = i;
+          this.trigger("gamepadmove", this.gamepadmoveEvent);
+
+        }
+
 
       }
 
@@ -139,7 +197,6 @@ PLAYGROUND.Gamepads.prototype = {
         }
 
         /* gamepad up */
-        
         else if (!buttons[j].pressed && previous.buttons[key]) {
 
           previous.buttons[key] = false;

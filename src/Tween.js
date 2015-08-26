@@ -144,6 +144,10 @@ PLAYGROUND.Tween.prototype = {
         this.trigger("finished", {
           tween: this
         });
+        
+        this.trigger("finish", {
+          tween: this
+        });
 
         this.finished = true;
         this.manager.remove(this);
@@ -172,15 +176,27 @@ PLAYGROUND.Tween.prototype = {
       this.before = [];
       this.types = [];
 
-      for (i = 0; i < this.keys.length; i++) {
-        var key = this.keys[i];
 
-        if (typeof this.context[key] === "number") {
-          this.before.push(this.context[key]);
-          this.change.push(properties[key] - this.context[key]);
+      for (i = 0; i < this.keys.length; i++) {
+
+        var key = this.keys[i];
+        var value = this.context[key];
+
+        if (typeof properties[key] === "number") {
+
+          this.before.push(value);
+          this.change.push(properties[key] - value);
           this.types.push(0);
+
+        } else if (typeof properties[key] === "string" && properties[key].indexOf("rad" > -1)) {
+
+          this.before.push(value);
+          this.change.push(PLAYGROUND.Utils.circWrappedDistance(value, parseFloat(properties[key])));
+          this.types.push(2);
+
         } else {
-          var before = cq.color(this.context[key]);
+
+          var before = cq.color(value);
 
           this.before.push(before);
 
@@ -195,6 +211,7 @@ PLAYGROUND.Tween.prototype = {
           this.change.push(temp);
 
           this.types.push(1);
+
         }
 
       }
@@ -268,6 +285,14 @@ PLAYGROUND.Tween.prototype = {
           this.context[key] = "rgb(" + color.join(",") + ")";
 
           break;
+
+          /* angle */
+
+        case 2:
+
+          this.context[key] = PLAYGROUND.Utils.circWrap(this.before[i] + this.change[i] * mod);
+
+          break;
       }
     }
 
@@ -306,13 +331,22 @@ PLAYGROUND.TweenManager.prototype = {
 
   defaultEasing: "128",
 
+  circ: function(value) {
+
+    return {
+      type: "circ",
+      value: value
+    };
+
+  },
+
   discard: function(object, safe) {
 
     for (var i = 0; i < this.tweens.length; i++) {
-      
+
       var tween = this.tweens[i];
 
-      if(tween.context === object && tween !== safe) this.remove(tween);
+      if (tween.context === object && tween !== safe) this.remove(tween);
 
     }
 
@@ -327,7 +361,7 @@ PLAYGROUND.TweenManager.prototype = {
     return tween;
 
   },
- 
+
   step: function(delta) {
 
     this.delta += delta;
@@ -337,11 +371,11 @@ PLAYGROUND.TweenManager.prototype = {
       var tween = this.tweens[i];
 
       if (!tween._remove) tween.step(delta);
-      
+
       if (tween._remove) this.tweens.splice(i--, 1);
 
     }
-     
+
   },
 
   add: function(tween) {

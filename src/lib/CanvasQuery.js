@@ -1,6 +1,6 @@
 /*     
 
-  Canvas Query r4
+  Canvas Query r5
   
   http://canvasquery.com
   
@@ -8,11 +8,10 @@
   
   Canvas Query may be freely distributed under the MIT license.
 
-
-
   ! fixed: leaking arguments in fastApply bailing out optimization 
   + cacheText
   + compare
+  + checkerboard
 
 */
 
@@ -501,7 +500,6 @@
 
       if (typeof this.smoothing !== "undefined") smoothing = this.smoothing;
 
-      this.context.webkitImageSmoothingEnabled = smoothing;
       this.context.mozImageSmoothingEnabled = smoothing;
       this.context.msImageSmoothingEnabled = smoothing;
       this.context.imageSmoothingEnabled = smoothing;
@@ -690,6 +688,31 @@
     },
 
     drawTile: function(image, x, y, frameX, frameY, frameWidth, frameHeight, frames, frame) {
+
+    },
+
+    checkerboard: function(x, y, w, h, grid, colorA, colorB) {
+
+      var tx = w / grid | 0;
+      var ty = h / grid | 0;
+
+      this.save();
+      this.rect(x, y, w, h).clip();
+
+      for (var i = 0; i <= tx; i++) {
+        for (var j = 0; j <= ty; j++) {
+
+
+          if (j % 2) var color = i % 2 ? colorA : colorB;
+          else var color = i % 2 ? colorB : colorA;
+
+          this.fillStyle(color);
+          this.fillRect(x + i * grid, y + j * grid, grid, grid);
+
+        }
+      }
+
+      this.restore();
 
     },
 
@@ -1594,13 +1617,11 @@
 
           var padding = t.padding;
 
-          this.drawImage(image, 
-            region[0] + padding, 
-            region[1] + padding, 
-            (region[2] - padding * 2), 
-            (region[3] - padding * 2), 
-            x + padding, y + padding, 
-            w - padding * 2, 
+          this.drawImage(image,
+            region[0] + padding,
+            region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
+            x + padding, y + padding,
+            w - padding * 2,
             h - padding * 2
           );
 

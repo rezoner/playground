@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r5
+  PlaygroundJS r6
   
   http://playgroundjs.com
   
@@ -14,6 +14,12 @@
 
   latest major changes:
 
+  r6
+
+  + custom transitions
+  + fixes for gamepad
+  + updated CanvasQuery
+  
   r5
 
   + game loop nicely split into render and step - check profiler
@@ -520,12 +526,96 @@ PLAYGROUND.Utils = {
         fn.apply(context, args);
       }
     };
-  }
+  },
+
+  wrapTo: function(value, target, max, step) {
+    if (value === target) return target;
+
+    var result = value;
+
+    var d = this.wrappedDistance(value, target, max);
+
+    if (Math.abs(d) < step) return target;
+
+    result += (d < 0 ? -1 : 1) * step;
+
+    if (result > max) {
+      result = result - max;
+    } else if (result < 0) {
+      result = max + result;
+    }
+
+    return result;
+  },
+
+  wrap: function(value, min, max) {
+
+    if (value < min) return max + (value % max);
+    if (value >= max) return value % max;
+    return value;
+
+  },
+
+  circWrap: function(val) {
+
+    return this.wrap(val, 0, Math.PI * 2);
+
+  },
+
+  circWrapTo: function(value, target, step) {
+
+    return this.wrapTo(value, target, Math.PI * 2, step);
+
+  },
+
+  wrappedDistance: function(a, b, max) {
+
+    if (a === b) return 0;
+    else if (a < b) {
+      var l = -a - max + b;
+      var r = b - a;
+    } else {
+      var l = b - a;
+      var r = max - a + b;
+    }
+
+    if (Math.abs(l) > Math.abs(r)) return r;
+    else return l;
+
+  },
+
+  circWrappedDistance: function(a, b) {
+
+    return this.wrappedDistance(a, b, Math.PI * 2)
+    
+  },
+
+  ground: function(num, threshold) {
+    
+    return (num / threshold | 0) * threshold;
+
+  },
+
+  circDistance: function(a, b) {
+    var max = Math.PI * 2;
+
+    if (a === b) return 0;
+    else if (a < b) {
+      var l = -a - max + b;
+      var r = b - a;
+    } else {
+      var l = b - a;
+      var r = max - a + b;
+    }
+
+    if (Math.abs(l) > Math.abs(r)) return r;
+    else return l;
+  },
+
 
 };
 
 PLAYGROUND.Utils.ease = ease;
-
 
 /* file: src/Events.js */
 
@@ -1458,15 +1548,73 @@ PLAYGROUND.Gamepads.prototype = {
 
       if (current.axes) {
 
-        if (current.axes[0] < 0) buttons[14].pressed = true;
-        if (current.axes[0] > 0) buttons[15].pressed = true;
-        if (current.axes[1] < 0) buttons[12].pressed = true;
-        if (current.axes[1] > 0) buttons[13].pressed = true;
+        if (Math.abs(current.axes[0]) > 0.01) {
+          if (current.axes[0] < 0) buttons[14].pressed = true;
+          if (current.axes[0] > 0) buttons[15].pressed = true;
+        }
+        
+        if (Math.abs(current.axes[1]) > 0.01) {
+          if (current.axes[1] < 0) buttons[12].pressed = true;
+          if (current.axes[1] > 0) buttons[13].pressed = true;
+        }
 
-        previous.sticks[0].x = current.axes[0];
-        previous.sticks[0].y = current.axes[1];
-        previous.sticks[1].x = current.axes[2];
-        previous.sticks[1].y = current.axes[3];
+        var stickChanged = false;
+        var stickA = false;
+        var stickB = false;
+
+        if (previous.sticks[0].x !== current.axes[0]) {
+
+          stickChanged = true;
+          stickA = true;
+
+        }
+
+        if (previous.sticks[0].y !== current.axes[1]) {
+
+          stickChanged = true;
+          stickA = true;
+
+        }
+
+        if (previous.sticks[1].x !== current.axes[2]) {
+
+          stickChanged = true;
+          stickB = true;
+
+        }
+
+        if (previous.sticks[1].y !== current.axes[3]) {
+
+          stickChanged = true;
+          stickB = true;
+
+        }
+
+        if (stickChanged) {
+
+          this.gamepadmoveEvent.old = [
+            Utils.extend({}, previous.sticks[0]),
+            Utils.extend({}, previous.sticks[1])
+          ];
+
+          previous.sticks[0].x = current.axes[0];
+          previous.sticks[0].y = current.axes[1];
+          previous.sticks[1].x = current.axes[2];
+          previous.sticks[1].y = current.axes[3];
+
+          this.gamepadmoveEvent.sticks = previous.sticks;
+
+          if (stickA) this.gamepadmoveEvent.a = previous.sticks[0];
+          else this.gamepadmoveEvent.a = false;
+
+          if (stickB) this.gamepadmoveEvent.b = previous.sticks[1];
+          else this.gamepadmoveEvent.b = false;
+
+          this.gamepadmoveEvent.gamepad = i;
+          this.trigger("gamepadmove", this.gamepadmoveEvent);
+
+        }
+
 
       }
 
@@ -1488,7 +1636,6 @@ PLAYGROUND.Gamepads.prototype = {
         }
 
         /* gamepad up */
-        
         else if (!buttons[j].pressed && previous.buttons[key]) {
 
           previous.buttons[key] = false;
@@ -1506,7 +1653,6 @@ PLAYGROUND.Gamepads.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Gamepads.prototype, PLAYGROUND.Events.prototype);
-
 
 /* file: src/Keyboard.js */
 
@@ -2777,6 +2923,10 @@ PLAYGROUND.Tween.prototype = {
         this.trigger("finished", {
           tween: this
         });
+        
+        this.trigger("finish", {
+          tween: this
+        });
 
         this.finished = true;
         this.manager.remove(this);
@@ -2805,15 +2955,27 @@ PLAYGROUND.Tween.prototype = {
       this.before = [];
       this.types = [];
 
-      for (i = 0; i < this.keys.length; i++) {
-        var key = this.keys[i];
 
-        if (typeof this.context[key] === "number") {
-          this.before.push(this.context[key]);
-          this.change.push(properties[key] - this.context[key]);
+      for (i = 0; i < this.keys.length; i++) {
+
+        var key = this.keys[i];
+        var value = this.context[key];
+
+        if (typeof properties[key] === "number") {
+
+          this.before.push(value);
+          this.change.push(properties[key] - value);
           this.types.push(0);
+
+        } else if (typeof properties[key] === "string" && properties[key].indexOf("rad" > -1)) {
+
+          this.before.push(value);
+          this.change.push(PLAYGROUND.Utils.circWrappedDistance(value, parseFloat(properties[key])));
+          this.types.push(2);
+
         } else {
-          var before = cq.color(this.context[key]);
+
+          var before = cq.color(value);
 
           this.before.push(before);
 
@@ -2828,6 +2990,7 @@ PLAYGROUND.Tween.prototype = {
           this.change.push(temp);
 
           this.types.push(1);
+
         }
 
       }
@@ -2901,6 +3064,14 @@ PLAYGROUND.Tween.prototype = {
           this.context[key] = "rgb(" + color.join(",") + ")";
 
           break;
+
+          /* angle */
+
+        case 2:
+
+          this.context[key] = PLAYGROUND.Utils.circWrap(this.before[i] + this.change[i] * mod);
+
+          break;
       }
     }
 
@@ -2939,13 +3110,22 @@ PLAYGROUND.TweenManager.prototype = {
 
   defaultEasing: "128",
 
+  circ: function(value) {
+
+    return {
+      type: "circ",
+      value: value
+    };
+
+  },
+
   discard: function(object, safe) {
 
     for (var i = 0; i < this.tweens.length; i++) {
-      
+
       var tween = this.tweens[i];
 
-      if(tween.context === object && tween !== safe) this.remove(tween);
+      if (tween.context === object && tween !== safe) this.remove(tween);
 
     }
 
@@ -2960,7 +3140,7 @@ PLAYGROUND.TweenManager.prototype = {
     return tween;
 
   },
- 
+
   step: function(delta) {
 
     this.delta += delta;
@@ -2970,11 +3150,11 @@ PLAYGROUND.TweenManager.prototype = {
       var tween = this.tweens[i];
 
       if (!tween._remove) tween.step(delta);
-      
+
       if (tween._remove) this.tweens.splice(i--, 1);
 
     }
-     
+
   },
 
   add: function(tween) {
@@ -3249,7 +3429,7 @@ PLAYGROUND.LoadingScreen = {
 
 /*     
 
-  Canvas Query r4
+  Canvas Query r5
   
   http://canvasquery.com
   
@@ -3257,11 +3437,10 @@ PLAYGROUND.LoadingScreen = {
   
   Canvas Query may be freely distributed under the MIT license.
 
-
-
   ! fixed: leaking arguments in fastApply bailing out optimization 
   + cacheText
   + compare
+  + checkerboard
 
 */
 
@@ -3750,7 +3929,6 @@ PLAYGROUND.LoadingScreen = {
 
       if (typeof this.smoothing !== "undefined") smoothing = this.smoothing;
 
-      this.context.webkitImageSmoothingEnabled = smoothing;
       this.context.mozImageSmoothingEnabled = smoothing;
       this.context.msImageSmoothingEnabled = smoothing;
       this.context.imageSmoothingEnabled = smoothing;
@@ -3939,6 +4117,31 @@ PLAYGROUND.LoadingScreen = {
     },
 
     drawTile: function(image, x, y, frameX, frameY, frameWidth, frameHeight, frames, frame) {
+
+    },
+
+    checkerboard: function(x, y, w, h, grid, colorA, colorB) {
+
+      var tx = w / grid | 0;
+      var ty = h / grid | 0;
+
+      this.save();
+      this.rect(x, y, w, h).clip();
+
+      for (var i = 0; i <= tx; i++) {
+        for (var j = 0; j <= ty; j++) {
+
+
+          if (j % 2) var color = i % 2 ? colorA : colorB;
+          else var color = i % 2 ? colorB : colorA;
+
+          this.fillStyle(color);
+          this.fillRect(x + i * grid, y + j * grid, grid, grid);
+
+        }
+      }
+
+      this.restore();
 
     },
 
@@ -4843,13 +5046,11 @@ PLAYGROUND.LoadingScreen = {
 
           var padding = t.padding;
 
-          this.drawImage(image, 
-            region[0] + padding, 
-            region[1] + padding, 
-            (region[2] - padding * 2), 
-            (region[3] - padding * 2), 
-            x + padding, y + padding, 
-            w - padding * 2, 
+          this.drawImage(image,
+            region[0] + padding,
+            region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
+            x + padding, y + padding,
+            w - padding * 2,
             h - padding * 2
           );
 
@@ -5596,6 +5797,9 @@ PLAYGROUND.Transitions = function(app) {
 
   this.progress = 1;
   this.lifetime = 0;
+
+  app.transition = "split";
+
 };
 
 PLAYGROUND.Transitions.plugin = true;
@@ -5617,7 +5821,9 @@ PLAYGROUND.Transitions.prototype = {
 
     if (this.progress >= 1) return;
 
-    PLAYGROUND.Transitions.Split(this, this.progress);
+    var transition = PLAYGROUND.Transitions[this.app.transition];
+
+    transition(this.progress, this.app.layer, this.screenshot);
 
   },
 
@@ -5633,10 +5839,7 @@ PLAYGROUND.Transitions.prototype = {
 
 };
 
-PLAYGROUND.Transitions.Implode = function(manager, progress) {
-
-  var app = manager.app;
-  var layer = app.layer;
+PLAYGROUND.Transitions.implode = function(progress, layer, screenshot) {
 
   progress = app.ease(progress, "outCubic");
 
@@ -5644,16 +5847,13 @@ PLAYGROUND.Transitions.Implode = function(manager, progress) {
 
   layer.save();
   layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
-  layer.drawImage(manager.screenshot, 0, 0);
+  layer.drawImage(screenshot, 0, 0);
 
   layer.restore();
 
 };
 
-PLAYGROUND.Transitions.Split = function(manager, progress) {
-
-  var app = manager.app;
-  var layer = app.layer;
+PLAYGROUND.Transitions.split = function(progress, layer, screenshot) {
 
   progress = app.ease(progress, "inOutCubic");
 
@@ -5663,8 +5863,8 @@ PLAYGROUND.Transitions.Split = function(manager, progress) {
 
   layer.a(negative).clear("#fff").ra();
 
-  layer.drawImage(manager.screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
-  layer.drawImage(manager.screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
+  layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
+  layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
 
   layer.restore();
 
@@ -5751,8 +5951,6 @@ PLAYGROUND.LoadingScreen = {
     this.app.layer.fillRect(this.app.center.x, this.app.center.y + 32, this.logo.width, 4);
 
     this.app.layer.restore();
-
-
 
   }
 

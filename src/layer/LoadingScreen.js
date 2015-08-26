@@ -78,8 +78,6 @@ PLAYGROUND.LoadingScreen = {
 
     this.app.layer.restore();
 
-
-
   }
 
 };

@@ -8,6 +8,9 @@ PLAYGROUND.Transitions = function(app) {
 
   this.progress = 1;
   this.lifetime = 0;
+
+  app.transition = "split";
+
 };
 
 PLAYGROUND.Transitions.plugin = true;
@@ -29,7 +32,9 @@ PLAYGROUND.Transitions.prototype = {
 
     if (this.progress >= 1) return;
 
-    PLAYGROUND.Transitions.Split(this, this.progress);
+    var transition = PLAYGROUND.Transitions[this.app.transition];
+
+    transition(this.progress, this.app.layer, this.screenshot);
 
   },
 
@@ -45,10 +50,7 @@ PLAYGROUND.Transitions.prototype = {
 
 };
 
-PLAYGROUND.Transitions.Implode = function(manager, progress) {
-
-  var app = manager.app;
-  var layer = app.layer;
+PLAYGROUND.Transitions.implode = function(progress, layer, screenshot) {
 
   progress = app.ease(progress, "outCubic");
 
@@ -56,16 +58,13 @@ PLAYGROUND.Transitions.Implode = function(manager, progress) {
 
   layer.save();
   layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
-  layer.drawImage(manager.screenshot, 0, 0);
+  layer.drawImage(screenshot, 0, 0);
 
   layer.restore();
 
 };
 
-PLAYGROUND.Transitions.Split = function(manager, progress) {
-
-  var app = manager.app;
-  var layer = app.layer;
+PLAYGROUND.Transitions.split = function(progress, layer, screenshot) {
 
   progress = app.ease(progress, "inOutCubic");
 
@@ -75,8 +74,8 @@ PLAYGROUND.Transitions.Split = function(manager, progress) {
 
   layer.a(negative).clear("#fff").ra();
 
-  layer.drawImage(manager.screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
-  layer.drawImage(manager.screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
+  layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
+  layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
 
   layer.restore();
 

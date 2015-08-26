@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r5
+  PlaygroundJS r6
   
   http://playgroundjs.com
   
@@ -10,6 +10,12 @@
 
   latest major changes:
 
+  r6
+
+  + custom transitions
+  + fixes for gamepad
+  + updated CanvasQuery
+  
   r5
 
   + game loop nicely split into render and step - check profiler
