@@ -1,3 +1,16 @@
+/** Abstracts away differences between mouse and touches.
+ *
+ * The object simply listens to global events raised by application and
+ * raises new (global) events on behalf of the application.
+ *
+ * Following events are raised:
+ * - pointerdown:mouse button down or start tracking touch point
+ * - pointerup: mouse button release or touch point release
+ * - pointermove: mouse pointer or touch point moved
+ * - pointerwheel: mouse wheel rotated
+ *
+ * Reference: http://playgroundjs.com/playground-pointer
+ */
 PLAYGROUND.Pointer = function(app) {
 
   this.app = app;

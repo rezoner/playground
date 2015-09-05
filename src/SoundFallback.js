@@ -1,3 +1,5 @@
+/** Deprecated;  see SoundAudio.
+ */
 PLAYGROUND.SoundFallback = function(parent) {
 
   this.parent = parent;

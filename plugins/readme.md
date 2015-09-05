@@ -8,7 +8,7 @@ Plugins are functions called when PLAYGROUND.Aplication is instantiated.
 PLAYGROUND.MyPlugin = function(app) {
 
   /* and that's it */
-  /* you get the newly instantiated application 
+  /* you get the newly instantiated application
      and you can listen to some events */
 
   app.on("postrender", function() { });
@@ -16,7 +16,7 @@ PLAYGROUND.MyPlugin = function(app) {
 
 };
 
-/* you have to tell playground that this function is a plugin 
+/* you have to tell playground that this function is a plugin
    otherwise it will not get called */
 
 PLAYGROUND.MyPlugin.plugin = true;
@@ -35,7 +35,7 @@ PLAYGROUND.MyPlugin = function(app) {
 
   app.on("postrender", this.postrender.bind(this));
   app.on("enterstate", this.enterstate.bind(this));
-  
+
 };
 
 PLAYGROUND.MyPlugin.plugin = true;
@@ -49,12 +49,12 @@ PLAYGROUND.MyPlugin.prototype = {
     data.state.bunny = new MYLIBRARY.Bunny;
 
     /* let's forget the bunny - maybe you are using THREE.js
-       and you want a separate camera for each state? 
+       and you want a separate camera for each state?
        This is where you can automate it */
 
   },
 
-  /* triggered after everything has been rendered */  
+  /* triggered after everything has been rendered */
 
   postrender: function() {
 
@@ -80,7 +80,7 @@ PLAYGROUND.Application.prototoype.loadMyCoolThing = function() {
 Integration with playground's loader is very simple.
 
 ```javascript
-/* tell the loader that something has been added 
+/* tell the loader that something has been added
    the loader doesn't care what it is */
 
 this.loader.add();
@@ -100,7 +100,7 @@ Let's assume there is no `loadImage` method and we want to add one that will be 
 playground({
 
   create: function() {
-    
+
     this.loadImage("candy");
 
   },
@@ -136,13 +136,13 @@ PLAYGROUND.Application.prototype.loadImage = function(name) {
   var image = new Image;
 
   image.addEventListener("load", function() {
-    
+
     loader.success();
 
   });
 
   image.addEventListener("error", function() {
-    
+
     loader.error("give user some meaningful error");
 
   });
@@ -231,9 +231,9 @@ ENGINE.Game = {
 
 };
 ```
- 
+
 * Way to describe dependancies (no no package managers, just verbal information for end-user)
 * Resolve conflicts - for example two renderers make no sense
 * Resolve naming conflicts - everyone wants to call his plugin PLAYGROUND.Renderer
-## Naming conventions 
+## Naming conventions
 

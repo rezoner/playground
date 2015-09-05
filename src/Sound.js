@@ -1,3 +1,10 @@
+/** Factory that creates sound related objects in application.
+ *
+ * The back-end is either PLAYGROUND.SoundWebAudioAPI or PLAYGROUND.SoundAudio.
+ *
+ * The application object will have tow (identical) objects inserted:
+ * `sound` and `music`.
+ */
 PLAYGROUND.Sound = function(app) {
 
   var audioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
@@ -19,24 +26,28 @@ PLAYGROUND.Sound = function(app) {
 
 };
 
+/** Play a sound */
 PLAYGROUND.Application.prototype.playSound = function(key, loop) {
 
   return this.sound.play(key, loop);
 
 };
 
+/** Stop a sound from playing */
 PLAYGROUND.Application.prototype.stopSound = function(sound) {
 
   this.sound.stop(sound);
 
 };
 
+/** Load the sound */
 PLAYGROUND.Application.prototype.loadSound = function() {
 
   return this.loadSounds.apply(this, arguments);
 
 };
 
+/** Load multiple sounds */
 PLAYGROUND.Application.prototype.loadSounds = function() {
 
   for (var i = 0; i < arguments.length; i++) {

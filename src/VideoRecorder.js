@@ -1,5 +1,4 @@
-/* Video recorder */
-
+/** Video recorder */
 PLAYGROUND.VideoRecorder = function(app, args) {
 
   this.app = app;

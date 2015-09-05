@@ -1,3 +1,10 @@
+/** Renderer build on top of CanvasQuery library.
+ *
+ * The application is enhanced with a `layer` member that
+ * provides access to the canvas.
+ *
+ * Reference: http://playgroundjs.com/playground-layer
+ */
 PLAYGROUND.Renderer = function(app) {
 
   this.app = app;

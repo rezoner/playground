@@ -1,3 +1,18 @@
+/** Base class for objects emmiting events.
+ *
+ * An associative array for listners is maintained internally.
+ * The keys are the names of the event while the values are
+ * lists of listners objects with three properties:
+ * - once: is this a one time event or a recurring one
+ * - callback: function to call
+ * - context: the value for *this* inside *callback*.
+ *
+ * A special event is called `event`. The listners for
+ * this event will receive all broadcasted events
+ * with three arguments: `context`, `event name`, `data`.
+ * Callbacks for other events are simply called with
+ * `context` and `data`.
+ */
 PLAYGROUND.Events = function() {
 
   this.listeners = {};
@@ -6,6 +21,17 @@ PLAYGROUND.Events = function() {
 
 PLAYGROUND.Events.prototype = {
 
+  /** Add a listner for an event.
+   *
+   * @param event name of the event or an associative array
+   *              where keys are event names and values are
+   *              callbacks to use
+   * @param callback the function to call for this listner; if
+   *                 *event* is an object this parameter is ignored
+   * @param context *this* when calling the callback(s)
+   *
+   * @returns the listner object
+   */
   on: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -29,6 +55,17 @@ PLAYGROUND.Events.prototype = {
     return listener;
   },
 
+  /** Add a listner for an event.
+   *
+   * @param event name of the event or an associative array
+   *              where keys are event names and values are
+   *              callbacks to use
+   * @param callback the function to call for this listner; if
+   *                 *event* is an object this parameter is ignored
+   * @param context *this* when calling the callback(s)
+   *
+   * @returns the listner object
+   */
   once: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -52,6 +89,14 @@ PLAYGROUND.Events.prototype = {
     return listener;
   },
 
+  /** Remove an event listner from an event.
+   *
+   * The function will remove all occurences that use that particular
+   * callback (will be a single instance in well behaved applications).
+   *
+   * @param event the name of the event
+   * @param callback identifying the listner
+   */
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
@@ -63,6 +108,15 @@ PLAYGROUND.Events.prototype = {
 
   },
 
+  /** Raise an event.
+   *
+   *  If the listner is only to be raised once this function
+   * removes it from the list of listners.
+   *
+   * @param event the name of the event being raised
+   * @param data array of arguments for the callbacks
+   *
+   */
   trigger: function(event, data) {
 
     /* if you prefer events pipe */

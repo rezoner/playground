@@ -1,6 +1,7 @@
-/* pure <canvas> renderer for playground
-   that obeys application size, scale and smoothing */
-
+/** Pure <canvas> renderer for playground.
+ *
+ *  The renderer obeys application size, scale and smoothing
+ */
 PLAYGROUND.Renderer = function(app) {
 
   this.app = app;
@@ -30,15 +31,15 @@ PLAYGROUND.Renderer.prototype = {
 
     app.canvas.style.transformOrigin = "0 0";
     app.canvas.style.transform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
-        
+
     /* disable interpolation for drawing context */
-    
+
     app.layer.imageSmoothingEnabled = smoothing;
 
     /* disable interpolation when scaling canvas in DOM */
 
     app.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
-    
+
   }
 
 };

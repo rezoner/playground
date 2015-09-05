@@ -1,17 +1,14 @@
-/*     
-
-  SoundOnDemand r1
-
-  (c) 2012-2015 http://rezoner.net
-
-  This library may be freely distributed under the MIT license.
-
-*/
-
-/* options */
-
-/* output: output node, default */
-/* audioContext: audioContext */
+/** SoundOnDemand r1
+ *
+ *
+ * (c) 2012-2015 http://rezoner.net
+ *
+ * This library may be freely distributed under the MIT license.
+ *
+ * Options:
+ * - output: output node, default
+ * - audioContext: audioContext
+ */
 
 SoundOnDemand = function(options) {
 
@@ -55,7 +52,7 @@ SoundOnDemand = function(options) {
   setInterval(function() {
 
     var delta = (lastTick - Date.now()) / 1000;
-    
+
     lastTick = Date.now();
 
     engine.step(delta);
@@ -96,7 +93,7 @@ SoundOnDemand.prototype = {
 
   getAssetEntry: function(path, defaultExtension) {
 
-    /* translate folder according to user provided paths 
+    /* translate folder according to user provided paths
        or leave as is */
 
     var fileinfo = path.match(/(.*)\..*/);

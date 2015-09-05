@@ -1,3 +1,53 @@
+/** Animation for smooth change of states
+ *
+ * Properties:
+ * - actions: list of things to do; each entry is an array of:
+ *     - [0]: properties; an associative array where keys are the
+ *       names of the properties of the `context` to change
+ *       and values are the new value for that property;
+ *       can also be one of following strings:
+ *         - repeat: to repeat a sequence
+ *         - wait: to wait some milliseconds
+ *     - [1]: duration
+ *     - [2]: easing
+ * - index: position inside `actions` array
+ * - manager: the TweenManager instance where this object is registered;
+ * - context: the object associated with this instance; *
+ * - looped: what to do at the end of the animation array; true wraps
+ *   back to 0, false terminates the animation
+ * - finished: set to true at the end of the animation if the tween is
+ *   not a looped one
+ * - delta: milliseconds that have passed since the start
+ *   of this animation bit (updated by `step()`)
+ * - prevEasing: TBD (debug?)
+ * - prevDuration: TBD (debug?)
+ *
+ * Current action has some related properties:
+ * - current: current action (an object from `actions` array);
+ * - currentAction: `next()` function fills it to be consumed by `step()`
+ *     - animate: use `doAnimate()` function
+ *     - wait:
+ * - duration:  `next()` function fills it to be consumed by `step()`
+ * - easing:  `next()` function fills it to be consumed by `step()`
+ * - keys: the keys of current action's properties
+ *
+ * An action is decomposed in following components (one entry for each
+ * property that will be updated):
+ * - before: current value
+ * - change: the change to apply to current value
+ * - types: content type:
+ *     - 0: numbers
+ *     - 1: colors
+ *     - 2: angles
+ *
+ * Events:
+ * - loop: a looped tween has reached the end and is being
+ *   reset to first animation.
+ * - finished, finish: a non-looped animation reached the end
+ *   and is being removed from the manager
+ *
+ * Reference: http://playgroundjs.com/intro/tween
+ */
 PLAYGROUND.Tween = function(manager, context) {
 
   PLAYGROUND.Events.call(this);
@@ -21,6 +71,13 @@ PLAYGROUND.Tween = function(manager, context) {
 
 PLAYGROUND.Tween.prototype = {
 
+  /** Add an action to the end of the list
+   *
+   * @param properties
+   * @param duration in miliseconds (optional, default is 0.5)
+   * @param easing (optional, default is 045)
+   * @returns `this` object so that calls can be chained.
+   */
   add: function(properties, duration, easing) {
 
     if (duration) this.prevDuration = duration;
@@ -34,6 +91,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Discard all other tweens associated with same context as ours. */
   discard: function() {
 
     this.manager.discard(this.context, this);
@@ -42,10 +100,12 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Alias for `add()` */
   to: function(properties, duration, easing) {
     return this.add(properties, duration, easing);
   },
 
+  /** Mark the instance as being a repeated tween. */
   loop: function() {
 
     this.looped = true;
@@ -54,12 +114,14 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Add a repeat action for specified number of times. */
   repeat: function(times) {
 
     this.actions.push(["repeat", times]);
 
   },
 
+  /** Add a wait action for specified number of miliseconds. */
   wait: function(time) {
 
     this.actions.push(["wait", time]);
@@ -68,12 +130,14 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Alias for `wait()`. */
   delay: function(time) {
 
     this.actions.push(["wait", time]);
 
   },
 
+  /** Remove this tween from the manager */
   stop: function() {
 
     this.manager.remove(this);
@@ -82,6 +146,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Inserts the tween into the manager if not already inside. */
   play: function() {
 
     this.manager.add(this);
@@ -92,7 +157,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-
+  /** Performs last step in the animation list. */
   end: function() {
 
     var lastAnimationIndex = 0;
@@ -110,6 +175,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** TBD */
   forward: function() {
 
     this.delta = this.duration;
@@ -117,6 +183,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** TBD */
   rewind: function() {
 
     this.delta = 0;
@@ -124,6 +191,14 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Perform one animation step
+   *
+   * Advances the index and, if the index reached the end of the
+   * `actions` array, either restarts it (for looped tweens) or terminates it.
+   *
+   * The function will set a string in `currentAction` indicating what it
+   * should be done next but it does not perform the action itself.
+   */
   next: function() {
 
     this.delta = 0;
@@ -144,7 +219,7 @@ PLAYGROUND.Tween.prototype = {
         this.trigger("finished", {
           tween: this
         });
-        
+
         this.trigger("finish", {
           tween: this
         });
@@ -226,10 +301,12 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** TBD */
   prev: function() {
 
   },
 
+  /** Select an action if none is current then perform required steps. */
   step: function(delta) {
 
     this.delta += delta;
@@ -302,6 +379,11 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Advances the nimation if enough time has passed
+   *
+   * The function is called in response to `step()`; it will advance the
+   * index to next slot in the animation if
+   */
   doWait: function(delta) {
 
     if (this.delta >= this.duration) this.next();
@@ -312,6 +394,18 @@ PLAYGROUND.Tween.prototype = {
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Tween.prototype, PLAYGROUND.Events.prototype);
 
+
+/** Manager for easing effects (transition between various states).
+ *
+ * If `app` is provided the manager becomes application's manager
+ * for tween effects. The constructor inserts a `tween()` function
+ * in application for simplicity.
+ *
+ * Properties:
+ * - delta:
+ * - defaultEasing:
+ * - tweens: the list of active animations
+ */
 PLAYGROUND.TweenManager = function(app) {
 
   this.tweens = [];
@@ -331,6 +425,7 @@ PLAYGROUND.TweenManager.prototype = {
 
   defaultEasing: "128",
 
+  /** TBD */
   circ: function(value) {
 
     return {
@@ -340,6 +435,14 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
+  /** Marks the tween for removing.
+   *
+   * The tween is actually removed in `step()` function.
+   *
+   * @param object the object associated with the tween
+   * @param safe if the tween located using `object` is `safe` then
+   *        it is not removed.
+   */
   discard: function(object, safe) {
 
     for (var i = 0; i < this.tweens.length; i++) {
@@ -352,6 +455,14 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
+  /** Create a new tween.
+   *
+   * The tween is also added to internal list (you don't have to call
+   * `add()` yourself).
+   *
+   * @param context the object to associate with the new tween
+   * @returns a new PLAYGROUND.Tween object
+   */
   tween: function(context) {
 
     var tween = new PLAYGROUND.Tween(this, context);
@@ -362,6 +473,12 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
+  /** Called each frame to update logic.
+   *
+   * The function updates all active tweens and removes the ones
+   * tagged as such.
+   *
+   */
   step: function(delta) {
 
     this.delta += delta;
@@ -378,6 +495,7 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
+  /** Add a tween to internal list. */
   add: function(tween) {
 
     tween._remove = false;
@@ -388,6 +506,7 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
+   /** Marks a tween for removing during next step(). */
   remove: function(tween) {
 
     tween._remove = true;

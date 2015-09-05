@@ -1,3 +1,6 @@
+/** Load a font.
+ * @deprecated Use `Application.loadFont()` instead.
+ */
 PLAYGROUND.Application.prototype.loadFontOld = function(name) {
 
   var styleNode = document.createElement("style");

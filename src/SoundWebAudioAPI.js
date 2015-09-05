@@ -1,3 +1,7 @@
+/** Sound back-end using Web Audio API
+ *
+ * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
+ */
 PLAYGROUND.SoundWebAudioAPI = function(app, audioContext) {
 
   this.app = app;

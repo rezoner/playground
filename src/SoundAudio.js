@@ -1,6 +1,9 @@
+/** Sound back-end using HTML DOM Audio object.
+ *
+ */
 PLAYGROUND.SoundAudio = function(app) {
 
-  this.app = app;  
+  this.app = app;
 
   var canPlayMp3 = (new Audio).canPlayType("audio/mp3");
   var canPlayOgg = (new Audio).canPlayType('audio/ogg; codecs="vorbis"');

@@ -1,11 +1,11 @@
-/*
-
-  A bunch of helpers for Three.js
-
-  It is still work in progress
-
-*/
-
+/** Helpers for Three.js related code.
+ *
+ * (This is work in progress.)
+ *
+ * The application object is ehanced with two
+ * functions: `loadTexture()` and `loadObject()` that
+ * will store their objects in `textures` and `objects`.
+ */
 (function() {
 
   /* texture loader */
