@@ -1,3 +1,7 @@
+/** Animation played when changing state with canvas render.
+ *
+ * Reference: http://playgroundjs.com/playground-transitions
+ */
 PLAYGROUND.Transitions = function(app) {
 
   this.app = app;
