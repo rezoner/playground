@@ -1,11 +1,9 @@
-/* 
-  a very basic three.js renderer
-
-  one renderer per application
-  camera and scene for every state
-  
-*/
-
+/** A very basic three.js renderer.
+ *
+ * There's one renderer per application and
+ * one camera and scene for every state.
+ *
+ */
 PLAYGROUND.ThreeStarter = function(app) {
 
   this.app = app;

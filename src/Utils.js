@@ -1,5 +1,31 @@
+/** Utility functions
+ */
 PLAYGROUND.Utils = {
 
+  /** Merge any number of associative arrays into first.
+   *
+   * All arguments are expected to be associative arrays.
+   * If same key appears multiple times the final value
+   * will come from last argument that contains it.
+   *
+   * @returns first argument
+   *
+   * Examples:
+   *
+   *     PLAYGROUND.Utils.extend({a: 1});
+   *     // simply returns {a: 1}
+   *
+   *     PLAYGROUND.Utils.extend({a: 1}, {b: 2});
+   *     // returns {a: 1, b: 2}
+   *
+   *     PLAYGROUND.Utils.extend({a: 1}, {a: 2});
+   *     // returns {a: 2}
+   *
+   * Common usage is to intialize an object with defaults and
+   * optional user arguments in a call like:
+   *
+   *     PLAYGROUND.Utils.extend(this, this.defaults, args);
+   */
   extend: function() {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -12,6 +38,24 @@ PLAYGROUND.Utils = {
 
   },
 
+
+  /** Merge any number of associative arrays into first.
+   *
+   * All arguments are expected to be associative arrays.
+   * If same key appears multiple times the final value
+   * will come from last argument that contains it.
+   *
+   * This function does the same thing as
+   * `PLAYGROUND.Utils.extend` but it also dives in nested
+   * objects.
+   *
+   * @returns first argument
+   *
+   * Examples:
+   *
+   *     PLAYGROUND.Utils.extend({a: {var_1: 1}}, {a: {var_1: 2}});
+   *     // returns {a: {var_1: 2}}
+   */
   merge: function(a) {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -34,6 +78,20 @@ PLAYGROUND.Utils = {
 
   },
 
+  /** Call a method for all objects in first argument.
+   *
+   * The function simply ignores objects that don't have
+   * specified `methodName`.
+   *
+   * @param object an indexed array of objects
+   * @param methodName the name of the method to call
+   *
+   * The rest of the arguments are passed to the invoked method.
+   *
+   * Examples:
+   *
+   *     PLAYGROUND.Utils.invoke([obj1, obj2, obj3], 'someMethod', 'arg1', 'arg2');
+   */
   invoke: function(object, methodName) {
 
     var args = Array.prototype.slice.call(arguments, 2);
@@ -47,6 +105,26 @@ PLAYGROUND.Utils = {
 
   },
 
+  /** Ensures that the function argument is not called too often.
+   *
+   * On first invocation the `fn` argument is simply called and the
+   * time is recorded. On subsequent invocations the method checks if
+   * the time passed from last invocation is larger than the threshold
+   * or not. If is larger the function is called, otherwise
+   * a delayed call is added.
+   *
+   * @param fn function to call
+   * @param threshold (default is 250) in milliseconds
+   * @returns a function implementing the logic
+   *
+   * Example:
+   *
+   *     // ...
+   *     mousemove: PLAYGROUND.Utils.throttle(function(e) {
+   *       console.log(this.x, this.y);
+   *     }, 16),
+   *     // ...
+   */
   throttle: function(fn, threshold) {
     threshold || (threshold = 250);
     var last,
@@ -70,6 +148,8 @@ PLAYGROUND.Utils = {
     };
   },
 
+  /** TBD
+   */
   wrapTo: function(value, target, max, step) {
     if (value === target) return target;
 
@@ -90,6 +170,16 @@ PLAYGROUND.Utils = {
     return result;
   },
 
+  /** Bring the value between min and max.
+   *
+   * Values larger than `max` are wrapped back to `min`
+   * and vice-versa.
+   *
+   * @param value value to process
+   * @param min lowest valid value
+   * @param max largest valid value
+   * @return result
+   */
   wrap: function(value, min, max) {
 
     if (value < min) return max + (value % max);
@@ -98,18 +188,38 @@ PLAYGROUND.Utils = {
 
   },
 
+  /** Bring the value between 0 and 2*PI.
+   *
+   * Valid values for the length of a circle in radians is
+   * 2*PI.
+   *
+   * @param val value to process
+   * @return a value in 0..2*PI interval
+   */
   circWrap: function(val) {
 
     return this.wrap(val, 0, Math.PI * 2);
 
   },
 
+
+  /** Bring the value between 0 and 2*PI.
+   *
+   * Valid values for the length of a circle in radians is
+   * 2*PI.
+   *
+   * @param val value to process
+   * @return a value in 0..2*PI interval
+   */
   circWrapTo: function(value, target, step) {
 
     return this.wrapTo(value, target, Math.PI * 2, step);
 
   },
 
+
+  /** TBD
+   */
   wrappedDistance: function(a, b, max) {
 
     if (a === b) return 0;
@@ -126,32 +236,36 @@ PLAYGROUND.Utils = {
 
   },
 
+  /** TBD
+   */
   circWrappedDistance: function(a, b) {
 
     return this.wrappedDistance(a, b, Math.PI * 2)
-    
+
   },
 
+  /** Compute first multiple of threshold that is smaller or equal to num.
+   *
+   * Valid values for the length of a circle in radians is
+   * 2*PI.
+   *
+   * @param num the number to adjust
+   * @param threshold reference value
+   * @return an even multiple of `threshold` smaller or equal to `num`
+   */
   ground: function(num, threshold) {
-    
+
     return (num / threshold | 0) * threshold;
 
   },
 
+  /** TBD
+   *  Alias to `circWrappedDistance`.
+   */
   circDistance: function(a, b) {
-    var max = Math.PI * 2;
 
-    if (a === b) return 0;
-    else if (a < b) {
-      var l = -a - max + b;
-      var r = b - a;
-    } else {
-      var l = b - a;
-      var r = max - a + b;
-    }
+    return this.circWrappedDistance(a, b)
 
-    if (Math.abs(l) > Math.abs(r)) return r;
-    else return l;
   },
 
 

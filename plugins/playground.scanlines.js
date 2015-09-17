@@ -1,5 +1,4 @@
-/* scanlines plugin for playground's default renderer */
-
+/** Scanlines plugin for playground's default renderer. */
 PLAYGROUND.Scanlines = function(app) {
 
   this.app = app;
@@ -21,7 +20,7 @@ PLAYGROUND.Scanlines.prototype = {
     this.image.fillStyle("#000");
 
     for (var i = 1; i < this.image.canvas.height; i += 4){
-      
+
       this.image.fillRect(0, i, this.image.canvas.width, 2);
 
     }
