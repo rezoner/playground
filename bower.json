@@ -1,34 +1,37 @@
-  {
-    "name": "PlaygroundJS",
-    "version": "0.0.2",
-    "homepage": "http://playgroundjs.com",
-    "authors": [
-      "Rezoner <rezoner1337@gmail.com>"
-    ],
-    "description": "Essential framework for javascript gamedevelopers. This package contains starter bundle with <cavnvas> based renderer.",
-    "main": "build/playground.js",
-    "moduleType": [
-      "globals"
-    ],
-    "keywords": [
-      "games",
-      "gamedev",
-      "canvas",
-      "events",
-      "three",
-      "threejs", 
-      "webgl",
-      "playground",
-      "framework",
-      "modules"
-    ],
-    "license": "MIT",
-    "ignore": [
-      "**/.*",
-      
-      "node_modules",
-      "bower_components",
-      "test",
-      "tests"
-    ]
+{
+  "name": "PlaygroundJS",
+  "version": "0.0.2",
+  "homepage": "http://playgroundjs.com",
+  "authors": [
+    "Rezoner <rezoner1337@gmail.com>"
+  ],
+  "description": "Essential framework for javascript gamedevelopers. This package contains starter bundle with <cavnvas> based renderer.",
+  "main": "build/playground.js",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "games",
+    "gamedev",
+    "canvas",
+    "events",
+    "three",
+    "threejs",
+    "webgl",
+    "playground",
+    "framework",
+    "modules"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "shelljs": "~0.5.3",
+    "three.js": "threejs#*"
   }
+}
