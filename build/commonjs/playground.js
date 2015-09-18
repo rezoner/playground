@@ -5,7 +5,7 @@ var PLAYGROUND;
 
 /*     
 
-  PlaygroundJS r5
+  PlaygroundJS r6
   
   http://playgroundjs.com
   
@@ -15,6 +15,12 @@ var PLAYGROUND;
 
   latest major changes:
 
+  r6
+
+  + custom transitions
+  + fixes for gamepad
+  + updated CanvasQuery
+  
   r5
 
   + game loop nicely split into render and step - check profiler
@@ -451,8 +457,34 @@ function playground(args) {
 
 /* file: src/Utils.js */
 
+/** Utility functions
+ */
 PLAYGROUND.Utils = {
 
+  /** Merge any number of associative arrays into first.
+   *
+   * All arguments are expected to be associative arrays.
+   * If same key appears multiple times the final value
+   * will come from last argument that contains it.
+   *
+   * @returns first argument
+   *
+   * Examples:
+   *
+   *     PLAYGROUND.Utils.extend({a: 1});
+   *     // simply returns {a: 1}
+   *
+   *     PLAYGROUND.Utils.extend({a: 1}, {b: 2});
+   *     // returns {a: 1, b: 2}
+   *
+   *     PLAYGROUND.Utils.extend({a: 1}, {a: 2});
+   *     // returns {a: 2}
+   *
+   * Common usage is to intialize an object with defaults and
+   * optional user arguments in a call like:
+   *
+   *     PLAYGROUND.Utils.extend(this, this.defaults, args);
+   */
   extend: function() {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -465,6 +497,24 @@ PLAYGROUND.Utils = {
 
   },
 
+
+  /** Merge any number of associative arrays into first.
+   *
+   * All arguments are expected to be associative arrays.
+   * If same key appears multiple times the final value
+   * will come from last argument that contains it.
+   *
+   * This function does the same thing as
+   * `PLAYGROUND.Utils.extend` but it also dives in nested
+   * objects.
+   *
+   * @returns first argument
+   *
+   * Examples:
+   *
+   *     PLAYGROUND.Utils.extend({a: {var_1: 1}}, {a: {var_1: 2}});
+   *     // returns {a: {var_1: 2}}
+   */
   merge: function(a) {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -487,6 +537,20 @@ PLAYGROUND.Utils = {
 
   },
 
+  /** Call a method for all objects in first argument.
+   *
+   * The function simply ignores objects that don't have
+   * specified `methodName`.
+   *
+   * @param object an indexed array of objects
+   * @param methodName the name of the method to call
+   *
+   * The rest of the arguments are passed to the invoked method.
+   *
+   * Examples:
+   *
+   *     PLAYGROUND.Utils.invoke([obj1, obj2, obj3], 'someMethod', 'arg1', 'arg2');
+   */
   invoke: function(object, methodName) {
 
     var args = Array.prototype.slice.call(arguments, 2);
@@ -500,6 +564,26 @@ PLAYGROUND.Utils = {
 
   },
 
+  /** Ensures that the function argument is not called too often.
+   *
+   * On first invocation the `fn` argument is simply called and the
+   * time is recorded. On subsequent invocations the method checks if
+   * the time passed from last invocation is larger than the threshold
+   * or not. If is larger the function is called, otherwise
+   * a delayed call is added.
+   *
+   * @param fn function to call
+   * @param threshold (default is 250) in milliseconds
+   * @returns a function implementing the logic
+   *
+   * Example:
+   *
+   *     // ...
+   *     mousemove: PLAYGROUND.Utils.throttle(function(e) {
+   *       console.log(this.x, this.y);
+   *     }, 16),
+   *     // ...
+   */
   throttle: function(fn, threshold) {
     threshold || (threshold = 250);
     var last,
@@ -521,15 +605,150 @@ PLAYGROUND.Utils = {
         fn.apply(context, args);
       }
     };
-  }
+  },
+
+  /** TBD
+   */
+  wrapTo: function(value, target, max, step) {
+    if (value === target) return target;
+
+    var result = value;
+
+    var d = this.wrappedDistance(value, target, max);
+
+    if (Math.abs(d) < step) return target;
+
+    result += (d < 0 ? -1 : 1) * step;
+
+    if (result > max) {
+      result = result - max;
+    } else if (result < 0) {
+      result = max + result;
+    }
+
+    return result;
+  },
+
+  /** Bring the value between min and max.
+   *
+   * Values larger than `max` are wrapped back to `min`
+   * and vice-versa.
+   *
+   * @param value value to process
+   * @param min lowest valid value
+   * @param max largest valid value
+   * @return result
+   */
+  wrap: function(value, min, max) {
+
+    if (value < min) return max + (value % max);
+    if (value >= max) return value % max;
+    return value;
+
+  },
+
+  /** Bring the value between 0 and 2*PI.
+   *
+   * Valid values for the length of a circle in radians is
+   * 2*PI.
+   *
+   * @param val value to process
+   * @return a value in 0..2*PI interval
+   */
+  circWrap: function(val) {
+
+    return this.wrap(val, 0, Math.PI * 2);
+
+  },
+
+
+  /** Bring the value between 0 and 2*PI.
+   *
+   * Valid values for the length of a circle in radians is
+   * 2*PI.
+   *
+   * @param val value to process
+   * @return a value in 0..2*PI interval
+   */
+  circWrapTo: function(value, target, step) {
+
+    return this.wrapTo(value, target, Math.PI * 2, step);
+
+  },
+
+
+  /** TBD
+   */
+  wrappedDistance: function(a, b, max) {
+
+    if (a === b) return 0;
+    else if (a < b) {
+      var l = -a - max + b;
+      var r = b - a;
+    } else {
+      var l = b - a;
+      var r = max - a + b;
+    }
+
+    if (Math.abs(l) > Math.abs(r)) return r;
+    else return l;
+
+  },
+
+  /** TBD
+   */
+  circWrappedDistance: function(a, b) {
+
+    return this.wrappedDistance(a, b, Math.PI * 2)
+
+  },
+
+  /** Compute first multiple of threshold that is smaller or equal to num.
+   *
+   * Valid values for the length of a circle in radians is
+   * 2*PI.
+   *
+   * @param num the number to adjust
+   * @param threshold reference value
+   * @return an even multiple of `threshold` smaller or equal to `num`
+   */
+  ground: function(num, threshold) {
+
+    return (num / threshold | 0) * threshold;
+
+  },
+
+  /** TBD
+   *  Alias to `circWrappedDistance`.
+   */
+  circDistance: function(a, b) {
+
+    return this.circWrappedDistance(a, b)
+
+  },
+
 
 };
 
 PLAYGROUND.Utils.ease = ease;
 
-
 /* file: src/Events.js */
 
+/** Base class for objects emmiting events.
+ *
+ * An associative array for listners is maintained internally.
+ * The keys are the names of the event while the values are
+ * lists of listners objects with three properties:
+ * - once: is this a one time event or a recurring one
+ * - callback: function to call
+ * - context: the value for *this* inside *callback*.
+ *
+ * A special event is called `event`. The listners for
+ * this event will receive all broadcasted events
+ * with three arguments: `context`, `event name`, `data`.
+ * Callbacks for other events are simply called with
+ * `context` and `data`.
+ */
 PLAYGROUND.Events = function() {
 
   this.listeners = {};
@@ -538,6 +757,17 @@ PLAYGROUND.Events = function() {
 
 PLAYGROUND.Events.prototype = {
 
+  /** Add a listner for an event.
+   *
+   * @param event name of the event or an associative array
+   *              where keys are event names and values are
+   *              callbacks to use
+   * @param callback the function to call for this listner; if
+   *                 *event* is an object this parameter is ignored
+   * @param context *this* when calling the callback(s)
+   *
+   * @returns the listner object
+   */
   on: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -561,6 +791,17 @@ PLAYGROUND.Events.prototype = {
     return listener;
   },
 
+  /** Add a listner for an event.
+   *
+   * @param event name of the event or an associative array
+   *              where keys are event names and values are
+   *              callbacks to use
+   * @param callback the function to call for this listner; if
+   *                 *event* is an object this parameter is ignored
+   * @param context *this* when calling the callback(s)
+   *
+   * @returns the listner object
+   */
   once: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -584,6 +825,14 @@ PLAYGROUND.Events.prototype = {
     return listener;
   },
 
+  /** Remove an event listner from an event.
+   *
+   * The function will remove all occurences that use that particular
+   * callback (will be a single instance in well behaved applications).
+   *
+   * @param event the name of the event
+   * @param callback identifying the listner
+   */
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
@@ -595,6 +844,15 @@ PLAYGROUND.Events.prototype = {
 
   },
 
+  /** Raise an event.
+   *
+   *  If the listner is only to be raised once this function
+   * removes it from the list of listners.
+   *
+   * @param event the name of the event being raised
+   * @param data array of arguments for the callbacks
+   *
+   */
   trigger: function(event, data) {
 
     /* if you prefer events pipe */
@@ -633,6 +891,32 @@ PLAYGROUND.Events.prototype = {
 
 /* file: src/States.js */
 
+/** Manages the states the application can be in.
+ *
+ * A state can be an object or a function that
+ * creates the object. Current state is in `current`.
+ *
+ * Properties of a state:
+ * - __created: is managed by `step` function;
+ *   if not found the state is set up and `create()`
+ *   method of the state is called.
+ * - locked: if current state has this set to `true`
+ *   current state can't be changed
+ * - app: the main application object
+ * - create: if this function exists it is called
+ *   the first time a state is encountered
+ * - enter: if this function exists it is called
+ *   when the state becomes current
+ * - leave: if this function exists it is called
+ *   when the state is no longer the current one
+ *
+ * Events generated by this object:
+ * - createstate: first time an state is encountered
+ * - enterstate: a state is entered
+ * - leavestate: a state is no longer current
+ *
+ * Reference: http://playgroundjs.com/playground-states
+ */
 PLAYGROUND.States = function(app) {
 
   this.app = app;
@@ -645,6 +929,7 @@ PLAYGROUND.States = function(app) {
 
 PLAYGROUND.States.prototype = {
 
+  /** Called each frame to update logic. */
   step: function(delta) {
 
     if (!this.next) return;
@@ -700,6 +985,11 @@ PLAYGROUND.States.prototype = {
 
   },
 
+  /** Used by application to set the state.
+   *
+   * Don't call this function directly. Instead, use
+   * `PLAYGROUND.Application.setState()`.
+   */
   set: function(state) {
 
     if (this.current && this.current.leave) this.current.leave();
@@ -717,6 +1007,65 @@ PLAYGROUND.Utils.extend(PLAYGROUND.States.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Application.js */
 
+/** Main application object for playground.js
+ *
+ * The object inherits from PLAYGROUND.Events and generates
+ * a number of events:
+ * - Local events:
+ *   - create: the application is being constructed
+ *   - ready: the application has been constructed
+ *   - imageready: after an image was loaded
+ *   - states events are broadcasted as local events.
+ * - Global events:
+ *   - preload: allows loading custom resources
+ *   - resize: window resize event
+ *   - mouse, touch, keyboard and gamepads subcomponents
+ *     have their events broadcasted as global events.
+ *
+ * The arguments that can be used to customize the application at
+ * initialization time are:
+ * - scale: the scale (may be auto-computed)
+ * - width: the width in pixels/scale (may be auto-computed if not specified)
+ * - height: the height in pixels/scale (may be auto-computed if not specified)
+ * - smoothing:
+ * - paths:
+       - base: path always prepended
+       - images: path relative to `base` for images
+       - data: path relative to `base` for json and text files
+       - atlases: texture atlases
+       - sounds: music and sounds in mp3 and ogg formats
+ * - skipEvents: prevents core functions from emitting events
+ * - disabledUntilLoaded: no events in loading stage
+ * - LoadingScreen:
+ * - container: the document element hosting display area
+ *
+ * Internally, the application derives other variables:
+ * - autoWidth: adjust the width on resize
+ * - autoHeight: adjust the height on resize
+ * - autoScale: adjust the scale on resize
+ * - customContainer: true if the container is not the body element
+ * - offsetX: horizontal offset in pixels for effective drawing area
+ * - offsetY: vertical offset in pixels for effective drawing area
+ * - center: {x: , y: } in pixels/scale
+ * - firstBatch: set to true while initial loading is in progress
+ *
+ * Inner workings are logically divided into:
+ * - loader
+ * - states
+ * - mouse
+ * - touch
+ * - keyboard
+ * - gamepads
+ * - tweens
+ * - ease
+ *
+ * A number of arrays help manage the resources:
+ * - images: asset container
+ * - atlases: asset container
+ * - data: asset container
+ * - plugins: list of instantiated plug-ins
+ * - data: associative array for data objects loaded
+ */
 PLAYGROUND.Application = function(args) {
 
   var app = this;
@@ -862,7 +1211,6 @@ PLAYGROUND.Application = function(args) {
     });
 
 
-
   };
 
 
@@ -884,21 +1232,41 @@ PLAYGROUND.Application.prototype = {
     disabledUntilLoaded: true
   },
 
+  /** Change active state.
+   *
+   * Simply forwarded to PLAYGROUND.States.
+   */
   setState: function(state) {
 
     this.states.set(state);
 
   },
 
+  /** Compute a fully qualified path.
+   *
+   * `paths.base` is always prepended to the result.
+   *
+   * @param to a key in `paths` or a string (without ending `/`).
+   */
   getPath: function(to) {
 
     return this.paths.base + (this.paths[to] || (to + "/"));
 
   },
 
+  /** Create a standardised representation for an asset.
+   *
+   * The result contains:
+   *   - key: a unique string that identifies this resource
+   *   - url: full path for this asset
+   *   - path: the directory where the asset resides
+   *   - ext: the extension for the file (without a leading dot)
+   *
+   * @returns a dictionary with standardised information
+   */
   getAssetEntry: function(path, folder, defaultExtension) {
 
-    /* translate folder according to user provided paths 
+    /* translate folder according to user provided paths
        or leave as is */
 
     var folder = this.paths[folder] || (folder + "/");
@@ -926,8 +1294,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /* events that shouldn't flow down to the state */
-
+  /** Emits events that shouldn't flow down to the state. */
   emitLocalEvent: function(event, data) {
 
     this.trigger(event, data);
@@ -936,8 +1303,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /* events that should be passed to the state */
-
+  /** Emits events that should be passed to the state. */
   emitGlobalEvent: function(event, data) {
 
     if (!this.state) return this.emitLocalEvent(event, data);
@@ -958,6 +1324,12 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+
+  /** Responds to a resize event by updating some internal variables.
+   *
+   * `offsetX`, `offsetY` and `center` are always updated.
+   * `width`, `height` and `scale` may also be updated.
+   */
   updateSize: function() {
 
     if (this.customContainer) {
@@ -1014,6 +1386,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+  /** Responds to windows resize event. */
   handleResize: function() {
 
     this.updateSize();
@@ -1025,11 +1398,11 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /* 
-    request a file over http 
-    it shall be later an abstraction using 'fs' in node-webkit
-
-    returns a promise
+  /** Request a file over http.
+   *
+   * It shall be later an abstraction using 'fs' in node-webkit
+   *
+   * @returns a promise
   */
 
   request: function(url) {
@@ -1064,8 +1437,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /* imaginary timeout to delay loading */
-
+  /** Imaginary timeout to delay loading. */
   loadFoo: function(timeout) {
 
     var loader = this.loader;
@@ -1081,8 +1453,10 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /* data/json */
-
+  /** Loads assets as data/json or text.
+   *
+   * The list may be nested.
+   */
   loadData: function() {
 
     for (var i = 0; i < arguments.length; i++) {
@@ -1103,6 +1477,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+  /** Loads one asset as data/json or text (internal). */
   loadDataItem: function(name) {
 
     var entry = this.getAssetEntry(name, "data", "json");
@@ -1127,7 +1502,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /* images */
+  /** Loads a single image */
 
   loadImage: function() {
 
@@ -1135,6 +1510,10 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+  /** Loads images.
+   *
+   * The list may be nested.
+   */
   loadImages: function() {
 
     var promises = [];
@@ -1161,6 +1540,8 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+
+  /** Loads a single image (internal). */
   loadOneImage: function(name) {
 
     var app = this;
@@ -1213,10 +1594,11 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /* at this point it doesn't really load font
-     it just ensures the font has been loaded (use css font-face)
-  */
-
+  /** Load a single font.
+   *
+   * At this point it doesn't really load font
+   *  it just ensures the font has been loaded (use css font-face)
+   */
   loadFont: function() {
 
     var promises = [];
@@ -1233,12 +1615,14 @@ PLAYGROUND.Application.prototype = {
 
   },
 
+  /** Load fonts.  */
   loadFonts: function() {
 
     return this.loadFont.apply(this, arguments);
 
   },
 
+  /** Load a single font (internal).  */
   loadFontItem: function(name) {
 
     var app = this;
@@ -1278,7 +1662,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-
+  /** Render placeholder */
   render: function() {
 
   }
@@ -1289,6 +1673,24 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Application.prototype, PLAYGROUND.Events.prot
 
 /* file: src/GameLoop.js */
 
+/** Game loop.
+ *
+ * The application object is updated with following properties:
+ * - lifetime: number of seconds since the game loop was entered
+ * - opcost: seconds last opperation took
+ * - ops: opperations per second.
+ *
+ * The game loop requests updats using standard
+ * `requestAnimationFrame()` function. On each callback
+ * time-related values are updated, logical update is requested using
+ * `step()` and display update using `render()`.
+ *
+ * A number of (global) events are raised on behalf of the application:
+ * - step: update the logic on each frame
+ * - prerender: first step in refreshing the screen
+ * - render: second step in refreshing the screen
+ * - postrender: third step in refreshing the screen
+ */
 PLAYGROUND.GameLoop = function(app) {
 
   app.lifetime = 0;
@@ -1337,7 +1739,7 @@ PLAYGROUND.GameLoop = function(app) {
     step(dt);
     render(dt);
 
-    app.opcost = (Date.now() - lastTick) / 1000;
+    app.opcost = delta / 1000;
     app.ops = 1000 / app.opcost;
 
   };
@@ -1348,6 +1750,26 @@ PLAYGROUND.GameLoop = function(app) {
 
 /* file: src/Gamepads.js */
 
+ /** Gamepads related functionality.
+ *
+ * The object also works as an array of gamepads, thus
+ * PLAYGROUND.Gamepads[0] is the first one.
+  *
+ * Properties:
+ * - app: the main application object
+ * - buttons: maps numeric ids to button names
+ * - gamepads:
+ * - gamepadmoveEvent: cached event
+ * - gamepaddownEvent: cached event
+ * - gamepadupEvent: cached event
+ *
+ * Events generated by this object:
+ * - gamepadmove: change in position
+ * - gamepaddown:
+ * - gamepadup:
+ *
+ * Reference: http://playgroundjs.com/playground-gamepads
+ */
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -1459,15 +1881,73 @@ PLAYGROUND.Gamepads.prototype = {
 
       if (current.axes) {
 
-        if (current.axes[0] < 0) buttons[14].pressed = true;
-        if (current.axes[0] > 0) buttons[15].pressed = true;
-        if (current.axes[1] < 0) buttons[12].pressed = true;
-        if (current.axes[1] > 0) buttons[13].pressed = true;
+        if (Math.abs(current.axes[0]) > 0.01) {
+          if (current.axes[0] < 0) buttons[14].pressed = true;
+          if (current.axes[0] > 0) buttons[15].pressed = true;
+        }
 
-        previous.sticks[0].x = current.axes[0];
-        previous.sticks[0].y = current.axes[1];
-        previous.sticks[1].x = current.axes[2];
-        previous.sticks[1].y = current.axes[3];
+        if (Math.abs(current.axes[1]) > 0.01) {
+          if (current.axes[1] < 0) buttons[12].pressed = true;
+          if (current.axes[1] > 0) buttons[13].pressed = true;
+        }
+
+        var stickChanged = false;
+        var stickA = false;
+        var stickB = false;
+
+        if (previous.sticks[0].x !== current.axes[0]) {
+
+          stickChanged = true;
+          stickA = true;
+
+        }
+
+        if (previous.sticks[0].y !== current.axes[1]) {
+
+          stickChanged = true;
+          stickA = true;
+
+        }
+
+        if (previous.sticks[1].x !== current.axes[2]) {
+
+          stickChanged = true;
+          stickB = true;
+
+        }
+
+        if (previous.sticks[1].y !== current.axes[3]) {
+
+          stickChanged = true;
+          stickB = true;
+
+        }
+
+        if (stickChanged) {
+
+          this.gamepadmoveEvent.old = [
+            Utils.extend({}, previous.sticks[0]),
+            Utils.extend({}, previous.sticks[1])
+          ];
+
+          previous.sticks[0].x = current.axes[0];
+          previous.sticks[0].y = current.axes[1];
+          previous.sticks[1].x = current.axes[2];
+          previous.sticks[1].y = current.axes[3];
+
+          this.gamepadmoveEvent.sticks = previous.sticks;
+
+          if (stickA) this.gamepadmoveEvent.a = previous.sticks[0];
+          else this.gamepadmoveEvent.a = false;
+
+          if (stickB) this.gamepadmoveEvent.b = previous.sticks[1];
+          else this.gamepadmoveEvent.b = false;
+
+          this.gamepadmoveEvent.gamepad = i;
+          this.trigger("gamepadmove", this.gamepadmoveEvent);
+
+        }
+
 
       }
 
@@ -1489,7 +1969,6 @@ PLAYGROUND.Gamepads.prototype = {
         }
 
         /* gamepad up */
-        
         else if (!buttons[j].pressed && previous.buttons[key]) {
 
           previous.buttons[key] = false;
@@ -1508,9 +1987,32 @@ PLAYGROUND.Gamepads.prototype = {
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Gamepads.prototype, PLAYGROUND.Events.prototype);
 
-
 /* file: src/Keyboard.js */
 
+ /** Keyboard related functionality.
+ *
+ * A key name is computed by either taking the ASCII representation or
+ * using the `keycodes` array to assign a name. To get corresponding code
+ * use `original.which` in event handler.
+ *
+ * Properties:
+ * - keys: associative array that maps key names to either true or false
+ *   if a key is not in this array it was never pressed
+ * - preventDefault: stop event propagation
+ * - bypassKeys: `preventDefault` will not act on these keys
+ * - keydownEvent: caches information about last key down event
+ *     - key: name of the key
+ *     - original: original event
+ * - keyupEvent: caches information about last key up event
+ *     - key: name of the key
+ *     - original: original event
+ *
+ * Events generated by this object:
+ * - keydown: a key was pressed (handler receives `keydownEvent` object)
+ * - keyup: a key was released (handler receives `keyupEvent` object)
+ *
+ * Reference: http://playgroundjs.com/playground-keyboard
+ */
 PLAYGROUND.Keyboard = function() {
 
   PLAYGROUND.Events.call(this);
@@ -1644,6 +2146,19 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototy
 
 /* file: src/Pointer.js */
 
+/** Abstracts away differences between mouse and touches.
+ *
+ * The object simply listens to global events raised by application and
+ * raises new (global) events on behalf of the application.
+ *
+ * Following events are raised:
+ * - pointerdown:mouse button down or start tracking touch point
+ * - pointerup: mouse button release or touch point release
+ * - pointermove: mouse pointer or touch point moved
+ * - pointerwheel: mouse wheel rotated
+ *
+ * Reference: http://playgroundjs.com/playground-pointer
+ */
 PLAYGROUND.Pointer = function(app) {
 
   this.app = app;
@@ -1745,8 +2260,38 @@ PLAYGROUND.Pointer.prototype = {
 
 /* file: src/Loader.js */
 
-/* Loader */
-
+/** Resources loading.
+ *
+ * This object - despite its name - does not load anything. Instead, it
+ * acts as a central hub for reporting and tracking the progress of
+ * resource loading. Each load element is given an unique id by the caller
+ * and that id is used when events are raised.
+ *
+ * Properties:
+ * - app: the main application object
+ * - queue: number of elements to be loaded
+ * - count: total number of elements (loading and loaded)
+ * - ready: true if all requested elements were retrieved
+ * - progress: [0..1] fraction of resources loaded so far
+ *     - id, identifier: event id for compatibility with touches
+ *     - x, y: the absolute position in pixels
+ *     - original: original event
+ *     - mozMovementX, mozMovementY: change in position from previous event
+ * - mousedownEvent and mouseupEvent: last button press or release event
+ *     - id, identifier: event id for compatibility with touches
+ *     - x, y: the absolute position in pixels
+ *     - original: original event
+ *     - button: one of `left`, `middle`, `right`
+ * - x, y: alias for mousemoveEvent.x, .y
+ *
+ * Events generated by this object (PLAYGROUND.Application.mouseToTouch
+ * decides the variant to trigger):
+ * - add: an element was added to the queue
+ * - load: an element was successfully loaded
+ * - error: an element could not be loaded
+ * - ready: *all* elements were successfully loaded; this *is not* triggered
+ *   if any element reported an error.
+ */
 PLAYGROUND.Loader = function(app) {
 
   this.app = app;
@@ -1759,8 +2304,7 @@ PLAYGROUND.Loader = function(app) {
 
 PLAYGROUND.Loader.prototype = {
 
-  /* loader */
-
+  /** Start retreiving an element */
   add: function(id) {
 
     this.queue++;
@@ -1772,15 +2316,17 @@ PLAYGROUND.Loader.prototype = {
 
   },
 
+  /** Report an error to the loader. */
   error: function(id) {
 
     this.trigger("error", id);
 
   },
 
+  /** Report a success to the loader. */
   success: function(id) {
 
-    this.queue--;   
+    this.queue--;
 
     this.progress = 1 - this.queue / this.count;
 
@@ -1790,9 +2336,10 @@ PLAYGROUND.Loader.prototype = {
       this.reset();
       this.trigger("ready");
     }
-    
+
   },
 
+  /** Bring back the loader to ground state */
   reset: function() {
 
     this.progress = 0;
@@ -1807,7 +2354,34 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Mouse.js */
 
-PLAYGROUND.Mouse = function(app, element) {
+/** Mouse related functionality.
+ *
+ * Properties:
+ * - app: the main application object
+ * - element: the DOM element we're handling events for
+ * - preventContextMenu: don't show default menu
+ * - mousemoveEvent: last mouse move event is cached in this
+ *     - id, identifier: event id for compatibility with touches
+ *     - x, y: the absolute position in pixels
+ *     - original: original event
+ *     - mozMovementX, mozMovementY: change in position from previous event
+ * - mousedownEvent and mouseupEvent: last button press or release event
+ *     - id, identifier: event id for compatibility with touches
+ *     - x, y: the absolute position in pixels
+ *     - original: original event
+ *     - button: one of `left`, `middle`, `right`
+ * - x, y: alias for mousemoveEvent.x, .y
+ *
+ * Events generated by this object (PLAYGROUND.Application.mouseToTouch
+ * decides the variant to trigger):
+ * - touchmove or mousemove: change in position
+ * - touchstart or mousedown: action starts
+ * - touchend or mouseup: action ends
+ * - mousewheel: wheel event
+ *
+ * Reference: http://playgroundjs.com/playground-mouse
+ */
+ PLAYGROUND.Mouse = function(app, element) {
 
   var self = this;
 
@@ -1967,7 +2541,7 @@ PLAYGROUND.Mouse.prototype = {
     }
 
     this[buttonName] = false;
-    
+
   },
 
   mousewheel: function(e) {
@@ -2048,6 +2622,13 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Mouse.prototype, PLAYGROUND.Events.prototype)
 
 /* file: src/Sound.js */
 
+/** Factory that creates sound related objects in application.
+ *
+ * The back-end is either PLAYGROUND.SoundWebAudioAPI or PLAYGROUND.SoundAudio.
+ *
+ * The application object will have tow (identical) objects inserted:
+ * `sound` and `music`.
+ */
 PLAYGROUND.Sound = function(app) {
 
   var audioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
@@ -2069,24 +2650,28 @@ PLAYGROUND.Sound = function(app) {
 
 };
 
+/** Play a sound */
 PLAYGROUND.Application.prototype.playSound = function(key, loop) {
 
   return this.sound.play(key, loop);
 
 };
 
+/** Stop a sound from playing */
 PLAYGROUND.Application.prototype.stopSound = function(sound) {
 
   this.sound.stop(sound);
 
 };
 
+/** Load the sound */
 PLAYGROUND.Application.prototype.loadSound = function() {
 
   return this.loadSounds.apply(this, arguments);
 
 };
 
+/** Load multiple sounds */
 PLAYGROUND.Application.prototype.loadSounds = function() {
 
   for (var i = 0; i < arguments.length; i++) {
@@ -2108,6 +2693,10 @@ PLAYGROUND.Application.prototype.loadSounds = function() {
 
 /* file: src/SoundWebAudioAPI.js */
 
+/** Sound back-end using Web Audio API
+ *
+ * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
+ */
 PLAYGROUND.SoundWebAudioAPI = function(app, audioContext) {
 
   this.app = app;
@@ -2399,9 +2988,12 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
 
 /* file: src/SoundAudio.js */
 
+/** Sound back-end using HTML DOM Audio object.
+ *
+ */
 PLAYGROUND.SoundAudio = function(app) {
 
-  this.app = app;  
+  this.app = app;
 
   var canPlayMp3 = (new Audio).canPlayType("audio/mp3");
   var canPlayOgg = (new Audio).canPlayType('audio/ogg; codecs="vorbis"');
@@ -2503,6 +3095,34 @@ PLAYGROUND.SoundAudio.prototype = {
 
 /* file: src/Touch.js */
 
+/** Touch related functionality.
+ *
+ * The object keeps track of active touches using an unique id
+ * provided by the browser. When a touch starts an entry is added
+ * to the `touches` associative array with the key being the
+ * unique identifier and the value an object with following members:
+ * - x: horizontal position in pixels/scale
+ * - y: vertical position in pixels/scale
+ *
+ * When the tracking point changes location the values are updated and
+ * when the touches ends the entry is removed from the `touches` array.
+ *
+ * Properties:
+ * - app: the main application object
+ * - element: the DOM element we're handling events for
+ * - touches: list of active touches
+ * - x, y: last changed position across all touches
+ *
+ * Events generated by this object:
+ * - touchmove: a touch changed its position
+ * - touchstart: a touch was added
+ * - touchend: a touch ended
+ *
+ * Event handlers receive the position (x, y), the id (identifier) and
+ * original event.
+ *
+ * Reference: http://playgroundjs.com/playground-touch
+ */
 PLAYGROUND.Touch = function(app, element) {
 
   PLAYGROUND.Events.call(this);
@@ -2632,6 +3252,56 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Touch.prototype, PLAYGROUND.Events.prototype)
 
 /* file: src/Tween.js */
 
+/** Animation for smooth change of states
+ *
+ * Properties:
+ * - actions: list of things to do; each entry is an array of:
+ *     - [0]: properties; an associative array where keys are the
+ *       names of the properties of the `context` to change
+ *       and values are the new value for that property;
+ *       can also be one of following strings:
+ *         - repeat: to repeat a sequence
+ *         - wait: to wait some milliseconds
+ *     - [1]: duration
+ *     - [2]: easing
+ * - index: position inside `actions` array
+ * - manager: the TweenManager instance where this object is registered;
+ * - context: the object associated with this instance; *
+ * - looped: what to do at the end of the animation array; true wraps
+ *   back to 0, false terminates the animation
+ * - finished: set to true at the end of the animation if the tween is
+ *   not a looped one
+ * - delta: milliseconds that have passed since the start
+ *   of this animation bit (updated by `step()`)
+ * - prevEasing: TBD (debug?)
+ * - prevDuration: TBD (debug?)
+ *
+ * Current action has some related properties:
+ * - current: current action (an object from `actions` array);
+ * - currentAction: `next()` function fills it to be consumed by `step()`
+ *     - animate: use `doAnimate()` function
+ *     - wait:
+ * - duration:  `next()` function fills it to be consumed by `step()`
+ * - easing:  `next()` function fills it to be consumed by `step()`
+ * - keys: the keys of current action's properties
+ *
+ * An action is decomposed in following components (one entry for each
+ * property that will be updated):
+ * - before: current value
+ * - change: the change to apply to current value
+ * - types: content type:
+ *     - 0: numbers
+ *     - 1: colors
+ *     - 2: angles
+ *
+ * Events:
+ * - loop: a looped tween has reached the end and is being
+ *   reset to first animation.
+ * - finished, finish: a non-looped animation reached the end
+ *   and is being removed from the manager
+ *
+ * Reference: http://playgroundjs.com/intro/tween
+ */
 PLAYGROUND.Tween = function(manager, context) {
 
   PLAYGROUND.Events.call(this);
@@ -2655,6 +3325,13 @@ PLAYGROUND.Tween = function(manager, context) {
 
 PLAYGROUND.Tween.prototype = {
 
+  /** Add an action to the end of the list
+   *
+   * @param properties
+   * @param duration in miliseconds (optional, default is 0.5)
+   * @param easing (optional, default is 045)
+   * @returns `this` object so that calls can be chained.
+   */
   add: function(properties, duration, easing) {
 
     if (duration) this.prevDuration = duration;
@@ -2668,6 +3345,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Discard all other tweens associated with same context as ours. */
   discard: function() {
 
     this.manager.discard(this.context, this);
@@ -2676,10 +3354,12 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Alias for `add()` */
   to: function(properties, duration, easing) {
     return this.add(properties, duration, easing);
   },
 
+  /** Mark the instance as being a repeated tween. */
   loop: function() {
 
     this.looped = true;
@@ -2688,12 +3368,14 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Add a repeat action for specified number of times. */
   repeat: function(times) {
 
     this.actions.push(["repeat", times]);
 
   },
 
+  /** Add a wait action for specified number of miliseconds. */
   wait: function(time) {
 
     this.actions.push(["wait", time]);
@@ -2702,12 +3384,14 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Alias for `wait()`. */
   delay: function(time) {
 
     this.actions.push(["wait", time]);
 
   },
 
+  /** Remove this tween from the manager */
   stop: function() {
 
     this.manager.remove(this);
@@ -2716,6 +3400,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Inserts the tween into the manager if not already inside. */
   play: function() {
 
     this.manager.add(this);
@@ -2726,7 +3411,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-
+  /** Performs last step in the animation list. */
   end: function() {
 
     var lastAnimationIndex = 0;
@@ -2744,6 +3429,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** TBD */
   forward: function() {
 
     this.delta = this.duration;
@@ -2751,6 +3437,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** TBD */
   rewind: function() {
 
     this.delta = 0;
@@ -2758,6 +3445,14 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Perform one animation step
+   *
+   * Advances the index and, if the index reached the end of the
+   * `actions` array, either restarts it (for looped tweens) or terminates it.
+   *
+   * The function will set a string in `currentAction` indicating what it
+   * should be done next but it does not perform the action itself.
+   */
   next: function() {
 
     this.delta = 0;
@@ -2776,6 +3471,10 @@ PLAYGROUND.Tween.prototype = {
       } else {
 
         this.trigger("finished", {
+          tween: this
+        });
+
+        this.trigger("finish", {
           tween: this
         });
 
@@ -2806,15 +3505,27 @@ PLAYGROUND.Tween.prototype = {
       this.before = [];
       this.types = [];
 
-      for (i = 0; i < this.keys.length; i++) {
-        var key = this.keys[i];
 
-        if (typeof this.context[key] === "number") {
-          this.before.push(this.context[key]);
-          this.change.push(properties[key] - this.context[key]);
+      for (i = 0; i < this.keys.length; i++) {
+
+        var key = this.keys[i];
+        var value = this.context[key];
+
+        if (typeof properties[key] === "number") {
+
+          this.before.push(value);
+          this.change.push(properties[key] - value);
           this.types.push(0);
+
+        } else if (typeof properties[key] === "string" && properties[key].indexOf("rad" > -1)) {
+
+          this.before.push(value);
+          this.change.push(PLAYGROUND.Utils.circWrappedDistance(value, parseFloat(properties[key])));
+          this.types.push(2);
+
         } else {
-          var before = cq.color(this.context[key]);
+
+          var before = cq.color(value);
 
           this.before.push(before);
 
@@ -2829,6 +3540,7 @@ PLAYGROUND.Tween.prototype = {
           this.change.push(temp);
 
           this.types.push(1);
+
         }
 
       }
@@ -2843,10 +3555,12 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** TBD */
   prev: function() {
 
   },
 
+  /** Select an action if none is current then perform required steps. */
   step: function(delta) {
 
     this.delta += delta;
@@ -2902,6 +3616,14 @@ PLAYGROUND.Tween.prototype = {
           this.context[key] = "rgb(" + color.join(",") + ")";
 
           break;
+
+          /* angle */
+
+        case 2:
+
+          this.context[key] = PLAYGROUND.Utils.circWrap(this.before[i] + this.change[i] * mod);
+
+          break;
       }
     }
 
@@ -2911,6 +3633,11 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
+  /** Advances the nimation if enough time has passed
+   *
+   * The function is called in response to `step()`; it will advance the
+   * index to next slot in the animation if
+   */
   doWait: function(delta) {
 
     if (this.delta >= this.duration) this.next();
@@ -2921,6 +3648,18 @@ PLAYGROUND.Tween.prototype = {
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Tween.prototype, PLAYGROUND.Events.prototype);
 
+
+/** Manager for easing effects (transition between various states).
+ *
+ * If `app` is provided the manager becomes application's manager
+ * for tween effects. The constructor inserts a `tween()` function
+ * in application for simplicity.
+ *
+ * Properties:
+ * - delta:
+ * - defaultEasing:
+ * - tweens: the list of active animations
+ */
 PLAYGROUND.TweenManager = function(app) {
 
   this.tweens = [];
@@ -2940,18 +3679,44 @@ PLAYGROUND.TweenManager.prototype = {
 
   defaultEasing: "128",
 
+  /** TBD */
+  circ: function(value) {
+
+    return {
+      type: "circ",
+      value: value
+    };
+
+  },
+
+  /** Marks the tween for removing.
+   *
+   * The tween is actually removed in `step()` function.
+   *
+   * @param object the object associated with the tween
+   * @param safe if the tween located using `object` is `safe` then
+   *        it is not removed.
+   */
   discard: function(object, safe) {
 
     for (var i = 0; i < this.tweens.length; i++) {
-      
+
       var tween = this.tweens[i];
 
-      if(tween.context === object && tween !== safe) this.remove(tween);
+      if (tween.context === object && tween !== safe) this.remove(tween);
 
     }
 
   },
 
+  /** Create a new tween.
+   *
+   * The tween is also added to internal list (you don't have to call
+   * `add()` yourself).
+   *
+   * @param context the object to associate with the new tween
+   * @returns a new PLAYGROUND.Tween object
+   */
   tween: function(context) {
 
     var tween = new PLAYGROUND.Tween(this, context);
@@ -2961,7 +3726,13 @@ PLAYGROUND.TweenManager.prototype = {
     return tween;
 
   },
- 
+
+  /** Called each frame to update logic.
+   *
+   * The function updates all active tweens and removes the ones
+   * tagged as such.
+   *
+   */
   step: function(delta) {
 
     this.delta += delta;
@@ -2971,13 +3742,14 @@ PLAYGROUND.TweenManager.prototype = {
       var tween = this.tweens[i];
 
       if (!tween._remove) tween.step(delta);
-      
+
       if (tween._remove) this.tweens.splice(i--, 1);
 
     }
-     
+
   },
 
+  /** Add a tween to internal list. */
   add: function(tween) {
 
     tween._remove = false;
@@ -2988,6 +3760,7 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
+   /** Marks a tween for removing during next step(). */
   remove: function(tween) {
 
     tween._remove = true;
@@ -2996,8 +3769,28 @@ PLAYGROUND.TweenManager.prototype = {
 
 };
 
+
 /* file: src/Atlases.js */
 
+/** Extend Application object with a function to load any number of atlases
+ *
+ * Each atlas consists of a pair of image file and a json file
+ *
+ * The application is extended with an `atlases` associative array.
+ * The keys are file keys generated by `getAssetEntry()` and
+ * values have following structure:
+ * - image: the image object
+ * - frames: array of objects:
+ *     - region: [x, y, w, h],
+ *     - offset: [x, y],
+ *     - width
+ *     - height
+ *
+ * Default renderer can draw such an atlas using
+ * `drawAtlasFrame(atlas, frame, x, y)` function.
+ *
+ * Reference: http://playgroundjs.com/playground-atlases
+ */
 PLAYGROUND.Application.prototype.loadAtlases = function() {
 
   for (var i = 0; i < arguments.length; i++) {
@@ -3021,12 +3814,14 @@ PLAYGROUND.Application.prototype.loadAtlases = function() {
 
 };
 
+/** Alias for `loadAtlases()`. */
 PLAYGROUND.Application.prototype.loadAtlas = function() {
 
   return this.loadAtlases.apply(this, arguments);
 
 };
 
+/** Load a single atlas (internal). */
 PLAYGROUND.Application.prototype._loadAtlas = function(filename) {
 
   var entry = this.getAssetEntry(filename, "atlases", "png");
@@ -3083,6 +3878,9 @@ PLAYGROUND.Application.prototype._loadAtlas = function(filename) {
 
 /* file: src/Fonts.js */
 
+/** Load a font.
+ * @deprecated Use `Application.loadFont()` instead.
+ */
 PLAYGROUND.Application.prototype.loadFontOld = function(name) {
 
   var styleNode = document.createElement("style");
@@ -3141,15 +3939,22 @@ PLAYGROUND.Application.prototype.loadFontOld = function(name) {
 
 /* file: src/DefaultState.js */
 
+/** State used while initializing the application */
 PLAYGROUND.DefaultState = {
 
 };
 
+
 /* file: src/LoadingScreen.js */
 
+/** Basic loading screen using DOM
+ *
+ * Loading screen is a state like any other except that
+ * it is loaded from `PLAYGROUND.LoadingScreen`. To override
+ * simply define a `PLAYGROUND.LoadingScreen` in your code after
+ * playground.js was imported.
+ */
 PLAYGROUND.LoadingScreen = {
-
-  /* basic loading screen using DOM */
 
   logoRaw: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAAASBAMAAADPiN0xAAAAGFBMVEUAAQAtLixHSUdnaGaJioimqKXMzsv7/fr5shgVAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98EAwkeA4oQWJ4AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAB9klEQVQ4y72UvW+rMBDAz+FrpVKrrFmesmapWNOlrKjSe1kZ+uoVAvj+/frujG1SaJcqJwU7voOf7xMQzQmsIDi5NPTMsLRntH3U+F6SAZo3NlCvcgBFJz8o+vkDiE63lI95Y/UmpinsZWkgJWJiDbAVQ16htptxSTNloIlugwaw001Ey3ASF3so6L1qLNXzQS5S0UGKL/CI5wWNriE0UH9Yty37LqIVg+wsqu7Ix0MwVBSF/dU+jv2SNnma021LEdPqVnMeU3xAu0kXcSGjmq7Ox4E2Wn88LZ2+EFj3avjixzai6VPVyuYveZLHF2XfdDnvAq27DIHGuq+0DJFsE30OtB1KqOwd8Dr7PcM4b+jfj2g5lp4WyntBK66qua3JzEA+uXJpwH/NlVuzRVPY/kTLB2mjuN+KwdZ8FOy8j2gDbEUSqumnSCY4lf4ibq3IhVM4ycZQRnv+zFqVdJQVn6BxvUqebGpuaNo3sZxwBzjajiMZOoBiwyVF+kCr+nUaJOaGpnAeRPPJZTr4FqmHRXcneEo4DqQ/ftfdnLeDrUAME8xWKPeKCwW6YkEpXfs3p1EWJhdcUAYP0TI/uYaV8cgjwBovaeyWwji2T9rTFIdS/cP/MnkTLRUWxgNNZVin7bT5fqT9miDcUVJzR1gRpfIONMmulU+5Qqr6zXAUqAAAAABJRU5ErkJggg==",
 
@@ -3250,7 +4055,7 @@ PLAYGROUND.LoadingScreen = {
 
 /*     
 
-  Canvas Query r4
+  Canvas Query r5
   
   http://canvasquery.com
   
@@ -3258,11 +4063,10 @@ PLAYGROUND.LoadingScreen = {
   
   Canvas Query may be freely distributed under the MIT license.
 
-
-
   ! fixed: leaking arguments in fastApply bailing out optimization 
   + cacheText
   + compare
+  + checkerboard
 
 */
 
@@ -3751,7 +4555,6 @@ PLAYGROUND.LoadingScreen = {
 
       if (typeof this.smoothing !== "undefined") smoothing = this.smoothing;
 
-      this.context.webkitImageSmoothingEnabled = smoothing;
       this.context.mozImageSmoothingEnabled = smoothing;
       this.context.msImageSmoothingEnabled = smoothing;
       this.context.imageSmoothingEnabled = smoothing;
@@ -3940,6 +4743,31 @@ PLAYGROUND.LoadingScreen = {
     },
 
     drawTile: function(image, x, y, frameX, frameY, frameWidth, frameHeight, frames, frame) {
+
+    },
+
+    checkerboard: function(x, y, w, h, grid, colorA, colorB) {
+
+      var tx = w / grid | 0;
+      var ty = h / grid | 0;
+
+      this.save();
+      this.rect(x, y, w, h).clip();
+
+      for (var i = 0; i <= tx; i++) {
+        for (var j = 0; j <= ty; j++) {
+
+
+          if (j % 2) var color = i % 2 ? colorA : colorB;
+          else var color = i % 2 ? colorB : colorA;
+
+          this.fillStyle(color);
+          this.fillRect(x + i * grid, y + j * grid, grid, grid);
+
+        }
+      }
+
+      this.restore();
 
     },
 
@@ -4844,13 +5672,11 @@ PLAYGROUND.LoadingScreen = {
 
           var padding = t.padding;
 
-          this.drawImage(image, 
-            region[0] + padding, 
-            region[1] + padding, 
-            (region[2] - padding * 2), 
-            (region[3] - padding * 2), 
-            x + padding, y + padding, 
-            w - padding * 2, 
+          this.drawImage(image,
+            region[0] + padding,
+            region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
+            x + padding, y + padding,
+            w - padding * 2,
             h - padding * 2
           );
 
@@ -5536,6 +6362,13 @@ PLAYGROUND.LoadingScreen = {
 
 /* file: src/layer/Layer.js */
 
+/** Renderer build on top of CanvasQuery library.
+ *
+ * The application is enhanced with a `layer` member that
+ * provides access to the canvas.
+ *
+ * Reference: http://playgroundjs.com/playground-layer
+ */
 PLAYGROUND.Renderer = function(app) {
 
   this.app = app;
@@ -5587,6 +6420,10 @@ PLAYGROUND.Renderer.prototype = {
 
 /* file: src/layer/Transitions.js */
 
+/** Animation played when changing state with canvas render.
+ *
+ * Reference: http://playgroundjs.com/playground-transitions
+ */
 PLAYGROUND.Transitions = function(app) {
 
   this.app = app;
@@ -5597,6 +6434,11 @@ PLAYGROUND.Transitions = function(app) {
 
   this.progress = 1;
   this.lifetime = 0;
+
+  app.transition = app.transition ? app.transition : 'split';
+  app.transitionDuration = app.transitionDuration ?
+    app.transitionDuration : 0.5;
+
 };
 
 PLAYGROUND.Transitions.plugin = true;
@@ -5608,8 +6450,10 @@ PLAYGROUND.Transitions.prototype = {
     this.screenshot = this.app.layer.cache();
 
     if (data.prev) {
+
       this.lifetime = 0;
       this.progress = 0;
+
     }
 
   },
@@ -5618,7 +6462,9 @@ PLAYGROUND.Transitions.prototype = {
 
     if (this.progress >= 1) return;
 
-    PLAYGROUND.Transitions.Split(this, this.progress);
+    var transition = PLAYGROUND.Transitions[this.app.transition];
+
+    transition(this.progress, this.app.layer, this.screenshot);
 
   },
 
@@ -5628,16 +6474,13 @@ PLAYGROUND.Transitions.prototype = {
 
     this.lifetime += delta;
 
-    this.progress = Math.min(this.lifetime / 0.5, 1);
+    this.progress = Math.min(this.lifetime / this.app.transitionDuration, 1);
 
   }
 
 };
 
-PLAYGROUND.Transitions.Implode = function(manager, progress) {
-
-  var app = manager.app;
-  var layer = app.layer;
+PLAYGROUND.Transitions.implode = function(progress, layer, screenshot) {
 
   progress = app.ease(progress, "outCubic");
 
@@ -5645,16 +6488,13 @@ PLAYGROUND.Transitions.Implode = function(manager, progress) {
 
   layer.save();
   layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
-  layer.drawImage(manager.screenshot, 0, 0);
+  layer.drawImage(screenshot, 0, 0);
 
   layer.restore();
 
 };
 
-PLAYGROUND.Transitions.Split = function(manager, progress) {
-
-  var app = manager.app;
-  var layer = app.layer;
+PLAYGROUND.Transitions.split = function(progress, layer, screenshot) {
 
   progress = app.ease(progress, "inOutCubic");
 
@@ -5664,15 +6504,21 @@ PLAYGROUND.Transitions.Split = function(manager, progress) {
 
   layer.a(negative).clear("#fff").ra();
 
-  layer.drawImage(manager.screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
-  layer.drawImage(manager.screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
+  layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
+  layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
 
   layer.restore();
 
 };
 
+
 /* file: src/layer/LoadingScreen.js */
 
+/** Basic loading screen using cnavas
+ *
+ * In playground.js build this file will be appended after
+ * `src/LoadingScreen.js` and, thus, will override it.
+ */
 PLAYGROUND.LoadingScreen = {
 
   logoRaw: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAAASBAMAAADPiN0xAAAAGFBMVEUAAQAtLixHSUdnaGaJioimqKXMzsv7/fr5shgVAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98EAwkeA4oQWJ4AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAB9klEQVQ4y72UvW+rMBDAz+FrpVKrrFmesmapWNOlrKjSe1kZ+uoVAvj+/frujG1SaJcqJwU7voOf7xMQzQmsIDi5NPTMsLRntH3U+F6SAZo3NlCvcgBFJz8o+vkDiE63lI95Y/UmpinsZWkgJWJiDbAVQ16htptxSTNloIlugwaw001Ey3ASF3so6L1qLNXzQS5S0UGKL/CI5wWNriE0UH9Yty37LqIVg+wsqu7Ix0MwVBSF/dU+jv2SNnma021LEdPqVnMeU3xAu0kXcSGjmq7Ox4E2Wn88LZ2+EFj3avjixzai6VPVyuYveZLHF2XfdDnvAq27DIHGuq+0DJFsE30OtB1KqOwd8Dr7PcM4b+jfj2g5lp4WyntBK66qua3JzEA+uXJpwH/NlVuzRVPY/kTLB2mjuN+KwdZ8FOy8j2gDbEUSqumnSCY4lf4ibq3IhVM4ycZQRnv+zFqVdJQVn6BxvUqebGpuaNo3sZxwBzjajiMZOoBiwyVF+kCr+nUaJOaGpnAeRPPJZTr4FqmHRXcneEo4DqQ/ftfdnLeDrUAME8xWKPeKCwW6YkEpXfs3p1EWJhdcUAYP0TI/uYaV8cgjwBovaeyWwji2T9rTFIdS/cP/MnkTLRUWxgNNZVin7bT5fqT9miDcUVJzR1gRpfIONMmulU+5Qqr6zXAUqAAAAABJRU5ErkJggg==",
@@ -5752,8 +6598,6 @@ PLAYGROUND.LoadingScreen = {
     this.app.layer.fillRect(this.app.center.x, this.app.center.y + 32, this.logo.width, 4);
 
     this.app.layer.restore();
-
-
 
   }
 
