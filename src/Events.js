@@ -55,7 +55,7 @@ PLAYGROUND.Events.prototype = {
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
-      if (this.listeners[event][i]._remove) {
+      if (this.listeners[event][i] === callback) {
         this.listeners[event].splice(i--, 1);
         len--;
       }

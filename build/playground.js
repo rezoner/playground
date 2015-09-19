@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r6
+  PlaygroundJS r7
   
   http://playgroundjs.com
   
@@ -13,6 +13,11 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r7
+
+  + fixed event.off
+  + temporary fixes for gamepad d-pad
 
   r6
 
@@ -42,7 +47,6 @@
   + pointer = mouse + touch
 
 */
-
 
 /* file: src/lib/Ease.js */
 
@@ -676,7 +680,7 @@ PLAYGROUND.Events.prototype = {
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
-      if (this.listeners[event][i]._remove) {
+      if (this.listeners[event][i] === callback) {
         this.listeners[event].splice(i--, 1);
         len--;
       }
@@ -1437,6 +1441,11 @@ PLAYGROUND.GameLoop = function(app) {
 
 /* file: src/Gamepads.js */
 
+/* THIS HAS TO BE REWRITEN! */
+/* add method .getGamepad() */
+/* hold gamepad state in this[0], [1] and so on */
+/* (dpad) buttons 12-14 are currently overwriten - check step method */
+
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -1536,7 +1545,10 @@ PLAYGROUND.Gamepads.prototype = {
       /* hack for missing  dpads */
 
       for (var h = 12; h <= 15; h++) {
-        if (!buttons[h]) buttons[h] = {
+
+        // if (!buttons[h]) 
+
+        buttons[h] = {
           pressed: false,
           value: 0
         };
@@ -1961,8 +1973,6 @@ PLAYGROUND.Mouse = function(app, element) {
   PLAYGROUND.Events.call(this);
 
   this.element = element;
-
-  this.buttons = {};
 
   this.preventContextMenu = true;
 
@@ -2655,8 +2665,6 @@ PLAYGROUND.Touch = function(app, element) {
   this.app = app;
 
   this.element = element;
-
-  this.buttons = {};
 
   this.touches = {};
 

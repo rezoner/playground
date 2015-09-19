@@ -8,8 +8,6 @@ PLAYGROUND.Mouse = function(app, element) {
 
   this.element = element;
 
-  this.buttons = {};
-
   this.preventContextMenu = true;
 
   this.mousemoveEvent = {};

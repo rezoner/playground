@@ -6,8 +6,6 @@ PLAYGROUND.Touch = function(app, element) {
 
   this.element = element;
 
-  this.buttons = {};
-
   this.touches = {};
 
   this.x = 0;

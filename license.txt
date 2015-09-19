@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r6
+  PlaygroundJS r7
   
   http://playgroundjs.com
   
@@ -9,6 +9,11 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r7
+
+  + fixed event.off
+  + temporary fixes for gamepad d-pad
 
   r6
 

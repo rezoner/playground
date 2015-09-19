@@ -1,3 +1,8 @@
+/* THIS HAS TO BE REWRITEN! */
+/* add method .getGamepad() */
+/* hold gamepad state in this[0], [1] and so on */
+/* (dpad) buttons 12-14 are currently overwriten - check step method */
+
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -97,7 +102,10 @@ PLAYGROUND.Gamepads.prototype = {
       /* hack for missing  dpads */
 
       for (var h = 12; h <= 15; h++) {
-        if (!buttons[h]) buttons[h] = {
+
+        // if (!buttons[h]) 
+
+        buttons[h] = {
           pressed: false,
           value: 0
         };
