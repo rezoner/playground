@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r7
+  PlaygroundJS r6
   
   http://playgroundjs.com
   
@@ -13,11 +13,6 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
-
-  r7
-
-  + fixed event.off
-  + temporary fixes for gamepad d-pad
 
   r6
 
@@ -47,6 +42,7 @@
   + pointer = mouse + touch
 
 */
+
 
 /* file: src/lib/Ease.js */
 
@@ -839,7 +835,7 @@ PLAYGROUND.Events.prototype = {
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
-      if (this.listeners[event][i] === callback) {
+      if (this.listeners[event][i]._remove) {
         this.listeners[event].splice(i--, 1);
         len--;
       }
@@ -1753,13 +1749,6 @@ PLAYGROUND.GameLoop = function(app) {
 
 /* file: src/Gamepads.js */
 
-<<<<<<< HEAD
-/* THIS HAS TO BE REWRITEN! */
-/* add method .getGamepad() */
-/* hold gamepad state in this[0], [1] and so on */
-/* (dpad) buttons 12-14 are currently overwriten - check step method */
-
-=======
  /** Gamepads related functionality.
  *
  * The object also works as an array of gamepads, thus
@@ -1780,7 +1769,6 @@ PLAYGROUND.GameLoop = function(app) {
  *
  * Reference: http://playgroundjs.com/playground-gamepads
  */
->>>>>>> 2869c963e3d29d35657434b9e2a0a2102f49d61f
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -1880,10 +1868,7 @@ PLAYGROUND.Gamepads.prototype = {
       /* hack for missing  dpads */
 
       for (var h = 12; h <= 15; h++) {
-
-        // if (!buttons[h]) 
-
-        buttons[h] = {
+        if (!buttons[h]) buttons[h] = {
           pressed: false,
           value: 0
         };
@@ -2404,6 +2389,8 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype
   PLAYGROUND.Events.call(this);
 
   this.element = element;
+
+  this.buttons = {};
 
   this.preventContextMenu = true;
 
@@ -3142,6 +3129,8 @@ PLAYGROUND.Touch = function(app, element) {
   this.app = app;
 
   this.element = element;
+
+  this.buttons = {};
 
   this.touches = {};
 
@@ -4060,3 +4049,556 @@ PLAYGROUND.LoadingScreen = {
   }
 
 };
+
+/* file: treejs.idea/playground.three.js */
+
+/** A very basic three.js renderer.
+ *
+ * There's one renderer per application and
+ * one camera and scene for every state.
+ *
+ * The application object is ehanced with two
+ * functions: `loadTexture()` and `loadObject()` that
+ * will store their objects in `textures` and `objects`.
+ *
+ */
+PLAYGROUND.ThRend = function(app) {
+
+  this.app = app;
+
+  app.on("create", this.create.bind(this));
+  app.on("resize", this.resize.bind(this));
+  app.on("createstate", this.createstate.bind(this));
+  app.on("render", this.render.bind(this));
+
+};
+
+PLAYGROUND.ThRend.prototype = {
+
+  /** Event handler for `create`.
+   *
+   */
+  create: function() {
+
+    this.app.renderer = new THREE.WebGLRenderer({
+      antialiasing: true
+    });
+    this.app.container.appendChild(this.app.renderer.domElement);
+  },
+
+  /** Event handler for `resize`.
+   *
+   */
+  resize: function() {
+    var pix = this.app.pixelate ? this.app.pixelate : 1;
+    this.app.renderer.setSize(
+      this.app.width / pix,
+      this.app.height / pix);
+    this.updateViewport(this.app.state);
+
+  },
+
+  /** Event handler for `createstate`.
+   *
+   */
+  createstate: function(data) {
+
+    var state = data.state;
+    state.thrend = this;
+    this.app.thrend = this;
+    state.scene = new THREE.Scene();
+    state.camera = new THREE.PerspectiveCamera(
+      75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  },
+
+  /** Updates threejs representation based on current size.
+   *
+   */
+  updateViewport: function(state) {
+    if (state.camera) {
+      state.camera.aspect = this.app.width / this.app.height;
+      state.camera.updateProjectionMatrix();
+    }
+  },
+
+  /** Draw a frame.
+   *
+   */
+  render: function() {
+    var state = app.state;
+    app.renderer.render(state.scene, state.camera);
+
+    if (this.__get_screenshot && this.__get_screenshot.length > 0) {
+      var imgData = app.renderer.domElement.toDataURL();
+      this.__get_screenshot.forEach(function (cb) {
+        cb(imgData, this);
+      });
+      this.__get_screenshot = [];
+    }
+  },
+
+  /** Take a screenshot of the current screen.
+   *
+   * Example:
+   * ```js
+   * var state; // a state previously obtained
+   * state.thrend.toImage(function(dataURL, thrend) {
+   *   var img = new Image;
+   *   img.src = dataURL;
+   *   // ...
+   * });
+   * ```
+   *
+   * @param  cb the callback to be invoked with resulted dataURL.
+   * @param  type A DOMString indicating the image format.
+   *              The default type is image/png.
+   * @param  encoderOptions A Number between 0 and 1 indicating image quality.
+   *
+   * References:
+   * - https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
+   * - http://stackoverflow.com/questions/15558418/how-do-you-save-an-image-from-a-three-js-canvas
+   */
+  toImage: function(cb, type, encoderOptions) {
+    if (!this.__get_screenshot) this.__get_screenshot = [];
+    this.__get_screenshot.push(cb);
+  }
+
+};
+
+/** Texture loader method for Application object.
+ *
+ * The testures accumulate in app's `textures` property.
+ * Use `textures` in `paths` config to indicate where the texture
+ * files are located.
+ */
+ PLAYGROUND.Application.prototype.loadTexture = function(path) {
+
+  if (!this.textures) this.textures = {};
+  var resourceName = "texture " + path;
+  var app = this;
+  var assetPath = this.getAssetEntry(path, "textures", "png");
+  if (this.textures[assetPath.key]) return;
+  this.loader.add(resourceName);
+  var loader = new THREE.TextureLoader();
+  loader.load(
+    assetPath.url,
+    function(texture) {
+      app.textures[assetPath.key] = texture;
+      app.loader.success(resourceName);
+    });
+};
+
+/** Object loader method for Application object.
+ *
+ * The objects accumulate in app's `objects` property.
+ * Use `objects` in `paths` config to indicate where the objects
+ * files are located.
+ */
+ PLAYGROUND.Application.prototype.loadObject = function(path) {
+  var app = this;
+  if (!this.objects) this.objects = {};
+  var loaderID = "object " + path;
+  var assetPath = this.getAssetEntry(path, "objects", "json");
+  if (this.objects[assetPath.key]) return;
+  this.loader.add(loaderID);
+  var loader = new THREE.ObjectLoader();
+  loader.load(
+    assetPath.url,
+    function(object) {
+      app.objects[assetPath.key] = object;
+      app.loader.success(loaderID);
+    });
+};
+
+PLAYGROUND.ThRend.plugin = true;
+
+
+/* file: treejs.idea/Transitions.js */
+
+/** Animation played when changing state with ThRend render.
+ *
+ * Reference: http://playgroundjs.com/playground-transitions
+ */
+ PLAYGROUND.Transitions = function(app) {
+
+ 	this.app = app;
+
+ 	app.on("enterstate", this.enterstate.bind(this));
+
+ 	this.transitions = 0;
+
+ 	app.transition = app.transition ? app.transition : 'split';
+ 	app.transitionDuration = app.transitionDuration ?
+    app.transitionDuration : 0.5;
+
+  this.default_css_rules = {
+    'split': '.split_hover_top {top: -50% !important;}' +
+    '.split_hover_btm {bottom: -50% !important;}' +
+    '.split {position: relative;overflow: hidden;background: transparent;}' +
+    '.split .content {position: absolute; top: 50%;width: 100%;'+
+    ' height: 100%; margin-top: auto;margin-bottom: auto;}' +
+    '.split .image {z-index: 1;position: absolute;width: 100%;'+
+    ' height: 100%;background-repeat: no-repeat;}' +
+    '.split .upper.image, .split .lower.image {height: 50%;}' +
+    '.split .upper.image {top: 0; -webkit-transition: top =D=s ease;' +
+    ' -moz-transition: top =D=s ease; -o-transition: top =D=s ease;' +
+    ' -ms-transition: top =D=s ease; transition: top =D=s ease;}' +
+    '.split .lower.image {bottom: 0; background-position: 0% 100%;' +
+    ' -webkit-transition: bottom =D=s ease; -moz-transition: bottom =D=s ease;' +
+    ' -o-transition: bottom =D=s ease; -ms-transition: bottom =D=s ease;' +
+    'transition: bottom =D=s ease;}',
+    'implode': '.implode {position:relative;top:0px;'+
+    ' left:0px;width:100%;height:100%;margin:0px;'+
+    ' padding:0px;background-size:100%;background-repeat:no-repeat;'+
+    ' background-position:50% 50%;-webkit-transition:all =D=s ease;'+
+    ' -moz-transition:all =D=s ease;-ms-transition:all =D=s ease;'+
+    ' -o-transition:all =D=s ease;transition:all =D=s ease;}'+
+    '.implode_final {top:50% !important;left:50% !important;'+
+    ' width:0px !important;height:0px !important;}',
+    'fade': '.fade {margin: 0px;padding: 0px;background-size: 100%;'+
+    ' background-repeat:no-repeat;background-position:50% 50%;'+
+    ' -webkit-opacity: 1;-moz-opacity: 1;-ms-opacity: 1;-o-opacity: 1;'+
+    ' opacity: 1;-webkit-transition: all =D=s ease;'+
+    ' -moz-transition: all =D=s ease;-ms-transition: all =D=s ease;'+
+    ' -o-transition: all =D=s ease;transition: all =D=s ease;}'+
+    '.fade_final {-webkit-opacity: 0;-moz-opacity: 0;-ms-opacity: 0;'+
+    ' -o-opacity: 0;opacity: 0;}'
+  };
+
+  this.css_rules = app.transitionCssRules ?
+    app.transitionCssRules : this.default_css_rules[app.transition];
+
+  this.css_rules = this.css_rules.replace(/=D=/g, app.transitionDuration);
+  this.css_id = 'thrend_transition_css';
+};
+
+
+PLAYGROUND.Transitions.plugin = true;
+
+PLAYGROUND.Transitions.prototype = {
+
+  enterstate: function(data) {
+	// make sure we have the styles in place
+	this.injectOwnCSS();
+
+  	// Initial Transitions:
+  	//	 null -> DefaultState
+  	//	 DefaultState -> LoadingScreen
+  	//	 LoadingScreen -> FirstUserState
+  	++this.transitions;
+  	if (this.transitions < 3) {
+      return;
+    }
+
+    var self = this;
+    var thrend = this.app.thrend;
+    if (!thrend) {
+      var err = new Error('This Transitions can only be used '+
+       'with ThRend renderer.');
+      throw err;
+    }
+
+  	// get a screenshot and load it as an image
+  	thrend.toImage(function(dataURL) {
+      var transition = PLAYGROUND.Transitions[self.app.transition];
+      transition(self.app, dataURL);
+    });
+
+    // if we wait for next scheduled render the state will be changed
+    // so we do an extra render here to get the screen capture
+    thrend.render();
+
+  },
+
+
+  /** Creates a new style element in the document head and inserts the content.
+   *
+   * @param cssCode css content to insert
+   *
+   * References:
+   * - https://stackoverflow.com/questions/707565/how-do-you-add-css-with-javascript/6211716#6211716
+   */
+   addCss: function (cssCode) {
+     var styleElement = document.createElement("style");
+     styleElement.type = "text/css";
+     if (styleElement.styleSheet) {
+       styleElement.styleSheet.cssText = cssCode;
+     } else {
+       styleElement.appendChild(document.createTextNode(cssCode));
+     }
+     styleElement.setAttribute("id", this.css_id);
+     document.getElementsByTagName("head")[0].appendChild(styleElement);
+   },
+
+  /**
+   * Checks to see if custom css is not already inserted and inserts it
+   *
+   * We use these css rules to
+   */
+   injectOwnCSS: function() {
+  	// the user may provide the rules in her own file.
+  	if (!this.css_rules) return;
+    // check if was already inserted
+    var already_in = document.getElementById(this.css_id);
+    if (already_in) return;
+  	// do insert
+  	this.addCss(this.css_rules);
+  }
+};
+
+/** Compute the position of a DOM element.
+ *
+ * We assume no dependency here, so we need to implement our own.
+ *
+ * @param  the element to compute the position for.
+ * @return {x:, y: } an object with computed values
+ *
+ * References:
+ * - http://www.kirupa.com/html5/get_element_position_using_javascript.htm
+ */
+PLAYGROUND.Transitions.getPosition = function(element) {
+  var xPosition = 0;
+  var yPosition = 0;
+
+  while(element) {
+    xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+    yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+    element = element.offsetParent;
+  }
+  return { x: xPosition, y: yPosition };
+}
+
+PLAYGROUND.Transitions.createLayer = function(app, screenshot) {
+  var parent_pos = PLAYGROUND.Transitions.getPosition(app.container);
+  var transLayer = document.createElement('div');
+  var h2 = (app.height*app.scale);
+
+  transLayer.id = 'transitionLayer';
+  transLayer.style.position = 'absolute';
+  transLayer.style.left = parent_pos.x + 'px';
+  transLayer.style.top = parent_pos.y + 'px';
+  transLayer.style.width = (app.width*app.scale) + 'px';
+  transLayer.style.height = h2 + 'px';
+  transLayer.style.padding = '0px';
+  return transLayer;
+}
+
+PLAYGROUND.Transitions.done = function(tLayer, app, selector, final_class) {
+  // setting the class directly does not work so we add a small delay
+  setTimeout(function(){
+    var subdiv = document.querySelector(selector);
+    subdiv.className = subdiv.className + ' ' + final_class;
+
+    // the timeout must be large enough toi allow for the transition
+    // to reach final value
+    setTimeout(function(){tLayer.remove(); }, app.transitionDuration+100);
+  }, 10);
+}
+
+
+PLAYGROUND.Transitions.implode = function(app, screenshot) {
+  var transLayer = PLAYGROUND.Transitions.createLayer(app, screenshot);
+  transLayer.style.background = 'transparent';
+  var img_sty = 'style="background-image:url(\'' + screenshot + '\')"';
+  transLayer.innerHTML = '<div class="implode" ' + img_sty + '></div>';
+  document.body.appendChild(transLayer);
+
+  PLAYGROUND.Transitions.done(
+    transLayer, app,
+    '#transitionLayer > div.implode',
+    'implode_final');
+};
+
+PLAYGROUND.Transitions.fade = function(app, screenshot) {
+  var transLayer = PLAYGROUND.Transitions.createLayer(app, screenshot);
+  transLayer.className = 'fade';
+  transLayer.style.backgroundImage = 'url(\'' + screenshot + '\')';
+  document.body.appendChild(transLayer);
+  PLAYGROUND.Transitions.done(
+    transLayer, app,
+    '#transitionLayer',
+    'fade_final');
+};
+
+PLAYGROUND.Transitions.split = function(app, screenshot) {
+  var transLayer = PLAYGROUND.Transitions.createLayer(app, screenshot);
+  transLayer.className = 'split';
+  var img_sty = 'style="background-image:url(\'' + screenshot + '\')"';
+  transLayer.innerHTML =
+    '<div class="upper image" ' + img_sty + '></div>' +
+    '<div class="lower image" ' + img_sty + '></div>';
+  document.body.appendChild(transLayer);
+
+  // setting the class directly does not work so we add a small delay
+  setTimeout(function(){
+    // we simply change the position of the two parts;
+    // note that changing transLayer.style.top is not enough, apparently
+    var subdiv = document.querySelector('#transitionLayer > div.upper');
+    subdiv.className = subdiv.className+' split_hover_top';
+    subdiv = document.querySelector('#transitionLayer > div.lower');
+    subdiv.className = subdiv.className + ' split_hover_btm';
+
+    // the timeout must be large enough toi allow for the transition
+    // to reach final value
+    setTimeout(function(){transLayer.remove(); }, app.transitionDuration+100);
+
+  }, 10);
+};
+
+
+/* file: treejs.idea/LoadingScreen.js */
+
+ var default_ls = PLAYGROUND.LoadingScreen;
+
+ /** Basic loading screen using Tree.js
+ *
+ * In playground-three.js build this file will be appended after
+ * `src/LoadingScreen.js` and, thus, will override it.
+ *
+ * There is no way to set a loading screen except to define a variable with
+ * same name later in the code.
+ *
+ * You can use this module as a guide for building your own load screen.
+ * Create three objects in `createElements()` and update their apparence
+ * in `step()`.
+ */
+ PLAYGROUND.LoadingScreen = {
+
+ 	create: function() {
+ 		var self = this;
+ 		self.ready = false;
+ 		self.createElements();
+ 		if (!self.thrend) {
+ 			var err = new Error('This Loading Screen can only be used '+
+ 				'with ThRend renderer.');
+ 			throw err;
+ 		}
+ 	},
+
+ 	enter: function() {
+ 		this.current = 0;
+ 	},
+
+ 	/** We're ready to switch to user-defined state.
+ 	 *
+ 	 * The rest of the road towards 1.0 is a nice animation.
+ 	 * We set the `lock` so to prevent the change for now.
+ 	 */
+ 	leave: function() {
+ 		this.locked = true;
+ 		this.animation = this.app.tween(this)
+ 		.to({
+ 			current: 1
+ 		}, 0.5);
+ 	},
+
+ 	/** A logical step.
+ 	 *
+ 	 * We're updating the progress based on our app's loader. When that's
+ 	 * finished we wait for the animation that drives the `current` value
+ 	 * to 0 to finish and we release the lock.
+ 	 *
+ 	 * @param  delta - progress since last time
+ 	 */
+ 	step: function(delta) {
+ 		if (this.locked) {
+ 			if (this.animation.finished) {
+ 				this.locked = false;
+ 				return;
+ 			}
+ 		} else {
+ 			this.current = this.current +
+ 			  Math.abs(this.app.loader.progress - this.current) * delta;
+ 		}
+ 		// update apparence
+ 		this.progressBar.scale.set(this.current+0.000001, 1.0, 1.0);
+ 	},
+
+ 	/** Create nodejs objects.
+ 	 *
+ 	 * We use two rectangles of same size and play with the scale of one
+ 	 * of them. We also load the logo from build-in loading screen as
+ 	 * a texture.
+ 	 */
+ 	createElements: function() {
+
+ 		var scene = this.scene;
+ 		this.camera.position.z = 200;
+
+ 		/*
+ 		this.logo = new Image;
+ 		var self = this;
+ 		this.logo.addEventListener("load", function() {
+ 			console.log(self.logo.width);
+ 			console.log(self.logo.height);
+ 		});
+ 		this.logo.src = this.prototype.logoRaw;
+		*/
+		var logo = {width: 218, height: 18};
+
+		// the logo image is loaded as a texture
+ 		var img = new THREE.MeshBasicMaterial({
+ 			map: THREE.ImageUtils.loadTexture(
+ 				this.prototype.logoRaw,
+ 				undefined,
+ 				function() {
+ 					this.ready = true;
+ 				})
+ 		});
+ 		img.map.minFilter = THREE.NearestFilter;
+
+	    // plane that holds the image
+	    var plane = new THREE.Mesh(new THREE.PlaneGeometry(
+	      logo.width, logo.height), img);
+	    plane.overdraw = true;
+	    scene.add(plane);
+
+	    // slim bar
+		var rectShape = this.centerBar(
+		  {x: 0.0, y: -logo.height},
+		  {width: logo.width, height: logo.height/4});
+		var rectGeom = new THREE.ShapeGeometry(rectShape);
+		var slimBar = new THREE.Mesh(
+		  rectGeom, new THREE.MeshBasicMaterial({ color: 0xffffff }) ) ;
+		scene.add(slimBar);
+
+		// fat bar
+		rectShape = this.centerBar(
+		  {x: 0.0, y: -logo.height},
+		  {width: logo.width, height: logo.height/2});
+		rectGeom = new THREE.ShapeGeometry(rectShape);
+		this.progressBar = new THREE.Mesh(
+		  rectGeom, new THREE.MeshBasicMaterial({ color: 0xffffff }) ) ;
+		scene.add(this.progressBar);
+		this.progressBar.scale.set(0.000001, 1.0, 1.0);
+
+	    // add subtle ambient lighting
+	    var ambientLight = new THREE.AmbientLight(0x555555);
+	    scene.add(ambientLight);
+
+	    // add directional light source
+	    var directionalLight = new THREE.DirectionalLight(0xffffff);
+	    directionalLight.position.set(logo.width, logo.height, 1).normalize();
+	    scene.add(directionalLight);
+	},
+
+	/** Create a rectangle aligned with axes, with given center and size.
+	 *
+	 * @param  {center} an object with a `x` and a `y` property;
+	 * @param  {size} an object with a `width` and a `height` property;
+	 * @return a THREE.Shape
+	 */
+	centerBar: function(center, size) {
+		var rectShape = new THREE.Shape();
+		var w2 = size.width / 2;
+		var h2 = size.height / 2;
+		rectShape.moveTo(center.x - w2, center.y - h2);
+		rectShape.lineTo(center.x + w2, center.y - h2);
+		rectShape.lineTo(center.x + w2, center.y + h2);
+		rectShape.lineTo(center.x - w2, center.y + h2);
+		rectShape.lineTo(center.x - w2, center.y - h2);
+		return rectShape;
+	}
+};
+
+PLAYGROUND.LoadingScreen.prototype = default_ls;

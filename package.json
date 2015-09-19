@@ -1,0 +1,23 @@
+{
+  "name": "playground.js",
+  "version": "0.0.3",
+  "description": "Essential framework for javascript gamedevelopers.",
+  "homepage": "http://playgroundjs.com/",
+  "author": {
+    "name": "Przemysław Sikorski",
+    "email": "rezoner1337@gmail.com",
+    "url": "http://rezoner.net"
+  },
+  "scripts": {
+    "dist": "node build"
+  },
+  "main": "./build/commonjs/playground.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rezoner/playground.git"
+  },
+  "devDependencies": {
+    "shelljs": "^0.5.1"
+  },
+  "license": "MIT"
+}

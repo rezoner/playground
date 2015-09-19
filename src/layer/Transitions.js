@@ -1,3 +1,7 @@
+/** Animation played when changing state with canvas render.
+ *
+ * Reference: http://playgroundjs.com/playground-transitions
+ */
 PLAYGROUND.Transitions = function(app) {
 
   this.app = app;
@@ -9,8 +13,9 @@ PLAYGROUND.Transitions = function(app) {
   this.progress = 1;
   this.lifetime = 0;
 
-  app.transition = "split";
-  app.transitionDuration = 0.5;
+  app.transition = app.transition ? app.transition : 'split';
+  app.transitionDuration = app.transitionDuration ?
+    app.transitionDuration : 0.5;
 
 };
 

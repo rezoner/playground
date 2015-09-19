@@ -460,34 +460,8 @@ function playground(args) {
 
 /* file: src/Utils.js */
 
-/** Utility functions
- */
 PLAYGROUND.Utils = {
 
-  /** Merge any number of associative arrays into first.
-   *
-   * All arguments are expected to be associative arrays.
-   * If same key appears multiple times the final value
-   * will come from last argument that contains it.
-   *
-   * @returns first argument
-   *
-   * Examples:
-   *
-   *     PLAYGROUND.Utils.extend({a: 1});
-   *     // simply returns {a: 1}
-   *
-   *     PLAYGROUND.Utils.extend({a: 1}, {b: 2});
-   *     // returns {a: 1, b: 2}
-   *
-   *     PLAYGROUND.Utils.extend({a: 1}, {a: 2});
-   *     // returns {a: 2}
-   *
-   * Common usage is to intialize an object with defaults and
-   * optional user arguments in a call like:
-   *
-   *     PLAYGROUND.Utils.extend(this, this.defaults, args);
-   */
   extend: function() {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -500,24 +474,6 @@ PLAYGROUND.Utils = {
 
   },
 
-
-  /** Merge any number of associative arrays into first.
-   *
-   * All arguments are expected to be associative arrays.
-   * If same key appears multiple times the final value
-   * will come from last argument that contains it.
-   *
-   * This function does the same thing as
-   * `PLAYGROUND.Utils.extend` but it also dives in nested
-   * objects.
-   *
-   * @returns first argument
-   *
-   * Examples:
-   *
-   *     PLAYGROUND.Utils.extend({a: {var_1: 1}}, {a: {var_1: 2}});
-   *     // returns {a: {var_1: 2}}
-   */
   merge: function(a) {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -540,20 +496,6 @@ PLAYGROUND.Utils = {
 
   },
 
-  /** Call a method for all objects in first argument.
-   *
-   * The function simply ignores objects that don't have
-   * specified `methodName`.
-   *
-   * @param object an indexed array of objects
-   * @param methodName the name of the method to call
-   *
-   * The rest of the arguments are passed to the invoked method.
-   *
-   * Examples:
-   *
-   *     PLAYGROUND.Utils.invoke([obj1, obj2, obj3], 'someMethod', 'arg1', 'arg2');
-   */
   invoke: function(object, methodName) {
 
     var args = Array.prototype.slice.call(arguments, 2);
@@ -567,26 +509,6 @@ PLAYGROUND.Utils = {
 
   },
 
-  /** Ensures that the function argument is not called too often.
-   *
-   * On first invocation the `fn` argument is simply called and the
-   * time is recorded. On subsequent invocations the method checks if
-   * the time passed from last invocation is larger than the threshold
-   * or not. If is larger the function is called, otherwise
-   * a delayed call is added.
-   *
-   * @param fn function to call
-   * @param threshold (default is 250) in milliseconds
-   * @returns a function implementing the logic
-   *
-   * Example:
-   *
-   *     // ...
-   *     mousemove: PLAYGROUND.Utils.throttle(function(e) {
-   *       console.log(this.x, this.y);
-   *     }, 16),
-   *     // ...
-   */
   throttle: function(fn, threshold) {
     threshold || (threshold = 250);
     var last,
@@ -610,8 +532,6 @@ PLAYGROUND.Utils = {
     };
   },
 
-  /** TBD
-   */
   wrapTo: function(value, target, max, step) {
     if (value === target) return target;
 
@@ -632,16 +552,6 @@ PLAYGROUND.Utils = {
     return result;
   },
 
-  /** Bring the value between min and max.
-   *
-   * Values larger than `max` are wrapped back to `min`
-   * and vice-versa.
-   *
-   * @param value value to process
-   * @param min lowest valid value
-   * @param max largest valid value
-   * @return result
-   */
   wrap: function(value, min, max) {
 
     if (value < min) return max + (value % max);
@@ -650,38 +560,18 @@ PLAYGROUND.Utils = {
 
   },
 
-  /** Bring the value between 0 and 2*PI.
-   *
-   * Valid values for the length of a circle in radians is
-   * 2*PI.
-   *
-   * @param val value to process
-   * @return a value in 0..2*PI interval
-   */
   circWrap: function(val) {
 
     return this.wrap(val, 0, Math.PI * 2);
 
   },
 
-
-  /** Bring the value between 0 and 2*PI.
-   *
-   * Valid values for the length of a circle in radians is
-   * 2*PI.
-   *
-   * @param val value to process
-   * @return a value in 0..2*PI interval
-   */
   circWrapTo: function(value, target, step) {
 
     return this.wrapTo(value, target, Math.PI * 2, step);
 
   },
 
-
-  /** TBD
-   */
   wrappedDistance: function(a, b, max) {
 
     if (a === b) return 0;
@@ -698,36 +588,32 @@ PLAYGROUND.Utils = {
 
   },
 
-  /** TBD
-   */
   circWrappedDistance: function(a, b) {
 
     return this.wrappedDistance(a, b, Math.PI * 2)
-
+    
   },
 
-  /** Compute first multiple of threshold that is smaller or equal to num.
-   *
-   * Valid values for the length of a circle in radians is
-   * 2*PI.
-   *
-   * @param num the number to adjust
-   * @param threshold reference value
-   * @return an even multiple of `threshold` smaller or equal to `num`
-   */
   ground: function(num, threshold) {
-
+    
     return (num / threshold | 0) * threshold;
 
   },
 
-  /** TBD
-   *  Alias to `circWrappedDistance`.
-   */
   circDistance: function(a, b) {
+    var max = Math.PI * 2;
 
-    return this.circWrappedDistance(a, b)
+    if (a === b) return 0;
+    else if (a < b) {
+      var l = -a - max + b;
+      var r = b - a;
+    } else {
+      var l = b - a;
+      var r = max - a + b;
+    }
 
+    if (Math.abs(l) > Math.abs(r)) return r;
+    else return l;
   },
 
 
@@ -737,21 +623,6 @@ PLAYGROUND.Utils.ease = ease;
 
 /* file: src/Events.js */
 
-/** Base class for objects emmiting events.
- *
- * An associative array for listners is maintained internally.
- * The keys are the names of the event while the values are
- * lists of listners objects with three properties:
- * - once: is this a one time event or a recurring one
- * - callback: function to call
- * - context: the value for *this* inside *callback*.
- *
- * A special event is called `event`. The listners for
- * this event will receive all broadcasted events
- * with three arguments: `context`, `event name`, `data`.
- * Callbacks for other events are simply called with
- * `context` and `data`.
- */
 PLAYGROUND.Events = function() {
 
   this.listeners = {};
@@ -760,17 +631,6 @@ PLAYGROUND.Events = function() {
 
 PLAYGROUND.Events.prototype = {
 
-  /** Add a listner for an event.
-   *
-   * @param event name of the event or an associative array
-   *              where keys are event names and values are
-   *              callbacks to use
-   * @param callback the function to call for this listner; if
-   *                 *event* is an object this parameter is ignored
-   * @param context *this* when calling the callback(s)
-   *
-   * @returns the listner object
-   */
   on: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -794,17 +654,6 @@ PLAYGROUND.Events.prototype = {
     return listener;
   },
 
-  /** Add a listner for an event.
-   *
-   * @param event name of the event or an associative array
-   *              where keys are event names and values are
-   *              callbacks to use
-   * @param callback the function to call for this listner; if
-   *                 *event* is an object this parameter is ignored
-   * @param context *this* when calling the callback(s)
-   *
-   * @returns the listner object
-   */
   once: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -828,14 +677,6 @@ PLAYGROUND.Events.prototype = {
     return listener;
   },
 
-  /** Remove an event listner from an event.
-   *
-   * The function will remove all occurences that use that particular
-   * callback (will be a single instance in well behaved applications).
-   *
-   * @param event the name of the event
-   * @param callback identifying the listner
-   */
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
@@ -847,15 +688,6 @@ PLAYGROUND.Events.prototype = {
 
   },
 
-  /** Raise an event.
-   *
-   *  If the listner is only to be raised once this function
-   * removes it from the list of listners.
-   *
-   * @param event the name of the event being raised
-   * @param data array of arguments for the callbacks
-   *
-   */
   trigger: function(event, data) {
 
     /* if you prefer events pipe */
@@ -894,32 +726,6 @@ PLAYGROUND.Events.prototype = {
 
 /* file: src/States.js */
 
-/** Manages the states the application can be in.
- *
- * A state can be an object or a function that
- * creates the object. Current state is in `current`.
- *
- * Properties of a state:
- * - __created: is managed by `step` function;
- *   if not found the state is set up and `create()`
- *   method of the state is called.
- * - locked: if current state has this set to `true`
- *   current state can't be changed
- * - app: the main application object
- * - create: if this function exists it is called
- *   the first time a state is encountered
- * - enter: if this function exists it is called
- *   when the state becomes current
- * - leave: if this function exists it is called
- *   when the state is no longer the current one
- *
- * Events generated by this object:
- * - createstate: first time an state is encountered
- * - enterstate: a state is entered
- * - leavestate: a state is no longer current
- *
- * Reference: http://playgroundjs.com/playground-states
- */
 PLAYGROUND.States = function(app) {
 
   this.app = app;
@@ -932,7 +738,6 @@ PLAYGROUND.States = function(app) {
 
 PLAYGROUND.States.prototype = {
 
-  /** Called each frame to update logic. */
   step: function(delta) {
 
     if (!this.next) return;
@@ -988,11 +793,6 @@ PLAYGROUND.States.prototype = {
 
   },
 
-  /** Used by application to set the state.
-   *
-   * Don't call this function directly. Instead, use
-   * `PLAYGROUND.Application.setState()`.
-   */
   set: function(state) {
 
     if (this.current && this.current.leave) this.current.leave();
@@ -1010,65 +810,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.States.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Application.js */
 
-/** Main application object for playground.js
- *
- * The object inherits from PLAYGROUND.Events and generates
- * a number of events:
- * - Local events:
- *   - create: the application is being constructed
- *   - ready: the application has been constructed
- *   - imageready: after an image was loaded
- *   - states events are broadcasted as local events.
- * - Global events:
- *   - preload: allows loading custom resources
- *   - resize: window resize event
- *   - mouse, touch, keyboard and gamepads subcomponents
- *     have their events broadcasted as global events.
- *
- * The arguments that can be used to customize the application at
- * initialization time are:
- * - scale: the scale (may be auto-computed)
- * - width: the width in pixels/scale (may be auto-computed if not specified)
- * - height: the height in pixels/scale (may be auto-computed if not specified)
- * - smoothing:
- * - paths:
-       - base: path always prepended
-       - images: path relative to `base` for images
-       - data: path relative to `base` for json and text files
-       - atlases: texture atlases
-       - sounds: music and sounds in mp3 and ogg formats
- * - skipEvents: prevents core functions from emitting events
- * - disabledUntilLoaded: no events in loading stage
- * - LoadingScreen:
- * - container: the document element hosting display area
- *
- * Internally, the application derives other variables:
- * - autoWidth: adjust the width on resize
- * - autoHeight: adjust the height on resize
- * - autoScale: adjust the scale on resize
- * - customContainer: true if the container is not the body element
- * - offsetX: horizontal offset in pixels for effective drawing area
- * - offsetY: vertical offset in pixels for effective drawing area
- * - center: {x: , y: } in pixels/scale
- * - firstBatch: set to true while initial loading is in progress
- *
- * Inner workings are logically divided into:
- * - loader
- * - states
- * - mouse
- * - touch
- * - keyboard
- * - gamepads
- * - tweens
- * - ease
- *
- * A number of arrays help manage the resources:
- * - images: asset container
- * - atlases: asset container
- * - data: asset container
- * - plugins: list of instantiated plug-ins
- * - data: associative array for data objects loaded
- */
 PLAYGROUND.Application = function(args) {
 
   var app = this;
@@ -1214,6 +955,7 @@ PLAYGROUND.Application = function(args) {
     });
 
 
+
   };
 
 
@@ -1235,41 +977,21 @@ PLAYGROUND.Application.prototype = {
     disabledUntilLoaded: true
   },
 
-  /** Change active state.
-   *
-   * Simply forwarded to PLAYGROUND.States.
-   */
   setState: function(state) {
 
     this.states.set(state);
 
   },
 
-  /** Compute a fully qualified path.
-   *
-   * `paths.base` is always prepended to the result.
-   *
-   * @param to a key in `paths` or a string (without ending `/`).
-   */
   getPath: function(to) {
 
     return this.paths.base + (this.paths[to] || (to + "/"));
 
   },
 
-  /** Create a standardised representation for an asset.
-   *
-   * The result contains:
-   *   - key: a unique string that identifies this resource
-   *   - url: full path for this asset
-   *   - path: the directory where the asset resides
-   *   - ext: the extension for the file (without a leading dot)
-   *
-   * @returns a dictionary with standardised information
-   */
   getAssetEntry: function(path, folder, defaultExtension) {
 
-    /* translate folder according to user provided paths
+    /* translate folder according to user provided paths 
        or leave as is */
 
     var folder = this.paths[folder] || (folder + "/");
@@ -1297,7 +1019,8 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Emits events that shouldn't flow down to the state. */
+  /* events that shouldn't flow down to the state */
+
   emitLocalEvent: function(event, data) {
 
     this.trigger(event, data);
@@ -1306,7 +1029,8 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Emits events that should be passed to the state. */
+  /* events that should be passed to the state */
+
   emitGlobalEvent: function(event, data) {
 
     if (!this.state) return this.emitLocalEvent(event, data);
@@ -1327,12 +1051,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-
-  /** Responds to a resize event by updating some internal variables.
-   *
-   * `offsetX`, `offsetY` and `center` are always updated.
-   * `width`, `height` and `scale` may also be updated.
-   */
   updateSize: function() {
 
     if (this.customContainer) {
@@ -1389,7 +1107,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Responds to windows resize event. */
   handleResize: function() {
 
     this.updateSize();
@@ -1401,11 +1118,11 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Request a file over http.
-   *
-   * It shall be later an abstraction using 'fs' in node-webkit
-   *
-   * @returns a promise
+  /* 
+    request a file over http 
+    it shall be later an abstraction using 'fs' in node-webkit
+
+    returns a promise
   */
 
   request: function(url) {
@@ -1440,7 +1157,8 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Imaginary timeout to delay loading. */
+  /* imaginary timeout to delay loading */
+
   loadFoo: function(timeout) {
 
     var loader = this.loader;
@@ -1456,10 +1174,8 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Loads assets as data/json or text.
-   *
-   * The list may be nested.
-   */
+  /* data/json */
+
   loadData: function() {
 
     for (var i = 0; i < arguments.length; i++) {
@@ -1480,7 +1196,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Loads one asset as data/json or text (internal). */
   loadDataItem: function(name) {
 
     var entry = this.getAssetEntry(name, "data", "json");
@@ -1505,7 +1220,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Loads a single image */
+  /* images */
 
   loadImage: function() {
 
@@ -1513,10 +1228,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Loads images.
-   *
-   * The list may be nested.
-   */
   loadImages: function() {
 
     var promises = [];
@@ -1543,8 +1254,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-
-  /** Loads a single image (internal). */
   loadOneImage: function(name) {
 
     var app = this;
@@ -1597,11 +1306,10 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load a single font.
-   *
-   * At this point it doesn't really load font
-   *  it just ensures the font has been loaded (use css font-face)
-   */
+  /* at this point it doesn't really load font
+     it just ensures the font has been loaded (use css font-face)
+  */
+
   loadFont: function() {
 
     var promises = [];
@@ -1618,14 +1326,12 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load fonts.  */
   loadFonts: function() {
 
     return this.loadFont.apply(this, arguments);
 
   },
 
-  /** Load a single font (internal).  */
   loadFontItem: function(name) {
 
     var app = this;
@@ -1665,7 +1371,7 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Render placeholder */
+
   render: function() {
 
   }
@@ -1676,24 +1382,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Application.prototype, PLAYGROUND.Events.prot
 
 /* file: src/GameLoop.js */
 
-/** Game loop.
- *
- * The application object is updated with following properties:
- * - lifetime: number of seconds since the game loop was entered
- * - opcost: seconds last opperation took
- * - ops: opperations per second.
- *
- * The game loop requests updats using standard
- * `requestAnimationFrame()` function. On each callback
- * time-related values are updated, logical update is requested using
- * `step()` and display update using `render()`.
- *
- * A number of (global) events are raised on behalf of the application:
- * - step: update the logic on each frame
- * - prerender: first step in refreshing the screen
- * - render: second step in refreshing the screen
- * - postrender: third step in refreshing the screen
- */
 PLAYGROUND.GameLoop = function(app) {
 
   app.lifetime = 0;
@@ -1742,7 +1430,7 @@ PLAYGROUND.GameLoop = function(app) {
     step(dt);
     render(dt);
 
-    app.opcost = delta / 1000;
+    app.opcost = (Date.now() - lastTick) / 1000;
     app.ops = 1000 / app.opcost;
 
   };
@@ -1753,34 +1441,11 @@ PLAYGROUND.GameLoop = function(app) {
 
 /* file: src/Gamepads.js */
 
-<<<<<<< HEAD
 /* THIS HAS TO BE REWRITEN! */
 /* add method .getGamepad() */
 /* hold gamepad state in this[0], [1] and so on */
 /* (dpad) buttons 12-14 are currently overwriten - check step method */
 
-=======
- /** Gamepads related functionality.
- *
- * The object also works as an array of gamepads, thus
- * PLAYGROUND.Gamepads[0] is the first one.
-  *
- * Properties:
- * - app: the main application object
- * - buttons: maps numeric ids to button names
- * - gamepads:
- * - gamepadmoveEvent: cached event
- * - gamepaddownEvent: cached event
- * - gamepadupEvent: cached event
- *
- * Events generated by this object:
- * - gamepadmove: change in position
- * - gamepaddown:
- * - gamepadup:
- *
- * Reference: http://playgroundjs.com/playground-gamepads
- */
->>>>>>> 2869c963e3d29d35657434b9e2a0a2102f49d61f
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -1899,7 +1564,7 @@ PLAYGROUND.Gamepads.prototype = {
           if (current.axes[0] < 0) buttons[14].pressed = true;
           if (current.axes[0] > 0) buttons[15].pressed = true;
         }
-
+        
         if (Math.abs(current.axes[1]) > 0.01) {
           if (current.axes[1] < 0) buttons[12].pressed = true;
           if (current.axes[1] > 0) buttons[13].pressed = true;
@@ -2003,30 +1668,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Gamepads.prototype, PLAYGROUND.Events.prototy
 
 /* file: src/Keyboard.js */
 
- /** Keyboard related functionality.
- *
- * A key name is computed by either taking the ASCII representation or
- * using the `keycodes` array to assign a name. To get corresponding code
- * use `original.which` in event handler.
- *
- * Properties:
- * - keys: associative array that maps key names to either true or false
- *   if a key is not in this array it was never pressed
- * - preventDefault: stop event propagation
- * - bypassKeys: `preventDefault` will not act on these keys
- * - keydownEvent: caches information about last key down event
- *     - key: name of the key
- *     - original: original event
- * - keyupEvent: caches information about last key up event
- *     - key: name of the key
- *     - original: original event
- *
- * Events generated by this object:
- * - keydown: a key was pressed (handler receives `keydownEvent` object)
- * - keyup: a key was released (handler receives `keyupEvent` object)
- *
- * Reference: http://playgroundjs.com/playground-keyboard
- */
 PLAYGROUND.Keyboard = function() {
 
   PLAYGROUND.Events.call(this);
@@ -2160,19 +1801,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototy
 
 /* file: src/Pointer.js */
 
-/** Abstracts away differences between mouse and touches.
- *
- * The object simply listens to global events raised by application and
- * raises new (global) events on behalf of the application.
- *
- * Following events are raised:
- * - pointerdown:mouse button down or start tracking touch point
- * - pointerup: mouse button release or touch point release
- * - pointermove: mouse pointer or touch point moved
- * - pointerwheel: mouse wheel rotated
- *
- * Reference: http://playgroundjs.com/playground-pointer
- */
 PLAYGROUND.Pointer = function(app) {
 
   this.app = app;
@@ -2274,38 +1902,8 @@ PLAYGROUND.Pointer.prototype = {
 
 /* file: src/Loader.js */
 
-/** Resources loading.
- *
- * This object - despite its name - does not load anything. Instead, it
- * acts as a central hub for reporting and tracking the progress of
- * resource loading. Each load element is given an unique id by the caller
- * and that id is used when events are raised.
- *
- * Properties:
- * - app: the main application object
- * - queue: number of elements to be loaded
- * - count: total number of elements (loading and loaded)
- * - ready: true if all requested elements were retrieved
- * - progress: [0..1] fraction of resources loaded so far
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - mozMovementX, mozMovementY: change in position from previous event
- * - mousedownEvent and mouseupEvent: last button press or release event
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - button: one of `left`, `middle`, `right`
- * - x, y: alias for mousemoveEvent.x, .y
- *
- * Events generated by this object (PLAYGROUND.Application.mouseToTouch
- * decides the variant to trigger):
- * - add: an element was added to the queue
- * - load: an element was successfully loaded
- * - error: an element could not be loaded
- * - ready: *all* elements were successfully loaded; this *is not* triggered
- *   if any element reported an error.
- */
+/* Loader */
+
 PLAYGROUND.Loader = function(app) {
 
   this.app = app;
@@ -2318,7 +1916,8 @@ PLAYGROUND.Loader = function(app) {
 
 PLAYGROUND.Loader.prototype = {
 
-  /** Start retreiving an element */
+  /* loader */
+
   add: function(id) {
 
     this.queue++;
@@ -2330,17 +1929,15 @@ PLAYGROUND.Loader.prototype = {
 
   },
 
-  /** Report an error to the loader. */
   error: function(id) {
 
     this.trigger("error", id);
 
   },
 
-  /** Report a success to the loader. */
   success: function(id) {
 
-    this.queue--;
+    this.queue--;   
 
     this.progress = 1 - this.queue / this.count;
 
@@ -2350,10 +1947,9 @@ PLAYGROUND.Loader.prototype = {
       this.reset();
       this.trigger("ready");
     }
-
+    
   },
 
-  /** Bring back the loader to ground state */
   reset: function() {
 
     this.progress = 0;
@@ -2368,34 +1964,7 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Mouse.js */
 
-/** Mouse related functionality.
- *
- * Properties:
- * - app: the main application object
- * - element: the DOM element we're handling events for
- * - preventContextMenu: don't show default menu
- * - mousemoveEvent: last mouse move event is cached in this
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - mozMovementX, mozMovementY: change in position from previous event
- * - mousedownEvent and mouseupEvent: last button press or release event
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - button: one of `left`, `middle`, `right`
- * - x, y: alias for mousemoveEvent.x, .y
- *
- * Events generated by this object (PLAYGROUND.Application.mouseToTouch
- * decides the variant to trigger):
- * - touchmove or mousemove: change in position
- * - touchstart or mousedown: action starts
- * - touchend or mouseup: action ends
- * - mousewheel: wheel event
- *
- * Reference: http://playgroundjs.com/playground-mouse
- */
- PLAYGROUND.Mouse = function(app, element) {
+PLAYGROUND.Mouse = function(app, element) {
 
   var self = this;
 
@@ -2553,7 +2122,7 @@ PLAYGROUND.Mouse.prototype = {
     }
 
     this[buttonName] = false;
-
+    
   },
 
   mousewheel: function(e) {
@@ -2634,13 +2203,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Mouse.prototype, PLAYGROUND.Events.prototype)
 
 /* file: src/Sound.js */
 
-/** Factory that creates sound related objects in application.
- *
- * The back-end is either PLAYGROUND.SoundWebAudioAPI or PLAYGROUND.SoundAudio.
- *
- * The application object will have tow (identical) objects inserted:
- * `sound` and `music`.
- */
 PLAYGROUND.Sound = function(app) {
 
   var audioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
@@ -2662,28 +2224,24 @@ PLAYGROUND.Sound = function(app) {
 
 };
 
-/** Play a sound */
 PLAYGROUND.Application.prototype.playSound = function(key, loop) {
 
   return this.sound.play(key, loop);
 
 };
 
-/** Stop a sound from playing */
 PLAYGROUND.Application.prototype.stopSound = function(sound) {
 
   this.sound.stop(sound);
 
 };
 
-/** Load the sound */
 PLAYGROUND.Application.prototype.loadSound = function() {
 
   return this.loadSounds.apply(this, arguments);
 
 };
 
-/** Load multiple sounds */
 PLAYGROUND.Application.prototype.loadSounds = function() {
 
   for (var i = 0; i < arguments.length; i++) {
@@ -2705,10 +2263,6 @@ PLAYGROUND.Application.prototype.loadSounds = function() {
 
 /* file: src/SoundWebAudioAPI.js */
 
-/** Sound back-end using Web Audio API
- *
- * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
- */
 PLAYGROUND.SoundWebAudioAPI = function(app, audioContext) {
 
   this.app = app;
@@ -3000,12 +2554,9 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
 
 /* file: src/SoundAudio.js */
 
-/** Sound back-end using HTML DOM Audio object.
- *
- */
 PLAYGROUND.SoundAudio = function(app) {
 
-  this.app = app;
+  this.app = app;  
 
   var canPlayMp3 = (new Audio).canPlayType("audio/mp3");
   var canPlayOgg = (new Audio).canPlayType('audio/ogg; codecs="vorbis"');
@@ -3107,34 +2658,6 @@ PLAYGROUND.SoundAudio.prototype = {
 
 /* file: src/Touch.js */
 
-/** Touch related functionality.
- *
- * The object keeps track of active touches using an unique id
- * provided by the browser. When a touch starts an entry is added
- * to the `touches` associative array with the key being the
- * unique identifier and the value an object with following members:
- * - x: horizontal position in pixels/scale
- * - y: vertical position in pixels/scale
- *
- * When the tracking point changes location the values are updated and
- * when the touches ends the entry is removed from the `touches` array.
- *
- * Properties:
- * - app: the main application object
- * - element: the DOM element we're handling events for
- * - touches: list of active touches
- * - x, y: last changed position across all touches
- *
- * Events generated by this object:
- * - touchmove: a touch changed its position
- * - touchstart: a touch was added
- * - touchend: a touch ended
- *
- * Event handlers receive the position (x, y), the id (identifier) and
- * original event.
- *
- * Reference: http://playgroundjs.com/playground-touch
- */
 PLAYGROUND.Touch = function(app, element) {
 
   PLAYGROUND.Events.call(this);
@@ -3262,56 +2785,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Touch.prototype, PLAYGROUND.Events.prototype)
 
 /* file: src/Tween.js */
 
-/** Animation for smooth change of states
- *
- * Properties:
- * - actions: list of things to do; each entry is an array of:
- *     - [0]: properties; an associative array where keys are the
- *       names of the properties of the `context` to change
- *       and values are the new value for that property;
- *       can also be one of following strings:
- *         - repeat: to repeat a sequence
- *         - wait: to wait some milliseconds
- *     - [1]: duration
- *     - [2]: easing
- * - index: position inside `actions` array
- * - manager: the TweenManager instance where this object is registered;
- * - context: the object associated with this instance; *
- * - looped: what to do at the end of the animation array; true wraps
- *   back to 0, false terminates the animation
- * - finished: set to true at the end of the animation if the tween is
- *   not a looped one
- * - delta: milliseconds that have passed since the start
- *   of this animation bit (updated by `step()`)
- * - prevEasing: TBD (debug?)
- * - prevDuration: TBD (debug?)
- *
- * Current action has some related properties:
- * - current: current action (an object from `actions` array);
- * - currentAction: `next()` function fills it to be consumed by `step()`
- *     - animate: use `doAnimate()` function
- *     - wait:
- * - duration:  `next()` function fills it to be consumed by `step()`
- * - easing:  `next()` function fills it to be consumed by `step()`
- * - keys: the keys of current action's properties
- *
- * An action is decomposed in following components (one entry for each
- * property that will be updated):
- * - before: current value
- * - change: the change to apply to current value
- * - types: content type:
- *     - 0: numbers
- *     - 1: colors
- *     - 2: angles
- *
- * Events:
- * - loop: a looped tween has reached the end and is being
- *   reset to first animation.
- * - finished, finish: a non-looped animation reached the end
- *   and is being removed from the manager
- *
- * Reference: http://playgroundjs.com/intro/tween
- */
 PLAYGROUND.Tween = function(manager, context) {
 
   PLAYGROUND.Events.call(this);
@@ -3335,13 +2808,6 @@ PLAYGROUND.Tween = function(manager, context) {
 
 PLAYGROUND.Tween.prototype = {
 
-  /** Add an action to the end of the list
-   *
-   * @param properties
-   * @param duration in miliseconds (optional, default is 0.5)
-   * @param easing (optional, default is 045)
-   * @returns `this` object so that calls can be chained.
-   */
   add: function(properties, duration, easing) {
 
     if (duration) this.prevDuration = duration;
@@ -3355,7 +2821,6 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Discard all other tweens associated with same context as ours. */
   discard: function() {
 
     this.manager.discard(this.context, this);
@@ -3364,12 +2829,10 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Alias for `add()` */
   to: function(properties, duration, easing) {
     return this.add(properties, duration, easing);
   },
 
-  /** Mark the instance as being a repeated tween. */
   loop: function() {
 
     this.looped = true;
@@ -3378,14 +2841,12 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Add a repeat action for specified number of times. */
   repeat: function(times) {
 
     this.actions.push(["repeat", times]);
 
   },
 
-  /** Add a wait action for specified number of miliseconds. */
   wait: function(time) {
 
     this.actions.push(["wait", time]);
@@ -3394,14 +2855,12 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Alias for `wait()`. */
   delay: function(time) {
 
     this.actions.push(["wait", time]);
 
   },
 
-  /** Remove this tween from the manager */
   stop: function() {
 
     this.manager.remove(this);
@@ -3410,7 +2869,6 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Inserts the tween into the manager if not already inside. */
   play: function() {
 
     this.manager.add(this);
@@ -3421,7 +2879,7 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Performs last step in the animation list. */
+
   end: function() {
 
     var lastAnimationIndex = 0;
@@ -3439,7 +2897,6 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** TBD */
   forward: function() {
 
     this.delta = this.duration;
@@ -3447,7 +2904,6 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** TBD */
   rewind: function() {
 
     this.delta = 0;
@@ -3455,14 +2911,6 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Perform one animation step
-   *
-   * Advances the index and, if the index reached the end of the
-   * `actions` array, either restarts it (for looped tweens) or terminates it.
-   *
-   * The function will set a string in `currentAction` indicating what it
-   * should be done next but it does not perform the action itself.
-   */
   next: function() {
 
     this.delta = 0;
@@ -3483,7 +2931,7 @@ PLAYGROUND.Tween.prototype = {
         this.trigger("finished", {
           tween: this
         });
-
+        
         this.trigger("finish", {
           tween: this
         });
@@ -3565,12 +3013,10 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** TBD */
   prev: function() {
 
   },
 
-  /** Select an action if none is current then perform required steps. */
   step: function(delta) {
 
     this.delta += delta;
@@ -3643,11 +3089,6 @@ PLAYGROUND.Tween.prototype = {
 
   },
 
-  /** Advances the nimation if enough time has passed
-   *
-   * The function is called in response to `step()`; it will advance the
-   * index to next slot in the animation if
-   */
   doWait: function(delta) {
 
     if (this.delta >= this.duration) this.next();
@@ -3658,18 +3099,6 @@ PLAYGROUND.Tween.prototype = {
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Tween.prototype, PLAYGROUND.Events.prototype);
 
-
-/** Manager for easing effects (transition between various states).
- *
- * If `app` is provided the manager becomes application's manager
- * for tween effects. The constructor inserts a `tween()` function
- * in application for simplicity.
- *
- * Properties:
- * - delta:
- * - defaultEasing:
- * - tweens: the list of active animations
- */
 PLAYGROUND.TweenManager = function(app) {
 
   this.tweens = [];
@@ -3689,7 +3118,6 @@ PLAYGROUND.TweenManager.prototype = {
 
   defaultEasing: "128",
 
-  /** TBD */
   circ: function(value) {
 
     return {
@@ -3699,14 +3127,6 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-  /** Marks the tween for removing.
-   *
-   * The tween is actually removed in `step()` function.
-   *
-   * @param object the object associated with the tween
-   * @param safe if the tween located using `object` is `safe` then
-   *        it is not removed.
-   */
   discard: function(object, safe) {
 
     for (var i = 0; i < this.tweens.length; i++) {
@@ -3719,14 +3139,6 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-  /** Create a new tween.
-   *
-   * The tween is also added to internal list (you don't have to call
-   * `add()` yourself).
-   *
-   * @param context the object to associate with the new tween
-   * @returns a new PLAYGROUND.Tween object
-   */
   tween: function(context) {
 
     var tween = new PLAYGROUND.Tween(this, context);
@@ -3737,12 +3149,6 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-  /** Called each frame to update logic.
-   *
-   * The function updates all active tweens and removes the ones
-   * tagged as such.
-   *
-   */
   step: function(delta) {
 
     this.delta += delta;
@@ -3759,7 +3165,6 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-  /** Add a tween to internal list. */
   add: function(tween) {
 
     tween._remove = false;
@@ -3770,7 +3175,6 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-   /** Marks a tween for removing during next step(). */
   remove: function(tween) {
 
     tween._remove = true;
@@ -3779,28 +3183,8 @@ PLAYGROUND.TweenManager.prototype = {
 
 };
 
-
 /* file: src/Atlases.js */
 
-/** Extend Application object with a function to load any number of atlases
- *
- * Each atlas consists of a pair of image file and a json file
- *
- * The application is extended with an `atlases` associative array.
- * The keys are file keys generated by `getAssetEntry()` and
- * values have following structure:
- * - image: the image object
- * - frames: array of objects:
- *     - region: [x, y, w, h],
- *     - offset: [x, y],
- *     - width
- *     - height
- *
- * Default renderer can draw such an atlas using
- * `drawAtlasFrame(atlas, frame, x, y)` function.
- *
- * Reference: http://playgroundjs.com/playground-atlases
- */
 PLAYGROUND.Application.prototype.loadAtlases = function() {
 
   for (var i = 0; i < arguments.length; i++) {
@@ -3824,14 +3208,12 @@ PLAYGROUND.Application.prototype.loadAtlases = function() {
 
 };
 
-/** Alias for `loadAtlases()`. */
 PLAYGROUND.Application.prototype.loadAtlas = function() {
 
   return this.loadAtlases.apply(this, arguments);
 
 };
 
-/** Load a single atlas (internal). */
 PLAYGROUND.Application.prototype._loadAtlas = function(filename) {
 
   var entry = this.getAssetEntry(filename, "atlases", "png");
@@ -3888,9 +3270,6 @@ PLAYGROUND.Application.prototype._loadAtlas = function(filename) {
 
 /* file: src/Fonts.js */
 
-/** Load a font.
- * @deprecated Use `Application.loadFont()` instead.
- */
 PLAYGROUND.Application.prototype.loadFontOld = function(name) {
 
   var styleNode = document.createElement("style");
@@ -3949,22 +3328,15 @@ PLAYGROUND.Application.prototype.loadFontOld = function(name) {
 
 /* file: src/DefaultState.js */
 
-/** State used while initializing the application */
 PLAYGROUND.DefaultState = {
 
 };
 
-
 /* file: src/LoadingScreen.js */
 
-/** Basic loading screen using DOM
- *
- * Loading screen is a state like any other except that
- * it is loaded from `PLAYGROUND.LoadingScreen`. To override
- * simply define a `PLAYGROUND.LoadingScreen` in your code after
- * playground.js was imported.
- */
 PLAYGROUND.LoadingScreen = {
+
+  /* basic loading screen using DOM */
 
   logoRaw: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAAASBAMAAADPiN0xAAAAGFBMVEUAAQAtLixHSUdnaGaJioimqKXMzsv7/fr5shgVAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98EAwkeA4oQWJ4AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAB9klEQVQ4y72UvW+rMBDAz+FrpVKrrFmesmapWNOlrKjSe1kZ+uoVAvj+/frujG1SaJcqJwU7voOf7xMQzQmsIDi5NPTMsLRntH3U+F6SAZo3NlCvcgBFJz8o+vkDiE63lI95Y/UmpinsZWkgJWJiDbAVQ16htptxSTNloIlugwaw001Ey3ASF3so6L1qLNXzQS5S0UGKL/CI5wWNriE0UH9Yty37LqIVg+wsqu7Ix0MwVBSF/dU+jv2SNnma021LEdPqVnMeU3xAu0kXcSGjmq7Ox4E2Wn88LZ2+EFj3avjixzai6VPVyuYveZLHF2XfdDnvAq27DIHGuq+0DJFsE30OtB1KqOwd8Dr7PcM4b+jfj2g5lp4WyntBK66qua3JzEA+uXJpwH/NlVuzRVPY/kTLB2mjuN+KwdZ8FOy8j2gDbEUSqumnSCY4lf4ibq3IhVM4ycZQRnv+zFqVdJQVn6BxvUqebGpuaNo3sZxwBzjajiMZOoBiwyVF+kCr+nUaJOaGpnAeRPPJZTr4FqmHRXcneEo4DqQ/ftfdnLeDrUAME8xWKPeKCwW6YkEpXfs3p1EWJhdcUAYP0TI/uYaV8cgjwBovaeyWwji2T9rTFIdS/cP/MnkTLRUWxgNNZVin7bT5fqT9miDcUVJzR1gRpfIONMmulU+5Qqr6zXAUqAAAAABJRU5ErkJggg==",
 
@@ -4056,6 +3428,2540 @@ PLAYGROUND.LoadingScreen = {
 
     this.progressBar.style.width = (this.current * 100 | 0) + "%";
 
+
+  }
+
+};
+
+/* file: src/lib/CanvasQuery.js */
+
+/*     
+
+  Canvas Query r5
+  
+  http://canvasquery.com
+  
+  (c) 2012-2015 http://rezoner.net
+  
+  Canvas Query may be freely distributed under the MIT license.
+
+  ! fixed: leaking arguments in fastApply bailing out optimization 
+  + cacheText
+  + compare
+  + checkerboard
+
+*/
+
+
+(function() {
+
+  var COCOONJS = false;
+
+  var Canvas = window.HTMLCanvasElement;
+  var Image = window.HTMLImageElement;
+  var COCOONJS = navigator.isCocoonJS;
+
+  var cq = function(selector) {
+    if (arguments.length === 0) {
+      var canvas = cq.createCanvas(window.innerWidth, window.innerHeight);
+      window.addEventListener("resize", function() {
+        // canvas.width = window.innerWidth;
+        // canvas.height = window.innerHeight;
+      });
+    } else if (typeof selector === "string") {
+      var canvas = document.querySelector(selector);
+    } else if (typeof selector === "number") {
+      var canvas = cq.createCanvas(arguments[0], arguments[1]);
+    } else if (selector instanceof Image) {
+      var canvas = cq.createCanvas(selector);
+    } else if (selector instanceof cq.Layer) {
+      return selector;
+    } else {
+      var canvas = selector;
+    }
+
+    return new cq.Layer(canvas);
+  };
+
+  cq.lineSpacing = 1.0;
+  cq.defaultFont = "Arial";
+
+  cq.palettes = {
+
+    db16: ["#140c1c", "#442434", "#30346d", "#4e4a4e", "#854c30", "#346524", "#d04648", "#757161", "#597dce", "#d27d2c", "#8595a1", "#6daa2c", "#d2aa99", "#6dc2ca", "#dad45e", "#deeed6"],
+    db32: ["#000000", "#222034", "#45283c", "#663931", "#8f563b", "#df7126", "#d9a066", "#eec39a", "#fbf236", "#99e550", "#6abe30", "#37946e", "#4b692f", "#524b24", "#323c39", "#3f3f74", "#306082", "#5b6ee1", "#639bff", "#5fcde4", "#cbdbfc", "#ffffff", "#9badb7", "#847e87", "#696a6a", "#595652", "#76428a", "#ac3232", "#d95763", "#d77bba", "#8f974a", "#8a6f30"],
+    c64: ["#000000", "#6a5400", "#68ae5c", "#8a8a8a", "#adadad", "#636363", "#c37b75", "#c9d684", "#ffffff", "#984b43", "#a3e599", "#79c1c8", "#9b6739", "#9b51a5", "#52429d", "#8a7bce"],
+    gameboy: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"],
+    sega: ["#000000", "#555500", "#005500", "#555555", "#55aa00", "#550000", "#aaffaa", "#aaaaaa", "#ff5555", "#005555", "#550055", "#aaaa55", "#ffffaa", "#aa5555", "#ffaa55", "#ffff55", "#ffffff", "#ffaaaa", "#000055", "#55aaaa", "#aa0000", "#ff5500", "#ffaa00", "#aa5500", "#ff0000", "#ffaaff", "#aa55aa", "#aaaa00", "#aaff00", "#aaaaff", "#5555aa", "#aaffff"],
+    cga: ["#000000", "#ff5555", "#55ff55", "#ffff55"],
+    nes: ["#7C7C7C", "#0000FC", "#0000BC", "#4428BC", "#940084", "#A80020", "#A81000", "#881400", "#503000", "#007800", "#006800", "#005800", "#004058", "#000000", "#000000", "#000000", "#BCBCBC", "#0078F8", "#0058F8", "#6844FC", "#D800CC", "#E40058", "#F83800", "#E45C10", "#AC7C00", "#00B800", "#00A800", "#00A844", "#008888", "#000000", "#000000", "#000000", "#F8F8F8", "#3CBCFC", "#6888FC", "#9878F8", "#F878F8", "#F85898", "#F87858", "#FCA044", "#F8B800", "#B8F818", "#58D854", "#58F898", "#00E8D8", "#787878", "#000000", "#000000", "#FCFCFC", "#A4E4FC", "#B8B8F8", "#D8B8F8", "#F8B8F8", "#F8A4C0", "#F0D0B0", "#FCE0A8", "#F8D878", "#D8F878", "#B8F8B8", "#B8F8D8", "#00FCFC", "#F8D8F8", "#000000"],
+
+  };
+
+  cq.cocoon = function(selector) {
+    if (arguments.length === 0) {
+      var canvas = cq.createCocoonCanvas(window.innerWidth, window.innerHeight);
+      window.addEventListener("resize", function() {});
+    } else if (typeof selector === "string") {
+      var canvas = document.querySelector(selector);
+    } else if (typeof selector === "number") {
+      var canvas = cq.createCocoonCanvas(arguments[0], arguments[1]);
+    } else if (selector instanceof Image) {
+      var canvas = cq.createCocoonCanvas(selector);
+    } else if (selector instanceof cq.Layer) {
+      return selector;
+    } else {
+      var canvas = selector;
+    }
+
+    return new cq.Layer(canvas);
+  }
+
+
+  cq.extend = function() {
+    for (var i = 1; i < arguments.length; i++) {
+      for (var j in arguments[i]) {
+        arguments[0][j] = arguments[i][j];
+      }
+    }
+
+    return arguments[0];
+  };
+
+  cq.augment = function() {
+    for (var i = 1; i < arguments.length; i++) {
+      _.extend(arguments[0], arguments[i]);
+      arguments[i](arguments[0]);
+    }
+  };
+
+  cq.distance = function(x1, y1, x2, y2) {
+    if (arguments.length > 2) {
+      var dx = x1 - x2;
+      var dy = y1 - y2;
+
+      return Math.sqrt(dx * dx + dy * dy);
+    } else {
+      return Math.abs(x1 - y1);
+    }
+  };
+
+  /* fast.js */
+
+  cq.fastApply = function(subject, thisContext, args) {
+
+    switch (args.length) {
+      case 0:
+        return subject.call(thisContext);
+      case 1:
+        return subject.call(thisContext, args[0]);
+      case 2:
+        return subject.call(thisContext, args[0], args[1]);
+      case 3:
+        return subject.call(thisContext, args[0], args[1], args[2]);
+      case 4:
+        return subject.call(thisContext, args[0], args[1], args[2], args[3]);
+      case 5:
+        return subject.call(thisContext, args[0], args[1], args[2], args[3], args[4]);
+      case 6:
+        return subject.call(thisContext, args[0], args[1], args[2], args[3], args[4], args[5]);
+      case 7:
+        return subject.call(thisContext, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+      case 8:
+        return subject.call(thisContext, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+      case 9:
+        return subject.call(thisContext, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
+      default:
+        return subject.apply(thisContext, args);
+    }
+
+  };
+
+  cq.extend(cq, {
+
+    smoothing: true,
+
+    blend: function(below, above, mode, mix) {
+
+      if (typeof mix === "undefined") mix = 1;
+
+      var below = cq(below);
+      var mask = below.clone();
+      var above = cq(above);
+
+      below.save();
+      below.globalAlpha(mix);
+      below.globalCompositeOperation(mode);
+      below.drawImage(above.canvas, 0, 0);
+      below.restore();
+
+      mask.save();
+      mask.globalCompositeOperation("source-in");
+      mask.drawImage(below.canvas, 0, 0);
+      mask.restore();
+
+      return mask;
+    },
+
+    matchColor: function(color, palette) {
+      var rgbPalette = [];
+
+      for (var i = 0; i < palette.length; i++) {
+        rgbPalette.push(cq.color(palette[i]));
+      }
+
+      var imgData = cq.color(color);
+
+      var difList = [];
+      for (var j = 0; j < rgbPalette.length; j++) {
+        var rgbVal = rgbPalette[j];
+        var rDif = Math.abs(imgData[0] - rgbVal[0]),
+          gDif = Math.abs(imgData[1] - rgbVal[1]),
+          bDif = Math.abs(imgData[2] - rgbVal[2]);
+        difList.push(rDif + gDif + bDif);
+      }
+
+      var closestMatch = 0;
+      for (var j = 0; j < palette.length; j++) {
+        if (difList[j] < difList[closestMatch]) {
+          closestMatch = j;
+        }
+      }
+
+      return palette[closestMatch];
+    },
+
+    temp: function(width, height) {
+      if (!this.tempLayer) {
+        this.tempLayer = cq(1, 1);
+      }
+
+      if (width instanceof Image) {
+        this.tempLayer.width = width.width;
+        this.tempLayer.height = width.height;
+        this.tempLayer.context.drawImage(width, 0, 0);
+      } else if (width instanceof Canvas) {
+        this.tempLayer.width = width.width;
+        this.tempLayer.height = width.height;
+        this.tempLayer.context.drawImage(width, 0, 0);
+      } else if (width instanceof CanvasQuery.Layer) {
+        this.tempLayer.width = width.width;
+        this.tempLayer.height = width.height;
+        this.tempLayer.context.drawImage(width.canvas, 0, 0);
+      } else {
+        this.tempLayer.width = width;
+        this.tempLayer.height = height;
+      }
+
+      return this.tempLayer;
+    },
+
+    wrapValue: function(value, min, max) {
+      if (value < min) return max + (value % max);
+      if (value >= max) return value % max;
+      return value;
+    },
+
+    limitValue: function(value, min, max) {
+      return value < min ? min : value > max ? max : value;
+    },
+
+    mix: function(a, b, amount) {
+      return a + (b - a) * amount;
+    },
+
+    hexToRgb: function(hex) {
+      if (hex.length === 7) return ['0x' + hex[1] + hex[2] | 0, '0x' + hex[3] + hex[4] | 0, '0x' + hex[5] + hex[6] | 0];
+      else return ['0x' + hex[1] + hex[1] | 0, '0x' + hex[2] + hex[2] | 0, '0x' + hex[3] + hex[3] | 0];
+    },
+
+    rgbToHex: function(r, g, b) {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1, 7);
+    },
+
+    extractCanvas: function(o) {
+
+      if (o.canvas) return o.canvas;
+      else return o;
+
+    },
+
+    compare: function(a, b) {
+
+      a = this.extractCanvas(a);
+      b = this.extractCanvas(b);
+
+      a = a.getContext("2d").getImageData(0, 0, a.width, a.height).data;
+      b = b.getContext("2d").getImageData(0, 0, b.width, b.height).data;
+
+      if (a.length !== b.length) return false;
+
+      for (var i = 0; i < a.length; i++) {
+
+        if (a[i] !== b[i]) return false;
+
+      }
+
+      return true;
+
+    },
+
+    /* author: http://mjijackson.com/ */
+
+    rgbToHsl: function(r, g, b) {
+
+      if (r instanceof Array) {
+        b = r[2];
+        g = r[1];
+        r = r[0];
+      }
+
+      r /= 255, g /= 255, b /= 255;
+      var max = Math.max(r, g, b),
+        min = Math.min(r, g, b);
+      var h, s, l = (max + min) / 2;
+
+      if (max == min) {
+        h = s = 0; // achromatic
+      } else {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r:
+            h = (g - b) / d + (g < b ? 6 : 0);
+            break;
+          case g:
+            h = (b - r) / d + 2;
+            break;
+          case b:
+            h = (r - g) / d + 4;
+            break;
+        }
+        h /= 6;
+      }
+
+      return [h, s, l];
+    },
+
+    /* author: http://mjijackson.com/ */
+
+    hue2rgb: function(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    },
+
+    hslToRgb: function(h, s, l) {
+      var r, g, b;
+
+      if (s == 0) {
+        r = g = b = l; // achromatic
+      } else {
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = this.hue2rgb(p, q, h + 1 / 3);
+        g = this.hue2rgb(p, q, h);
+        b = this.hue2rgb(p, q, h - 1 / 3);
+      }
+
+      return [r * 255 | 0, g * 255 | 0, b * 255 | 0];
+    },
+
+    rgbToHsv: function(r, g, b) {
+      if (r instanceof Array) {
+        b = r[2];
+        g = r[1];
+        r = r[0];
+      }
+
+      r = r / 255, g = g / 255, b = b / 255;
+      var max = Math.max(r, g, b),
+        min = Math.min(r, g, b);
+      var h, s, v = max;
+
+      var d = max - min;
+      s = max == 0 ? 0 : d / max;
+
+      if (max == min) {
+        h = 0; // achromatic
+      } else {
+        switch (max) {
+          case r:
+            h = (g - b) / d + (g < b ? 6 : 0);
+            break;
+          case g:
+            h = (b - r) / d + 2;
+            break;
+          case b:
+            h = (r - g) / d + 4;
+            break;
+        }
+        h /= 6;
+      }
+
+      return [h, s, v];
+    },
+
+    hsvToRgb: function(h, s, v) {
+      var r, g, b;
+
+      var i = Math.floor(h * 6);
+      var f = h * 6 - i;
+      var p = v * (1 - s);
+      var q = v * (1 - f * s);
+      var t = v * (1 - (1 - f) * s);
+
+      switch (i % 6) {
+        case 0:
+          r = v, g = t, b = p;
+          break;
+        case 1:
+          r = q, g = v, b = p;
+          break;
+        case 2:
+          r = p, g = v, b = t;
+          break;
+        case 3:
+          r = p, g = q, b = v;
+          break;
+        case 4:
+          r = t, g = p, b = v;
+          break;
+        case 5:
+          r = v, g = p, b = q;
+          break;
+      }
+
+      return [r * 255, g * 255, b * 255];
+    },
+
+    color: function() {
+      var result = new cq.Color();
+      result.parse(arguments[0], arguments[1]);
+      return result;
+    },
+
+    poolArray: [],
+
+    pool: function() {
+
+      if (!this.poolArray.length) {
+        for (var i = 0; i < 100; i++) {
+          this.poolArray.push(this.createCanvas(1, 1));
+        }
+      }
+
+      return this.poolArray.pop();
+
+    },
+
+    reuse: function(object) {
+
+      return this.recycle(object);
+
+    },
+
+    recycle: function(object) {
+
+      if (object instanceof CanvasQuery.Layer) {
+
+        this.poolArray.push(object.canvas);
+
+      } else {
+
+        this.poolArray.push(object);
+
+      }
+
+    },
+
+    createCanvas: function(width, height) {
+      var result = document.createElement("canvas");
+
+      if (arguments[0] instanceof Image || arguments[0] instanceof Canvas) {
+        var image = arguments[0];
+        result.width = image.width;
+        result.height = image.height;
+        result.getContext("2d").drawImage(image, 0, 0);
+      } else {
+        result.width = width;
+        result.height = height;
+      }
+
+
+      return result;
+    },
+
+    createCocoonCanvas: function(width, height) {
+      var result = document.createElement("screencanvas");
+
+      if (arguments[0] instanceof Image) {
+        var image = arguments[0];
+        result.width = image.width;
+        result.height = image.height;
+        result.getContext("2d").drawImage(image, 0, 0);
+      } else {
+        result.width = width;
+        result.height = height;
+      }
+
+      return result;
+    },
+
+    createImageData: function(width, height) {
+      return cq.createCanvas(width, height).getContext("2d").createImageData(width, height);
+    }
+
+  });
+
+  cq.Layer = function(canvas) {
+    this.context = canvas.getContext("2d");
+    this.canvas = canvas;
+    this.alignX = 0;
+    this.alignY = 0;
+    this.aligned = false;
+    this.update();
+  };
+
+  cq.Layer.prototype = {
+
+    constructor: cq.Layer,
+
+    update: function() {
+
+      var smoothing = cq.smoothing;
+
+      if (typeof this.smoothing !== "undefined") smoothing = this.smoothing;
+
+      this.context.mozImageSmoothingEnabled = smoothing;
+      this.context.msImageSmoothingEnabled = smoothing;
+      this.context.imageSmoothingEnabled = smoothing;
+
+      if (COCOONJS) Cocoon.Utils.setAntialias(smoothing);
+    },
+
+    appendTo: function(selector) {
+      if (typeof selector === "object") {
+        var element = selector;
+      } else {
+        var element = document.querySelector(selector);
+      }
+
+      element.appendChild(this.canvas);
+
+      return this;
+    },
+
+    a: function(a) {
+      if (arguments.length) {
+        this.previousAlpha = this.globalAlpha();
+        return this.globalAlpha(a);
+      } else
+        return this.globalAlpha();
+    },
+
+    ra: function() {
+      return this.a(this.previousAlpha);
+    },
+    /*
+        drawImage: function() {
+
+          if (!this.alignX && !this.alignY) {
+            this.context.call
+          }
+
+            return this;
+
+
+        },
+
+        restore: function() {
+          this.context.restore();
+          this.alignX = 0;
+          this.alignY = 0;
+        },
+        */
+
+    realign: function() {
+
+      this.alignX = this.prevAlignX;
+      this.alignY = this.prevAlignY;
+
+      return this;
+
+    },
+
+    align: function(x, y) {
+
+      if (typeof y === "undefined") y = x;
+
+      this.alignX = x;
+      this.alignY = y;
+
+      return this;
+    },
+
+
+    /* save translate align rotate scale */
+
+    stars: function(x, y, alignX, alignY, rotation, scaleX, scaleY) {
+
+      if (typeof alignX === "undefined") alignX = 0.5;
+      if (typeof alignY === "undefined") alignY = 0.5;
+      if (typeof rotation === "undefined") rotation = 0;
+      if (typeof scaleX === "undefined") scaleX = 1.0;
+      if (typeof scaleY === "undefined") scaleY = scaleX;
+
+      this.save();
+      this.translate(x, y);
+      this.align(alignX, alignY);
+      this.rotate(rotation);
+      this.scale(scaleX, scaleY);
+
+      return this;
+    },
+
+    tars: function(x, y, alignX, alignY, rotation, scaleX, scaleY) {
+
+      if (typeof alignX === "undefined") alignX = 0.5;
+      if (typeof alignY === "undefined") alignY = 0.5;
+      if (typeof rotation === "undefined") rotation = 0;
+      if (typeof scaleX === "undefined") scaleX = 1.0;
+      if (typeof scaleY === "undefined") scaleY = scaleX;
+
+      this.translate(x, y);
+      this.align(alignX, alignY);
+      this.rotate(rotation);
+      this.scale(scaleX, scaleY);
+
+      return this;
+
+    },
+
+    fillRect: function() {
+
+      if (this.alignX || this.alignY) {
+        this.context.fillRect(arguments[0] - arguments[2] * this.alignX | 0, arguments[1] - arguments[3] * this.alignY | 0, arguments[2], arguments[3]);
+      } else {
+        this.context.fillRect(arguments[0], arguments[1], arguments[2], arguments[3]);
+      }
+
+      // cq.fastApply(this.context.fillRect, this.context, arguments);
+
+      return this;
+
+    },
+
+    strokeRect: function() {
+
+      if (this.alignX || this.alignY) {
+        this.context.strokeRect(arguments[0] - arguments[2] * this.alignX | 0, arguments[1] - arguments[3] * this.alignY | 0, arguments[2], arguments[3]);
+      } else {
+        this.context.strokeRect(arguments[0], arguments[1], arguments[2], arguments[3]);
+      }
+
+      // cq.fastApply(this.context.strokeRect, this.context, arguments);
+
+      return this;
+
+    },
+
+    drawImage: function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+
+      if (this.alignX || this.alignY) {
+
+        if (sWidth == null) {
+          sx -= image.width * this.alignX | 0;
+          sy -= image.height * this.alignY | 0;
+        } else {
+          dx -= dWidth * this.alignX | 0;
+          dy -= dHeight * this.alignY | 0;
+        }
+
+      }
+
+      if (sWidth == null) {
+
+        this.context.drawImage(image, sx, sy);
+
+      } else if (dx == null) {
+
+        this.context.drawImage(image, sx, sy, sWidth, sHeight);
+
+      } else {
+
+        this.context.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+
+      }
+
+      // cq.fastApply(this.context.drawImage, this.context, arguments);
+
+      return this;
+
+    },
+
+    save: function() {
+
+      this.prevAlignX = this.alignX;
+      this.prevAlignY = this.alignY;
+
+      this.context.save();
+
+      return this;
+
+    },
+
+    restore: function() {
+
+      this.realign();
+      this.context.restore();
+
+      return this;
+
+    },
+
+    drawTile: function(image, x, y, frameX, frameY, frameWidth, frameHeight, frames, frame) {
+
+    },
+
+    checkerboard: function(x, y, w, h, grid, colorA, colorB) {
+
+      var tx = w / grid | 0;
+      var ty = h / grid | 0;
+
+      this.save();
+      this.rect(x, y, w, h).clip();
+
+      for (var i = 0; i <= tx; i++) {
+        for (var j = 0; j <= ty; j++) {
+
+
+          if (j % 2) var color = i % 2 ? colorA : colorB;
+          else var color = i % 2 ? colorB : colorA;
+
+          this.fillStyle(color);
+          this.fillRect(x + i * grid, y + j * grid, grid, grid);
+
+        }
+      }
+
+      this.restore();
+
+    },
+
+    drawAtlasFrame: function(atlas, frame, x, y) {
+
+      var frame = atlas.frames[frame];
+
+      this.drawRegion(
+        atlas.image,
+        frame.region,
+        x - frame.width * this.alignX + frame.offset[0] + frame.region[2] * this.alignX,
+        y - frame.height * this.alignY + frame.offset[1] + frame.region[3] * this.alignY
+      );
+
+      return this;
+
+    },
+
+
+    imageFill: function(image, width, height) {
+
+      var scale = Math.max(width / image.width, height / image.height);
+
+      this.save();
+      this.scale(scale, scale);
+      this.drawImage(image, 0, 0);
+      this.restore();
+
+    },
+
+    drawRegion: function(image, region, x, y, scale) {
+      scale = scale || 1;
+
+      return this.drawImage(
+        image, region[0], region[1], region[2], region[3],
+        x | 0, y | 0, region[2] * scale | 0, region[3] * scale | 0
+      );
+    },
+
+    cache: function() {
+      return this.clone().canvas;
+
+      /* FFS .... image.src is no longer synchronous when assigning dataURL */
+
+      var image = new Image;
+      image.src = this.canvas.toDataURL();
+      return image;
+    },
+
+    blendOn: function(what, mode, mix) {
+      cq.blend(what, this, mode, mix);
+
+      return this;
+    },
+
+    posterize: function(pc, inc) {
+      pc = pc || 32;
+      inc = inc || 4;
+      var imgdata = this.getImageData(0, 0, this.width, this.height);
+      var data = imgdata.data;
+
+      for (var i = 0; i < data.length; i += inc) {
+        data[i] -= data[i] % pc; // set value to nearest of 8 possibilities
+        data[i + 1] -= data[i + 1] % pc; // set value to nearest of 8 possibilities
+        data[i + 2] -= data[i + 2] % pc; // set value to nearest of 8 possibilities
+      }
+
+      this.putImageData(imgdata, 0, 0); // put image data to canvas
+
+      return this;
+    },
+
+
+    bw: function(pc) {
+      pc = 128;
+      var imgdata = this.getImageData(0, 0, this.width, this.height);
+      var data = imgdata.data;
+      // 8-bit: rrr ggg bb
+      for (var i = 0; i < data.length; i += 4) {
+        var v = ((data[i] + data[i + 1] + data[i + 2]) / 3);
+
+        v = (v / 128 | 0) * 128;
+        //data[i] = v; // set value to nearest of 8 possibilities
+        //data[i + 1] = v; // set value to nearest of 8 possibilities
+        data[i + 2] = (v / 255) * data[i]; // set value to nearest of 8 possibilities
+
+      }
+
+      this.putImageData(imgdata, 0, 0); // put image data to canvas
+    },
+
+    blend: function(what, mode, mix) {
+      if (typeof what === "string") {
+        var color = what;
+        what = cq(this.canvas.width, this.canvas.height);
+        what.fillStyle(color).fillRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+
+      var result = cq.blend(this, what, mode, mix);
+
+      this.canvas = result.canvas;
+      this.context = result.context;
+
+      return this;
+    },
+
+    textWithBackground: function(text, x, y, background, padding) {
+      var w = this.measureText(text).width;
+      var h = this.fontHeight() * 0.8;
+      var f = this.fillStyle();
+      var padding = padding || 2;
+
+      this.fillStyle(background).fillRect(x - w / 2 - padding * 2, y - padding, w + padding * 4, h + padding * 2)
+      this.fillStyle(f).textAlign("center").textBaseline("top").fillText(text, x, y);
+
+      return this;
+    },
+
+    fillCircle: function(x, y, r) {
+      this.context.beginPath();
+      this.context.arc(x, y, r, 0, Math.PI * 2);
+      this.context.fill();
+      return this;
+    },
+
+    strokeCircle: function(x, y, r) {
+      this.context.beginPath();
+      this.context.arc(x, y, r, 0, Math.PI * 2);
+      this.context.stroke();
+      return this;
+    },
+
+    circle: function(x, y, r) {
+      this.context.beginPath();
+      this.context.arc(x, y, r, 0, Math.PI * 2);
+      return this;
+    },
+
+    crop: function(x, y, w, h) {
+
+      if (arguments.length === 1) {
+
+        var y = arguments[0][1];
+        var w = arguments[0][2];
+        var h = arguments[0][3];
+        var x = arguments[0][0];
+      }
+
+      var canvas = cq.createCanvas(w, h);
+      var context = canvas.getContext("2d");
+
+      context.drawImage(this.canvas, x, y, w, h, 0, 0, w, h);
+      this.canvas.width = w;
+      this.canvas.height = h;
+      this.clear();
+      this.context.drawImage(canvas, 0, 0);
+
+      return this;
+    },
+
+    set: function(properties) {
+      cq.extend(this.context, properties);
+    },
+
+    resize: function(width, height) {
+      var w = width,
+        h = height;
+
+      if (arguments.length === 1) {
+
+        w = arguments[0] * this.canvas.width | 0;
+        h = arguments[0] * this.canvas.height | 0;
+
+      } else {
+
+        if (height === false) {
+
+          if (this.canvas.width > width) {
+            h = this.canvas.height * (width / this.canvas.width) | 0;
+            w = width;
+          } else {
+            w = this.canvas.width;
+            h = this.canvas.height;
+          }
+
+        } else if (width === false) {
+
+          if (this.canvas.width > width) {
+            w = this.canvas.width * (height / this.canvas.height) | 0;
+            h = height;
+          } else {
+            w = this.canvas.width;
+            h = this.canvas.height;
+          }
+
+        }
+
+      }
+
+      var cqresized = cq(w, h).drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height, 0, 0, w, h);
+
+      this.canvas = cqresized.canvas;
+      this.context = cqresized.context;
+
+      return this;
+    },
+
+    imageLine: function(image, region, x, y, ex, ey, scale) {
+      if (!region) region = [0, 0, image.width, image.height];
+
+      var distance = cq.distance(x, y, ex, ey);
+      var count = distance / region[3] + 0.5 | 0;
+      var angle = Math.atan2(ey - y, ex - x) + Math.PI / 2;
+
+      this.save();
+
+      this.translate(x, y);
+      this.rotate(angle);
+
+      if (scale) this.scale(scale, 1.0);
+
+      for (var i = 0; i <= count; i++) {
+        this.drawRegion(image, region, -region[2] / 2 | 0, -region[3] * (i + 1));
+      }
+
+      this.restore();
+
+      return this;
+    },
+
+    trim: function(color, changes) {
+      var transparent;
+
+      if (color) {
+        color = cq.color(color).toArray();
+        transparent = !color[3];
+      } else transparent = true;
+
+      var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var sourcePixels = sourceData.data;
+
+      var bound = [this.canvas.width, this.canvas.height, 0, 0];
+
+      var width = this.canvas.width;
+      var height = this.canvas.height;
+
+      for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
+        if (transparent) {
+          if (!sourcePixels[i + 3]) continue;
+        } else if (sourcePixels[i + 0] === color[0] && sourcePixels[i + 1] === color[1] && sourcePixels[i + 2] === color[2]) continue;
+
+        var x = (i / 4 | 0) % this.canvas.width | 0;
+        var y = (i / 4 | 0) / this.canvas.width | 0;
+
+        if (x < bound[0]) bound[0] = x;
+        if (x > bound[2]) bound[2] = x;
+
+        if (y < bound[1]) bound[1] = y;
+        if (y > bound[3]) bound[3] = y;
+      }
+
+
+      if (bound[2] === 0 && bound[3] === 0) {} else {
+        if (changes) {
+          changes.left = bound[0];
+          changes.top = bound[1];
+
+          changes.bottom = height - bound[3];
+          changes.right = width - bound[2] - bound[0];
+
+          changes.width = bound[2] - bound[0];
+          changes.height = bound[3] - bound[1];
+        }
+
+        this.crop(bound[0], bound[1], bound[2] - bound[0] + 1, bound[3] - bound[1] + 1);
+      }
+
+      return this;
+    },
+
+    matchPalette: function(palette) {
+
+      var imgData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+
+      var rgbPalette = [];
+
+      for (var i = 0; i < palette.length; i++) {
+
+        rgbPalette.push(cq.color(palette[i]));
+
+      }
+
+      for (var i = 0; i < imgData.data.length; i += 4) {
+
+        var difList = [];
+
+        if (!imgData.data[i + 3]) continue;
+
+        for (var j = 0; j < rgbPalette.length; j++) {
+          var rgbVal = rgbPalette[j];
+          var rDif = Math.abs(imgData.data[i] - rgbVal[0]),
+            gDif = Math.abs(imgData.data[i + 1] - rgbVal[1]),
+            bDif = Math.abs(imgData.data[i + 2] - rgbVal[2]);
+          difList.push(rDif + gDif + bDif);
+        }
+
+        var closestMatch = 0;
+
+        for (var j = 0; j < palette.length; j++) {
+          if (difList[j] < difList[closestMatch]) {
+            closestMatch = j;
+          }
+        }
+
+        var paletteRgb = cq.hexToRgb(palette[closestMatch]);
+        imgData.data[i] = paletteRgb[0];
+        imgData.data[i + 1] = paletteRgb[1];
+        imgData.data[i + 2] = paletteRgb[2];
+
+        /* dithering */
+
+        //imgData.data[i + 3] = (255 * Math.random() < imgData.data[i + 3]) ? 255 : 0;
+
+        //imgData.data[i + 3] = imgData.data[i + 3] > 128 ? 255 : 0;
+        /*
+        if (i % 3 === 0) {
+          imgData.data[i] -= cq.limitValue(imgData.data[i] - 50, 0, 255);
+          imgData.data[i + 1] -= cq.limitValue(imgData.data[i + 1] - 50, 0, 255);
+          imgData.data[i + 2] -= cq.limitValue(imgData.data[i + 2] - 50, 0, 255);
+        }
+        */
+
+      }
+
+      this.context.putImageData(imgData, 0, 0);
+
+      return this;
+
+    },
+
+    getPalette: function() {
+      var palette = [];
+      var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var sourcePixels = sourceData.data;
+
+      for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
+        if (sourcePixels[i + 3]) {
+          var hex = cq.rgbToHex(sourcePixels[i + 0], sourcePixels[i + 1], sourcePixels[i + 2]);
+          if (palette.indexOf(hex) === -1) palette.push(hex);
+        }
+      }
+
+      return palette;
+    },
+
+    mapPalette: function() {
+
+    },
+
+
+    polygon: function(array, x, y) {
+
+      this.beginPath();
+
+      this.moveTo(array[0][0] + x, array[0][1] + y);
+
+      for (var i = 1; i < array.length; i++) {
+        this.lineTo(array[i][0] + x, array[i][1] + y);
+      }
+
+      this.closePath();
+
+      return this;
+    },
+
+    fillPolygon: function(polygon) {
+      this.beginPath();
+      this.polygon(polygon);
+      this.fill();
+    },
+
+    strokePolygon: function(polygon) {
+      this.beginPath();
+      this.polygon(polygon);
+      this.stroke();
+    },
+
+    colorToMask: function(color, inverted) {
+      color = cq.color(color).toArray();
+      var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var sourcePixels = sourceData.data;
+
+      var mask = [];
+
+      for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
+        if (sourcePixels[i + 3] > 0) mask.push(inverted ? false : true);
+        else mask.push(inverted ? true : false);
+      }
+
+      return mask;
+    },
+
+    grayscaleToMask: function() {
+
+      var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var sourcePixels = sourceData.data;
+
+      var mask = [];
+
+      for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
+        mask.push(((sourcePixels[i + 0] + sourcePixels[i + 1] + sourcePixels[i + 2]) / 3) / 255);
+      }
+
+      return mask;
+    },
+
+    applyMask: function(mask) {
+      var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var sourcePixels = sourceData.data;
+
+      var mode = typeof mask[0] === "boolean" ? "bool" : "byte";
+
+      for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
+        var value = mask[i / 4];
+        sourcePixels[i + 3] = value * 255 | 0;
+      }
+
+      this.context.putImageData(sourceData, 0, 0);
+      return this;
+    },
+
+    fillMask: function(mask) {
+
+      var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var sourcePixels = sourceData.data;
+
+      var maskType = typeof mask[0] === "boolean" ? "bool" : "byte";
+      var colorMode = arguments.length === 2 ? "normal" : "gradient";
+
+      var color = cq.color(arguments[1]);
+      if (colorMode === "gradient") colorB = cq.color(arguments[2]);
+
+      for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
+        var value = mask[i / 4];
+
+        if (maskType === "byte") value /= 255;
+
+        if (colorMode === "normal") {
+          if (value) {
+            sourcePixels[i + 0] = color[0] | 0;
+            sourcePixels[i + 1] = color[1] | 0;
+            sourcePixels[i + 2] = color[2] | 0;
+            sourcePixels[i + 3] = value * 255 | 0;
+          }
+        } else {
+          sourcePixels[i + 0] = color[0] + (colorB[0] - color[0]) * value | 0;
+          sourcePixels[i + 1] = color[1] + (colorB[1] - color[1]) * value | 0;
+          sourcePixels[i + 2] = color[2] + (colorB[2] - color[2]) * value | 0;
+          sourcePixels[i + 3] = 255;
+        }
+      }
+
+      this.context.putImageData(sourceData, 0, 0);
+      return this;
+    },
+
+    clear: function(color) {
+      if (color) {
+        this.context.fillStyle = color;
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      } else {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+
+      return this;
+    },
+
+    clone: function() {
+
+      // var result = cq.createCanvas(this.canvas);
+
+      var result = cq.pool();
+      result.width = this.width;
+      result.height = this.height;
+      result.getContext("2d").drawImage(this.canvas, 0, 0);
+
+      return cq(result);
+    },
+
+    gradientText: function(text, x, y, maxWidth, gradient) {
+
+      var words = text.split(" ");
+
+      var h = this.fontHeight() * 2;
+
+      var ox = 0;
+      var oy = 0;
+
+      if (maxWidth) {
+        var line = 0;
+        var lines = [""];
+
+        for (var i = 0; i < words.length; i++) {
+          var word = words[i] + " ";
+          var wordWidth = this.context.measureText(word).width;
+
+          if (ox + wordWidth > maxWidth) {
+            lines[++line] = "";
+            ox = 0;
+          }
+
+          lines[line] += word;
+
+          ox += wordWidth;
+        }
+      } else var lines = [text];
+
+      for (var i = 0; i < lines.length; i++) {
+        var oy = y + i * h * 0.6 | 0;
+        var lingrad = this.context.createLinearGradient(0, oy, 0, oy + h * 0.6 | 0);
+
+        for (var j = 0; j < gradient.length; j += 2) {
+          lingrad.addColorStop(gradient[j], gradient[j + 1]);
+        }
+
+        var text = lines[i];
+
+        this.fillStyle(lingrad).fillText(text, x, oy);
+      }
+
+      return this;
+    },
+
+    removeColor: function(color) {
+
+      color = cq.color(color);
+
+      var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = data.data;
+
+      for (var x = 0; x < this.canvas.width; x++) {
+        for (var y = 0; y < this.canvas.height; y++) {
+          var i = (y * this.canvas.width + x) * 4;
+
+          if (pixels[i + 0] === color[0] && pixels[i + 1] === color[1] && pixels[i + 2] === color[2]) {
+            pixels[i + 3] = 0;
+          }
+
+
+        }
+      }
+
+      this.clear();
+      this.context.putImageData(data, 0, 0);
+
+      return this;
+    },
+
+    outline: function() {
+      var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = data.data;
+
+      var newData = this.createImageData(this.canvas.width, this.canvas.height);
+      var newPixels = newData.data;
+
+      var canvas = this.canvas;
+
+      function check(x, y) {
+
+        if (x < 0) return 0;
+        if (x >= canvas.width) return 0;
+        if (y < 0) return 0;
+        if (y >= canvas.height) return 0;
+
+        var i = (x + y * canvas.width) * 4;
+
+        return pixels[i + 3] > 0;
+
+      }
+
+      for (var x = 0; x < this.canvas.width; x++) {
+        for (var y = 0; y < this.canvas.height; y++) {
+
+          var full = 0;
+          var i = (y * canvas.width + x) * 4;
+
+          if (!pixels[i + 3]) continue;
+
+          full += check(x - 1, y);
+          full += check(x + 1, y);
+          full += check(x, y - 1);
+          full += check(x, y + 1);
+
+          if (full !== 4) {
+
+            newPixels[i] = 255;
+            newPixels[i + 1] = 255;
+            newPixels[i + 2] = 255;
+            newPixels[i + 3] = 255;
+          }
+
+        }
+      }
+
+      this.context.putImageData(newData, 0, 0);
+
+      return this;
+    },
+
+    setHsl: function() {
+
+      if (arguments.length === 1) {
+        var args = arguments[0];
+      } else {
+        var args = arguments;
+      }
+
+      var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = data.data;
+      var r, g, b, a, h, s, l, hsl = [],
+        newPixel = [];
+
+      for (var i = 0, len = pixels.length; i < len; i += 4) {
+        hsl = cq.rgbToHsl(pixels[i + 0], pixels[i + 1], pixels[i + 2]);
+
+        h = args[0] === false ? hsl[0] : cq.limitValue(args[0], 0, 1);
+        s = args[1] === false ? hsl[1] : cq.limitValue(args[1], 0, 1);
+        l = args[2] === false ? hsl[2] : cq.limitValue(args[2], 0, 1);
+
+        newPixel = cq.hslToRgb(h, s, l);
+
+        pixels[i + 0] = newPixel[0];
+        pixels[i + 1] = newPixel[1];
+        pixels[i + 2] = newPixel[2];
+      }
+
+      this.context.putImageData(data, 0, 0);
+
+      return this;
+    },
+
+    shiftHsl: function() {
+
+      if (arguments.length === 1) {
+        var args = arguments[0];
+      } else {
+        var args = arguments;
+      }
+
+      var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = data.data;
+      var r, g, b, a, h, s, l, hsl = [],
+        newPixel = [];
+
+      for (var i = 0, len = pixels.length; i < len; i += 4) {
+        hsl = cq.rgbToHsl(pixels[i + 0], pixels[i + 1], pixels[i + 2]);
+
+        if (pixels[i + 0] !== pixels[i + 1] || pixels[i + 1] !== pixels[i + 2]) {
+          h = args[0] === false ? hsl[0] : cq.wrapValue(hsl[0] + args[0], 0, 1);
+          s = args[1] === false ? hsl[1] : cq.limitValue(hsl[1] + args[1], 0, 1);
+        } else {
+          h = hsl[0];
+          s = hsl[1];
+        }
+
+        l = args[2] === false ? hsl[2] : cq.limitValue(hsl[2] + args[2], 0, 1);
+
+        newPixel = cq.hslToRgb(h, s, l);
+
+        pixels[i + 0] = newPixel[0];
+        pixels[i + 1] = newPixel[1];
+        pixels[i + 2] = newPixel[2];
+      }
+
+
+      this.context.putImageData(data, 0, 0);
+
+      return this;
+    },
+
+    applyColor: function(color) {
+
+      if (COCOONJS) return this;
+      this.save();
+
+      this.globalCompositeOperation("source-in");
+      this.clear(color);
+
+      this.restore();
+
+      return this;
+    },
+
+    negative: function(src, dst) {
+
+      var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = data.data;
+      var r, g, b, a, h, s, l, hsl = [],
+        newPixel = [];
+
+      for (var i = 0, len = pixels.length; i < len; i += 4) {
+        pixels[i + 0] = 255 - pixels[i + 0];
+        pixels[i + 1] = 255 - pixels[i + 1];
+        pixels[i + 2] = 255 - pixels[i + 2];
+      }
+
+      this.context.putImageData(data, 0, 0);
+
+      return this;
+    },
+
+    roundRect: function(x, y, width, height, radius) {
+
+      this.beginPath();
+      this.moveTo(x + radius, y);
+      this.lineTo(x + width - radius, y);
+      this.quadraticCurveTo(x + width, y, x + width, y + radius);
+      this.lineTo(x + width, y + height - radius);
+      this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      this.lineTo(x + radius, y + height);
+      this.quadraticCurveTo(x, y + height, x, y + height - radius);
+      this.lineTo(x, y + radius);
+      this.quadraticCurveTo(x, y, x + radius, y);
+      this.closePath();
+
+      return this;
+    },
+
+    markupText: function(text) {
+
+
+    },
+
+    wrappedText: function(text, x, y, maxWidth, lineHeight) {
+
+      var words = text.split(" ");
+
+      var lineHeight = lineHeight || this.fontHeight();
+
+      var ox = 0;
+      var oy = 0;
+
+      if (maxWidth) {
+        var line = 0;
+        var lines = [""];
+
+        for (var i = 0; i < words.length; i++) {
+          var word = words[i] + " ";
+          var wordWidth = this.context.measureText(word).width;
+
+          if (ox + wordWidth > maxWidth || words[i] === "\n") {
+            lines[++line] = "";
+            ox = 0;
+          }
+          if (words[i] !== "\n") {
+            lines[line] += word;
+
+            ox += wordWidth;
+          }
+
+
+        }
+      } else {
+        var lines = [text];
+      }
+
+      for (var i = 0; i < lines.length; i++) {
+        var oy = y + i * lineHeight | 0;
+
+        var text = lines[i];
+
+        this.fillText(text, x, oy);
+      }
+
+      return this;
+    },
+
+    fontHeights: {},
+
+    fontHeight: function() {
+      var font = this.font();
+
+      if (!this.fontHeights[font]) {
+        var temp = cq(100, 100);
+        var height = 0;
+        var changes = {};
+        temp.font(font).fillStyle("#fff");
+        temp.textBaseline("bottom").fillText("gM", 25, 100);
+        temp.trim(false, changes);
+        height += changes.bottom;
+
+        var temp = cq(100, 100);
+        var changes = {};
+        temp.font(font).fillStyle("#fff");
+        temp.textBaseline("top").fillText("gM", 25, 0);
+        temp.trim(false, changes);
+        height += changes.top;
+
+        var temp = cq(100, 100);
+        var changes = {};
+        temp.font(font).fillStyle("#fff");
+        temp.textBaseline("alphabetic").fillText("gM", 50, 50);
+        temp.trim(false, changes);
+        height += temp.height;
+
+        this.fontHeights[font] = height;
+      }
+
+      return this.fontHeights[font];
+    },
+
+    textBoundaries: function(text, maxWidth) {
+      var words = text.split(" ");
+
+      var h = this.fontHeight();
+
+      var ox = 0;
+      var oy = 0;
+
+      if (maxWidth) {
+        var line = 0;
+        var lines = [""];
+
+        for (var i = 0; i < words.length; i++) {
+          var word = words[i] + " ";
+          var wordWidth = this.context.measureText(word).width;
+
+          if (ox + wordWidth > maxWidth || words[i] === "\n") {
+            lines[++line] = "";
+            ox = 0;
+          }
+
+          if (words[i] !== "\n") {
+            lines[line] += word;
+            ox += wordWidth;
+          }
+        }
+      } else {
+        var lines = [text];
+        maxWidth = this.measureText(text).width;
+      }
+
+      return {
+        height: lines.length * h,
+        width: maxWidth,
+        lines: lines.length,
+        lineHeight: h
+      }
+    },
+
+    repeatImageRegion: function(image, sx, sy, sw, sh, dx, dy, dw, dh) {
+      this.save();
+      this.rect(dx, dy, dw, dh);
+      this.clip();
+
+      for (var x = 0, len = Math.ceil(dw / sw); x < len; x++) {
+        for (var y = 0, leny = Math.ceil(dh / sh); y < leny; y++) {
+          this.drawImage(image, sx, sy, sw, sh, dx + x * sw, dy + y * sh, sw, sh);
+        }
+      }
+
+      this.restore();
+
+      return this;
+    },
+
+    repeatImage: function(image, x, y, w, h) {
+      // if (!env.details) return this;
+
+      if (arguments.length < 9) {
+
+        this.repeatImageRegion(image, 0, 0, image.width, image.height, x, y, w, h);
+
+      } else {
+
+        this.repeatImageRegion.apply(this, arguments);
+
+      }
+
+      return this;
+    },
+
+    borderImageEmptyRegion: [0, 0, 0, 0],
+
+    borderImage: function(image, x, y, w, h, t, r, b, l, fill) {
+
+      // if (!env.details) return this;
+
+      if (typeof t === "object") {
+
+        var region = t.region;
+
+        if (!region) {
+
+          region = this.borderImageEmptyRegion;
+          region[2] = image.width;
+          region[3] = image.height;
+
+        }
+
+        if (t.padding) {
+
+          var padding = t.padding;
+
+          this.drawImage(image,
+            region[0] + padding,
+            region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
+            x + padding, y + padding,
+            w - padding * 2,
+            h - padding * 2
+          );
+
+
+          this.drawImage(image, region[0], region[1] + padding, padding, region[3] - 2 * padding, x, y + padding, padding, h - padding * 2);
+          this.drawImage(image, region[0] + region[2] - padding, region[1] + padding, padding, region[3] - 2 * padding, x + w - padding, y + padding, padding, h - padding * 2);
+          this.drawImage(image, region[0] + padding, region[1], region[2] - padding * 2, padding, x + padding, y, w - padding * 2, padding);
+          this.drawImage(image, region[0] + padding, region[1] + region[3] - padding, region[2] - padding * 2, padding, x + padding, y + h - padding, w - padding * 2, padding);
+
+          this.drawImage(image, region[0], region[1], padding, padding, x, y, padding, padding);
+          this.drawImage(image, region[0], region[1] + region[3] - padding, padding, padding, x, y + h - padding, padding, padding);
+          this.drawImage(image, region[0] + region[2] - padding, region[1], padding, padding, x + w - padding, y, padding, padding);
+          this.drawImage(image, region[0] + region[2] - padding, region[1] + region[3] - padding, padding, padding, x + w - padding, y + h - padding, padding, padding);
+
+
+
+        }
+
+        /* complex */
+        else {
+
+          var bottomLeft = t.bottomLeft || [0, 0, 0, 0];
+          var bottomRight = t.bottomRight || [0, 0, 0, 0];
+          var topLeft = t.topLeft || [0, 0, 0, 0];
+          var topRight = t.topRight || [0, 0, 0, 0];
+
+          var clh = bottomLeft[3] + topLeft[3];
+          var crh = bottomRight[3] + topRight[3];
+          var ctw = topLeft[2] + topRight[2];
+          var cbw = bottomLeft[2] + bottomRight[2];
+
+          t.fillPadding = [0, 0, 0, 0];
+
+          if (t.left) t.fillPadding[0] = t.left[2];
+          if (t.top) t.fillPadding[1] = t.top[3];
+          if (t.right) t.fillPadding[2] = t.right[2];
+          if (t.bottom) t.fillPadding[3] = t.bottom[3];
+
+          // if (!t.fillPadding) t.fillPadding = [0, 0, 0, 0];
+
+          if (t.fill) {
+            this.drawImage(image, t.fill[0], t.fill[1], t.fill[2], t.fill[3], x + t.fillPadding[0], y + t.fillPadding[1], w - t.fillPadding[2] - t.fillPadding[0], h - t.fillPadding[3] - t.fillPadding[1]);
+          } else {
+            // this.fillRect(x + t.fillPadding[0], y + t.fillPadding[1], w - t.fillPadding[2] - t.fillPadding[0], h - t.fillPadding[3] - t.fillPadding[1]);
+          }
+
+          /* sides */
+
+          if (t.left) this[t.left[4] === "stretch" ? "drawImage" : "repeatImage"](image, t.left[0], t.left[1], t.left[2], t.left[3], x, y + topLeft[3], t.left[2], h - clh);
+          if (t.right) this[t.right[4] === "stretch" ? "drawImage" : "repeatImage"](image, t.right[0], t.right[1], t.right[2], t.right[3], x + w - t.right[2], y + topRight[3], t.right[2], h - crh);
+          if (t.top) this[t.top[4] === "stretch" ? "drawImage" : "repeatImage"](image, t.top[0], t.top[1], t.top[2], t.top[3], x + topLeft[2], y, w - ctw, t.top[3]);
+          if (t.bottom) this[t.bottom[4] === "stretch" ? "drawImage" : "repeatImage"](image, t.bottom[0], t.bottom[1], t.bottom[2], t.bottom[3], x + bottomLeft[2], y + h - t.bottom[3], w - cbw, t.bottom[3]);
+
+          /* corners */
+
+          if (t.bottomLeft) this.drawImage(image, t.bottomLeft[0], t.bottomLeft[1], t.bottomLeft[2], t.bottomLeft[3], x, y + h - t.bottomLeft[3], t.bottomLeft[2], t.bottomLeft[3]);
+          if (t.topLeft) this.drawImage(image, t.topLeft[0], t.topLeft[1], t.topLeft[2], t.topLeft[3], x, y, t.topLeft[2], t.topLeft[3]);
+          if (t.topRight) this.drawImage(image, t.topRight[0], t.topRight[1], t.topRight[2], t.topRight[3], x + w - t.topRight[2], y, t.topRight[2], t.topRight[3]);
+          if (t.bottomRight) this.drawImage(image, t.bottomRight[0], t.bottomRight[1], t.bottomRight[2], t.bottomRight[3], x + w - t.bottomRight[2], y + h - t.bottomRight[3], t.bottomRight[2], t.bottomRight[3]);
+
+        }
+
+      } else {
+
+
+        /* top */
+        if (t > 0 && w - l - r > 0) this.drawImage(image, l, 0, image.width - l - r, t, x + l, y, w - l - r, t);
+
+        /* bottom */
+        if (b > 0 && w - l - r > 0) this.drawImage(image, l, image.height - b, image.width - l - r, b, x + l, y + h - b, w - l - r, b);
+        //      console.log(x, y, w, h, t, r, b, l);
+        //      console.log(image, 0, t, l, image.height - b - t, x, y + t, l, h - b - t);
+        /* left */
+        if (l > 0 && h - b - t > 0) this.drawImage(image, 0, t, l, image.height - b - t, x, y + t, l, h - b - t);
+
+
+        /* right */
+        if (r > 0 && h - b - t > 0) this.drawImage(image, image.width - r, t, r, image.height - b - t, x + w - r, y + t, r, h - b - t);
+
+        /* top-left */
+        if (l > 0 && t > 0) this.drawImage(image, 0, 0, l, t, x, y, l, t);
+
+        /* top-right */
+        if (r > 0 && t > 0) this.drawImage(image, image.width - r, 0, r, t, x + w - r, y, r, t);
+
+        /* bottom-right */
+        if (r > 0 && b > 0) this.drawImage(image, image.width - r, image.height - b, r, b, x + w - r, y + h - b, r, b);
+
+        /* bottom-left */
+        if (l > 0 && b > 0) this.drawImage(image, 0, image.height - b, l, b, x, y + h - b, l, b);
+
+        if (fill) {
+          if (typeof fill === "string") {
+            this.fillStyle(fill).fillRect(x + l, y + t, w - l - r, h - t - b);
+          } else {
+            if (w - l - r > 0 && h - t - b > 0)
+              this.drawImage(image, l, t, image.width - r - l, image.height - b - t, x + l, y + t, w - l - r, h - t - b);
+          }
+        }
+      }
+    },
+
+    setPixel: function(color, x, y) {
+
+      /* fillRect is slow! */
+
+      return this.fillStyle(color).fillRect(x, y, 1, 1);
+
+      /* this is how it should work - but it does not */
+
+      color = cq.color(color);
+
+      var pixel = this.createImageData(1, 1);
+
+      pixel.data[0] = color[0];
+      pixel.data[1] = color[1];
+      pixel.data[2] = color[2];
+      pixel.data[3] = 255;
+
+      this.putImageData(pixel, x, y);
+
+      return this;
+    },
+
+    getPixel: function(x, y) {
+
+      var pixel = this.context.getImageData(x, y, 1, 1).data;
+
+      return cq.color([pixel[0], pixel[1], pixel[2], pixel[3]]);
+
+    },
+
+    clearRect: function(x, y, w, h) {
+
+      this.context.clearRect(x, y, w, h);
+
+      return this;
+
+    },
+
+    stroke: function() {
+
+      this.context.stroke();
+
+      return this;
+
+    },
+
+    createImageData: function(width, height) {
+
+      if (false && this.context.createImageData) {
+
+        return this.context.createImageData.apply(this.context, arguments);
+
+      } else {
+
+        if (!this.emptyCanvas) {
+
+          this.emptyCanvas = cq.createCanvas(width, height);
+          this.emptyCanvasContext = this.emptyCanvas.getContext("2d");
+
+        }
+
+        this.emptyCanvas.width = width;
+        this.emptyCanvas.height = height;
+
+        return this.emptyCanvasContext.getImageData(0, 0, width, height);
+      }
+
+    },
+
+    strokeLine: function(x1, y1, x2, y2) {
+
+      this.beginPath();
+
+      if (typeof x2 === "undefined") {
+        this.moveTo(x1.x, x1.y);
+        this.lineTo(y1.x, y1.y);
+      } else {
+        this.moveTo(x1, y1);
+        this.lineTo(x2, y2);
+      }
+
+      this.stroke();
+
+      return this;
+
+    },
+
+    shadowOffset: function(x, y) {
+
+      this.context.shadowOffsetX = x;
+      this.context.shadowOffsetY = y;
+
+      return this;
+
+    },
+
+    setLineDash: function(dash) {
+
+      if (this.context.setLineDash) {
+        this.context.setLineDash(dash);
+        return this;
+      } else return this;
+
+    },
+
+    measureText: function(text) {
+
+      return this.context.measureText(text);
+
+    },
+
+    getLineDash: function() {
+
+      return this.context.getLineDash();
+
+    },
+
+    createRadialGradient: function(x0, y0, r0, x1, y1, r1) {
+
+      return this.context.createRadialGradient(x0, y0, r0, x1, y1, r1);
+
+    },
+
+    createLinearGradient: function(x0, y0, x1, y1) {
+
+      return this.context.createLinearGradient(x0, y0, x1, y1);
+
+    },
+
+    createPattern: function(image, repeat) {
+
+      return this.context.createPattern(image, repeat);
+
+    },
+
+    getImageData: function(sx, sy, sw, sh) {
+
+      return this.context.getImageData(sx, sy, sw, sh);
+
+    },
+
+    /* If you think that I am retarded because I use fillRect to set 
+       pixels - read about premultipled alpha in canvas */
+
+    writeMeta: function(data) {
+
+      var json = JSON.stringify(data);
+
+      json = encodeURIComponent(json);
+
+      var bytes = [];
+
+      for (var i = 0; i < json.length; i++) {
+        bytes.push(json.charCodeAt(i));
+        //      console.log(json[i])
+      }
+
+      bytes.push(127);
+
+      var x = this.width - 1;
+      var y = this.height - 1;
+
+      var pixel = [];
+
+      while (bytes.length) {
+
+        var byte = bytes.shift();
+
+        pixel.unshift(byte * 2);
+        //        console.log(x + String.fromCharCode(byte), byte);
+
+        if (!bytes.length)
+          for (var i = 0; i < 3 - pixel.length; i++) pixel.unshift(254);
+
+        if (pixel.length === 3) {
+          this.fillStyle(cq.color(pixel).toRgb()).fillRect(x, y, 1, 1);
+          pixel = [];
+          x--;
+
+          if (x < 0) {
+            y--;
+            x = this.width - 1;
+          }
+        }
+      }
+
+      return this;
+
+    },
+
+    /* setters / getters */
+
+    strokeStyle: function(style) {
+
+      if (style == null) {
+
+        return this.context.strokeStyle;
+
+      } else {
+
+        this.context.strokeStyle = style;
+
+        return this;
+
+      }
+
+    },
+
+    fillStyle: function(style) {
+
+      if (style == null) {
+
+        return this.context.fillStyle;
+
+      } else {
+
+        this.context.fillStyle = style;
+
+        return this;
+
+      }
+
+    },
+
+    font: function(font) {
+
+      if (font == null) {
+
+        return this.context.font;
+
+      } else {
+
+        this.context.font = font;
+
+        return this;
+      }
+
+    },
+
+    readMeta: function() {
+
+      var bytes = [];
+
+      var x = this.width - 1;
+      var y = this.height - 1;
+
+      while (true) {
+        var pixel = this.getPixel(x, y);
+
+        var stop = false;
+
+        for (var i = 0; i < 3; i++) {
+
+          if (pixel[2 - i] === 254) stop = true;
+
+          else bytes.push(pixel[2 - i] / 2 | 0);
+
+        }
+
+        if (stop) break;
+
+        x--;
+
+        if (x < 0) {
+          y--;
+          x = this.width - 1;
+          break;
+        }
+      }
+
+
+      var json = "";
+
+      while (bytes.length) {
+        json += String.fromCharCode(bytes.shift());
+      }
+
+      var data = false;
+
+      console.log(json);
+
+      try {
+        data = JSON.parse(decodeURIComponent(json));
+      } catch (e) {
+
+      }
+
+      return data;
+
+    },
+
+    get width() {
+      return this.canvas.width;
+    },
+
+    get height() {
+      return this.canvas.height;
+    },
+
+    set width(w) {
+      this.canvas.width = w;
+      this.update();
+      return this.canvas.width;
+    },
+
+    set height(h) {
+      this.canvas.height = h;
+      this.update();
+      return this.canvas.height;
+    }
+
+
+  };
+
+  /* extend Layer with drawing context methods */
+
+  var methods = ["arc", "arcTo", "beginPath", "bezierCurveTo", "clip", "closePath", "createLinearGradient", "createRadialGradient", "createPattern", "drawFocusRing", "drawImage", "fill", "fillRect", "fillText", "getImageData", "isPointInPath", "lineTo", "measureText", "moveTo", "putImageData", "quadraticCurveTo", "rect", "restore", "rotate", "scale", "setTransform", "strokeRect", "strokeText", "transform", "translate", "setLineDash"];
+
+  for (var i = 0; i < methods.length; i++) {
+
+    var name = methods[i];
+
+    if (cq.Layer.prototype[name]) continue;
+
+    cq.Layer.prototype[name] = (function(method) {
+
+      return function() {
+
+        var args = new Array(arguments.length);
+
+        for (var i = 0; i < args.length; ++i) {
+
+          args[i] = arguments[i];
+
+        }
+
+        cq.fastApply(method, this.context, args);
+
+        return this;
+      }
+
+    })(CanvasRenderingContext2D.prototype[name]);
+
+
+    continue;
+
+
+    if (!this.debug) {
+      // if (!cq.Layer.prototype[name]) cq.Layer.prototype[name] = Function("this.context." + name + ".apply(this.context, arguments); return this;");
+
+      var self = this;
+
+      (function(name) {
+
+        cq.Layer.prototype[name] = function() {
+          // this.context[name].apply(this.context, arguments);
+
+          cq.fastApply(this.context[name], this.context, arguments);
+
+          return this;
+        }
+
+      })(name);
+
+    } else {
+
+      var self = this;
+
+      (function(name) {
+
+        cq.Layer.prototype[name] = function() {
+          try {
+            this.context[name].apply(this.context, arguments);
+            return this;
+          } catch (e) {
+            var err = new Error();
+            console.log(err.stack);
+            throw (e + err.stack);
+
+            console.log(e, name, arguments);
+          }
+        }
+
+      })(name);
+
+    }
+
+  };
+
+  /* create setters and getters */
+
+  var properties = ["globalAlpha", "globalCompositeOperation", "lineCap", "lineJoin", "lineWidth", "miterLimit", "shadowOffsetX", "shadowOffsetY", "shadowBlur", "shadowColor", "textAlign", "textBaseline", "lineDashOffset"];
+
+  for (var i = 0; i < properties.length; i++) {
+
+    var name = properties[i];
+
+    if (!cq.Layer.prototype[name]) cq.Layer.prototype[name] = Function("if(arguments.length) { this.context." + name + " = arguments[0]; return this; } else { return this.context." + name + "; }");
+
+  };
+
+  /* color */
+
+  cq.Color = function(data, type) {
+
+    if (arguments.length) this.parse(data, type);
+  }
+
+  cq.Color.prototype = {
+
+    toString: function() {
+      return this.toRgb();
+    },
+
+    parse: function(args, type) {
+      if (args[0] instanceof cq.Color) {
+        this[0] = args[0][0];
+        this[1] = args[0][1];
+        this[2] = args[0][2];
+        this[3] = args[0][3];
+        return;
+      }
+
+      if (typeof args === "string") {
+        var match = null;
+
+        if (args[0] === "#") {
+          var rgb = cq.hexToRgb(args);
+          this[0] = rgb[0];
+          this[1] = rgb[1];
+          this[2] = rgb[2];
+          this[3] = 1.0;
+        } else if (match = args.match(/rgb\((.*),(.*),(.*)\)/)) {
+          this[0] = match[1] | 0;
+          this[1] = match[2] | 0;
+          this[2] = match[3] | 0;
+          this[3] = 1.0;
+        } else if (match = args.match(/rgba\((.*),(.*),(.*)\)/)) {
+          this[0] = match[1] | 0;
+          this[1] = match[2] | 0;
+          this[2] = match[3] | 0;
+          this[3] = match[4] | 0;
+        } else if (match = args.match(/hsl\((.*),(.*),(.*)\)/)) {
+          this.fromHsl(match[1], match[2], match[3]);
+        } else if (match = args.match(/hsv\((.*),(.*),(.*)\)/)) {
+          this.fromHsv(match[1], match[2], match[3]);
+        }
+      } else {
+        switch (type) {
+          case "hsl":
+          case "hsla":
+
+            this.fromHsl(args[0], args[1], args[2], args[3]);
+            break;
+
+          case "hsv":
+          case "hsva":
+
+            this.fromHsv(args[0], args[1], args[2], args[3]);
+            break;
+
+          default:
+            this[0] = args[0];
+            this[1] = args[1];
+            this[2] = args[2];
+            this[3] = typeof args[3] === "undefined" ? 1.0 : args[3];
+            break;
+        }
+      }
+    },
+
+    a: function(a) {
+      return this.alpha(a);
+    },
+
+    alpha: function(a) {
+      this[3] = a;
+      return this;
+    },
+
+    fromHsl: function() {
+      var components = arguments[0] instanceof Array ? arguments[0] : arguments;
+
+      var color = cq.hslToRgb(parseFloat(components[0]), parseFloat(components[1]), parseFloat(components[2]));
+
+      this[0] = color[0];
+      this[1] = color[1];
+      this[2] = color[2];
+      this[3] = typeof arguments[3] === "undefined" ? 1.0 : arguments[3];
+    },
+
+    fromHsv: function() {
+      var components = arguments[0] instanceof Array ? arguments[0] : arguments;
+      var color = cq.hsvToRgb(parseFloat(components[0]), parseFloat(components[1]), parseFloat(components[2]));
+
+      this[0] = color[0];
+      this[1] = color[1];
+      this[2] = color[2];
+      this[3] = typeof arguments[3] === "undefined" ? 1.0 : arguments[3];
+    },
+
+    toArray: function() {
+      return [this[0], this[1], this[2], this[3]];
+    },
+
+    toRgb: function() {
+      return "rgb(" + this[0] + ", " + this[1] + ", " + this[2] + ")";
+    },
+
+    toRgba: function() {
+      return "rgba(" + this[0] + ", " + this[1] + ", " + this[2] + ", " + this[3] + ")";
+    },
+
+    toHex: function() {
+      return cq.rgbToHex(this[0], this[1], this[2]);
+    },
+
+    toHsl: function() {
+      var c = cq.rgbToHsl(this[0], this[1], this[2]);
+      c[3] = this[3];
+      return c;
+    },
+
+    toHsv: function() {
+      var c = cq.rgbToHsv(this[0], this[1], this[2]);
+      c[3] = this[3];
+      return c;
+    },
+
+    gradient: function(target, steps) {
+      var targetColor = cq.color(target);
+    },
+
+    shiftHsl: function() {
+      var hsl = this.toHsl();
+
+      if (this[0] !== this[1] || this[1] !== this[2]) {
+        var h = arguments[0] === false ? hsl[0] : cq.wrapValue(hsl[0] + arguments[0], 0, 1);
+        var s = arguments[1] === false ? hsl[1] : cq.limitValue(hsl[1] + arguments[1], 0, 1);
+      } else {
+        var h = hsl[0];
+        var s = hsl[1];
+      }
+
+      var l = arguments[2] === false ? hsl[2] : cq.limitValue(hsl[2] + arguments[2], 0, 1);
+
+      this.fromHsl(h, s, l);
+
+      return this;
+    },
+
+    setHsl: function() {
+      var hsl = this.toHsl();
+
+      var h = arguments[0] === false ? hsl[0] : cq.limitValue(arguments[0], 0, 1);
+      var s = arguments[1] === false ? hsl[1] : cq.limitValue(arguments[1], 0, 1);
+      var l = arguments[2] === false ? hsl[2] : cq.limitValue(arguments[2], 0, 1);
+
+      this.fromHsl(h, s, l);
+
+      return this;
+    },
+
+    mix: function(color, amount) {
+      color = cq.color(color);
+
+      for (var i = 0; i < 4; i++)
+        this[i] = cq.mix(this[i], color[i], amount);
+
+      return this;
+    }
+
+  };
+
+  window["cq"] = window["CanvasQuery"] = cq;
+
+
+  return cq;
+
+})();
+
+/* file: src/layer/Layer.js */
+
+PLAYGROUND.Renderer = function(app) {
+
+  this.app = app;
+
+  app.on("create", this.create.bind(this));
+  app.on("resize", this.resize.bind(this));
+
+};
+
+PLAYGROUND.Renderer.plugin = true;
+
+PLAYGROUND.Renderer.prototype = {
+
+  create: function(data) {
+
+    this.app.layer = cq().appendTo(this.app.container);
+
+    if (!this.app.customContainer) {
+      this.app.container.style.margin = "0px";
+      this.app.container.style.overflow = "hidden";
+    }
+
+  },
+
+  resize: function(data) {
+
+    var app = this.app;
+
+    var layer = app.layer;
+
+    layer.width = app.width;
+    layer.height = app.height;
+
+    layer.canvas.style.transformOrigin = "0 0";
+    layer.canvas.style.transform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
+    layer.canvas.style.transformStyle = "preserve-3d";
+
+    layer.canvas.style.webkitTransformOrigin = "0 0";
+    layer.canvas.style.webkitTransform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
+    layer.canvas.style.webkitTransformStyle = "preserve-3d";
+
+    cq.smoothing = this.app.smoothing;
+    layer.update();
+
+    layer.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+  }
+
+};
+
+/* file: src/layer/Transitions.js */
+
+PLAYGROUND.Transitions = function(app) {
+
+  this.app = app;
+
+  app.on("enterstate", this.enterstate.bind(this));
+  app.on("postrender", this.postrender.bind(this));
+  app.on("step", this.step.bind(this));
+
+  this.progress = 1;
+  this.lifetime = 0;
+
+  app.transition = "split";
+  app.transitionDuration = 0.5;
+
+};
+
+PLAYGROUND.Transitions.plugin = true;
+
+PLAYGROUND.Transitions.prototype = {
+
+  enterstate: function(data) {
+
+    this.screenshot = this.app.layer.cache();
+
+    if (data.prev) {
+
+      this.lifetime = 0;
+      this.progress = 0;
+
+    }
+
+  },
+
+  postrender: function() {
+
+    if (this.progress >= 1) return;
+
+    var transition = PLAYGROUND.Transitions[this.app.transition];
+
+    transition(this.progress, this.app.layer, this.screenshot);
+
+  },
+
+  step: function(delta) {
+
+    if (this.progress >= 1) return;
+
+    this.lifetime += delta;
+
+    this.progress = Math.min(this.lifetime / this.app.transitionDuration, 1);
+
+  }
+
+};
+
+PLAYGROUND.Transitions.implode = function(progress, layer, screenshot) {
+
+  progress = app.ease(progress, "outCubic");
+
+  var negative = 1 - progress;
+
+  layer.save();
+  layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
+  layer.drawImage(screenshot, 0, 0);
+
+  layer.restore();
+
+};
+
+PLAYGROUND.Transitions.split = function(progress, layer, screenshot) {
+
+  progress = app.ease(progress, "inOutCubic");
+
+  var negative = 1 - progress;
+
+  layer.save();
+
+  layer.a(negative).clear("#fff").ra();
+
+  layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
+  layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
+
+  layer.restore();
+
+};
+
+/* file: src/layer/LoadingScreen.js */
+
+PLAYGROUND.LoadingScreen = {
+
+  logoRaw: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAAASBAMAAADPiN0xAAAAGFBMVEUAAQAtLixHSUdnaGaJioimqKXMzsv7/fr5shgVAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98EAwkeA4oQWJ4AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAB9klEQVQ4y72UvW+rMBDAz+FrpVKrrFmesmapWNOlrKjSe1kZ+uoVAvj+/frujG1SaJcqJwU7voOf7xMQzQmsIDi5NPTMsLRntH3U+F6SAZo3NlCvcgBFJz8o+vkDiE63lI95Y/UmpinsZWkgJWJiDbAVQ16htptxSTNloIlugwaw001Ey3ASF3so6L1qLNXzQS5S0UGKL/CI5wWNriE0UH9Yty37LqIVg+wsqu7Ix0MwVBSF/dU+jv2SNnma021LEdPqVnMeU3xAu0kXcSGjmq7Ox4E2Wn88LZ2+EFj3avjixzai6VPVyuYveZLHF2XfdDnvAq27DIHGuq+0DJFsE30OtB1KqOwd8Dr7PcM4b+jfj2g5lp4WyntBK66qua3JzEA+uXJpwH/NlVuzRVPY/kTLB2mjuN+KwdZ8FOy8j2gDbEUSqumnSCY4lf4ibq3IhVM4ycZQRnv+zFqVdJQVn6BxvUqebGpuaNo3sZxwBzjajiMZOoBiwyVF+kCr+nUaJOaGpnAeRPPJZTr4FqmHRXcneEo4DqQ/ftfdnLeDrUAME8xWKPeKCwW6YkEpXfs3p1EWJhdcUAYP0TI/uYaV8cgjwBovaeyWwji2T9rTFIdS/cP/MnkTLRUWxgNNZVin7bT5fqT9miDcUVJzR1gRpfIONMmulU+5Qqr6zXAUqAAAAABJRU5ErkJggg==",
+
+  create: function() {
+
+    var self = this;
+
+    this.logo = new Image;
+
+    this.logo.addEventListener("load", function() {
+      self.ready = true;
+    });
+
+    this.logo.src = this.logoRaw;
+
+    this.background = "#272822";
+    this.app.container.style.background = "#272822";
+
+    if (window.getComputedStyle) {
+      // this.background = window.getComputedStyle(document.body).backgroundColor || "#000";
+    }
+
+
+  },
+
+  enter: function() {
+
+    this.current = 0;
+
+  },
+
+  leave: function() {
+
+    this.locked = true;
+
+    this.animation = this.app.tween(this)
+      .to({
+        current: 1
+      }, 0.5);
+
+  },
+
+  step: function(delta) {
+
+    if (this.locked) {
+      if (this.animation.finished) this.locked = false;
+    } else {
+      this.current = this.current + Math.abs(this.app.loader.progress - this.current) * delta;
+    }
+
+  },
+
+  ready: function() {
+
+
+  },
+
+  render: function() {
+
+    if (!this.ready) return;
+
+    this.app.layer.clear(this.background);
+
+    this.app.layer.fillStyle("#fff");
+
+    this.app.layer.save();
+    this.app.layer.align(0.5, 0.5);
+    this.app.layer.globalCompositeOperation("lighter");
+    this.app.layer.drawImage(this.logo, this.app.center.x, this.app.center.y);
+
+    var w = this.current * this.logo.width;
+
+    this.app.layer.fillStyle("#fff");
+
+    this.app.layer.fillRect(this.app.center.x, this.app.center.y + 32, w, 12);
+    this.app.layer.fillRect(this.app.center.x, this.app.center.y + 32, this.logo.width, 4);
+
+    this.app.layer.restore();
 
   }
 
