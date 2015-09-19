@@ -1,4 +1,4 @@
-require('shelljs/global');
+var cat = require('shelljs').cat;
 
 var files = [
 
@@ -41,6 +41,12 @@ var builds = {
 
   "playground-base.js": [
 
+  ],
+
+  "playground-three.js": [
+    'treejs.idea/playground.three.js',
+    "treejs.idea/Transitions.js",
+    "treejs.idea/LoadingScreen.js"
   ]
 
 };
@@ -53,13 +59,15 @@ for (var key in builds) {
   var output = "";
 
   for (var i = 0; i < all.length; i++) {
-
-
     output += "\n\n/* file: " + all[i] + " */\n\n";
     output += cat(all[i]);
-
   }
 
   output.to("build/" + key);
+
+  output = 'var PLAYGROUND;\n' + output;
+  output += '\nmodule.exports = playground;';
+  output += 'playground.Application = PLAYGROUND.Application;';
+  output.to("build/commonjs/" + key);
 
 }
