@@ -1,62 +1,60 @@
 /** Main application object for playground.js
- *
- * The object inherits from PLAYGROUND.Events and generates
- * a number of events:
- * - Local events:
- *   - create: the application is being constructed
- *   - ready: the application has been constructed
- *   - imageready: after an image was loaded
- *   - states events are broadcasted as local events.
- * - Global events:
- *   - preload: allows loading custom resources
- *   - resize: window resize event
- *   - mouse, touch, keyboard and gamepads subcomponents
- *     have their events broadcasted as global events.
- *
- * The arguments that can be used to customize the application at
- * initialization time are:
- * - scale: the scale (may be auto-computed)
- * - width: the width in pixels/scale (may be auto-computed if not specified)
- * - height: the height in pixels/scale (may be auto-computed if not specified)
- * - smoothing:
- * - paths:
+  
+  The object inherits from PLAYGROUND.Events and generates
+  a number of events:
+
+  - Local events:
+    - create: the application is being constructed
+    - ready: the application has been constructed
+    - imageready: after an image was loaded
+    - states events are broadcasted as local events.
+  - Global events:
+    - preload: allows loading custom resources
+    - resize: window resize event
+    - mouse, touch, keyboard and gamepads subcomponents
+      have their events broadcasted as global events.
+  The arguments that can be used to customize the application at
+  initialization time are:
+  - scale: the scale (may be auto-computed)
+  - width: the width in pixels/scale (may be auto-computed if not specified)
+  - height: the height in pixels/scale (may be auto-computed if not specified)
+  - smoothing:
+  - paths:
        - base: path always prepended
        - images: path relative to `base` for images
        - data: path relative to `base` for json and text files
        - atlases: texture atlases
        - sounds: music and sounds in mp3 and ogg formats
- * - skipEvents: prevents core functions from emitting events
- * - disabledUntilLoaded: no events in loading stage
- * - LoadingScreen:
- * - container: the document element hosting display area
- *
- * Internally, the application derives other variables:
- * - autoWidth: adjust the width on resize
- * - autoHeight: adjust the height on resize
- * - autoScale: adjust the scale on resize
- * - customContainer: true if the container is not the body element
- * - offsetX: horizontal offset in pixels for effective drawing area
- * - offsetY: vertical offset in pixels for effective drawing area
- * - center: {x: , y: } in pixels/scale
- * - firstBatch: set to true while initial loading is in progress
- *
- * Inner workings are logically divided into:
- * - loader
- * - states
- * - mouse
- * - touch
- * - keyboard
- * - gamepads
- * - tweens
- * - ease
- *
- * A number of arrays help manage the resources:
- * - images: asset container
- * - atlases: asset container
- * - data: asset container
- * - plugins: list of instantiated plug-ins
- * - data: associative array for data objects loaded
- */
+  - skipEvents: prevents core functions from emitting events
+  - disabledUntilLoaded: no events in loading stage
+  - LoadingScreen:
+  - container: the document element hosting display area
+  Internally, the application derives other variables:
+  - autoWidth: adjust the width on resize
+  - autoHeight: adjust the height on resize
+  - autoScale: adjust the scale on resize
+  - customContainer: true if the container is not the body element
+  - offsetX: horizontal offset in pixels for effective drawing area
+  - offsetY: vertical offset in pixels for effective drawing area
+  - center: {x: , y: } in pixels/scale
+  - firstBatch: set to true while initial loading is in progress
+  Inner workings are logically divided into:
+  - loader
+  - states
+  - mouse
+  - touch
+  - keyboard
+  - gamepads
+  - tweens
+  - ease
+  A number of arrays help manage the resources:
+  - images: asset container
+  - atlases: asset container
+  - data: asset container
+  - plugins: list of instantiated plug-ins
+  - data: associative array for data objects loaded
+*/
+
 PLAYGROUND.Application = function(args) {
 
   var app = this;

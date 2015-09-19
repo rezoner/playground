@@ -3,7 +3,6 @@
 /* hold gamepad state in this[0], [1] and so on */
 /* (dpad) buttons 12-14 are currently overwriten - check step method */
 
-=======
  /** Gamepads related functionality.
  *
  * The object also works as an array of gamepads, thus
