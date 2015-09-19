@@ -30,6 +30,7 @@
  * - ready: *all* elements were successfully loaded; this *is not* triggered
  *   if any element reported an error.
  */
+
 PLAYGROUND.Loader = function(app) {
 
   this.app = app;
@@ -43,6 +44,7 @@ PLAYGROUND.Loader = function(app) {
 PLAYGROUND.Loader.prototype = {
 
   /** Start retreiving an element */
+
   add: function(id) {
 
     this.queue++;
@@ -55,6 +57,7 @@ PLAYGROUND.Loader.prototype = {
   },
 
   /** Report an error to the loader. */
+
   error: function(id) {
 
     this.trigger("error", id);
@@ -62,6 +65,7 @@ PLAYGROUND.Loader.prototype = {
   },
 
   /** Report a success to the loader. */
+
   success: function(id) {
 
     this.queue--;
@@ -77,7 +81,8 @@ PLAYGROUND.Loader.prototype = {
 
   },
 
-  /** Bring back the loader to ground state */
+  /** Bring loader back to the ground state */
+
   reset: function() {
 
     this.progress = 0;

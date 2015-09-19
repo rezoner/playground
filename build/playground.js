@@ -48,6 +48,7 @@
 
 */
 
+
 /* file: src/lib/Ease.js */
 
 /*     
@@ -1753,7 +1754,6 @@ PLAYGROUND.GameLoop = function(app) {
 
 /* file: src/Gamepads.js */
 
-<<<<<<< HEAD
 /* THIS HAS TO BE REWRITEN! */
 /* add method .getGamepad() */
 /* hold gamepad state in this[0], [1] and so on */
@@ -1780,7 +1780,7 @@ PLAYGROUND.GameLoop = function(app) {
  *
  * Reference: http://playgroundjs.com/playground-gamepads
  */
->>>>>>> 2869c963e3d29d35657434b9e2a0a2102f49d61f
+
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -2306,6 +2306,7 @@ PLAYGROUND.Pointer.prototype = {
  * - ready: *all* elements were successfully loaded; this *is not* triggered
  *   if any element reported an error.
  */
+
 PLAYGROUND.Loader = function(app) {
 
   this.app = app;
@@ -2319,6 +2320,7 @@ PLAYGROUND.Loader = function(app) {
 PLAYGROUND.Loader.prototype = {
 
   /** Start retreiving an element */
+
   add: function(id) {
 
     this.queue++;
@@ -2331,6 +2333,7 @@ PLAYGROUND.Loader.prototype = {
   },
 
   /** Report an error to the loader. */
+
   error: function(id) {
 
     this.trigger("error", id);
@@ -2338,6 +2341,7 @@ PLAYGROUND.Loader.prototype = {
   },
 
   /** Report a success to the loader. */
+
   success: function(id) {
 
     this.queue--;
@@ -2353,7 +2357,8 @@ PLAYGROUND.Loader.prototype = {
 
   },
 
-  /** Bring back the loader to ground state */
+  /** Bring loader back to the ground state */
+
   reset: function() {
 
     this.progress = 0;

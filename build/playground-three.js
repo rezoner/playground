@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r6
+  PlaygroundJS r7
   
   http://playgroundjs.com
   
@@ -13,6 +13,11 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r7
+
+  + fixed event.off
+  + temporary fixes for gamepad d-pad
 
   r6
 
@@ -835,7 +840,7 @@ PLAYGROUND.Events.prototype = {
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
-      if (this.listeners[event][i]._remove) {
+      if (this.listeners[event][i] === callback) {
         this.listeners[event].splice(i--, 1);
         len--;
       }
@@ -1749,6 +1754,12 @@ PLAYGROUND.GameLoop = function(app) {
 
 /* file: src/Gamepads.js */
 
+/* THIS HAS TO BE REWRITEN! */
+/* add method .getGamepad() */
+/* hold gamepad state in this[0], [1] and so on */
+/* (dpad) buttons 12-14 are currently overwriten - check step method */
+
+=======
  /** Gamepads related functionality.
  *
  * The object also works as an array of gamepads, thus
@@ -1769,6 +1780,7 @@ PLAYGROUND.GameLoop = function(app) {
  *
  * Reference: http://playgroundjs.com/playground-gamepads
  */
+
 PLAYGROUND.Gamepads = function(app) {
 
   this.app = app;
@@ -1868,7 +1880,10 @@ PLAYGROUND.Gamepads.prototype = {
       /* hack for missing  dpads */
 
       for (var h = 12; h <= 15; h++) {
-        if (!buttons[h]) buttons[h] = {
+
+        // if (!buttons[h]) 
+
+        buttons[h] = {
           pressed: false,
           value: 0
         };
@@ -2291,6 +2306,7 @@ PLAYGROUND.Pointer.prototype = {
  * - ready: *all* elements were successfully loaded; this *is not* triggered
  *   if any element reported an error.
  */
+
 PLAYGROUND.Loader = function(app) {
 
   this.app = app;
@@ -2304,6 +2320,7 @@ PLAYGROUND.Loader = function(app) {
 PLAYGROUND.Loader.prototype = {
 
   /** Start retreiving an element */
+
   add: function(id) {
 
     this.queue++;
@@ -2316,6 +2333,7 @@ PLAYGROUND.Loader.prototype = {
   },
 
   /** Report an error to the loader. */
+
   error: function(id) {
 
     this.trigger("error", id);
@@ -2323,6 +2341,7 @@ PLAYGROUND.Loader.prototype = {
   },
 
   /** Report a success to the loader. */
+
   success: function(id) {
 
     this.queue--;
@@ -2338,7 +2357,8 @@ PLAYGROUND.Loader.prototype = {
 
   },
 
-  /** Bring back the loader to ground state */
+  /** Bring loader back to the ground state */
+
   reset: function() {
 
     this.progress = 0;
@@ -2389,8 +2409,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype
   PLAYGROUND.Events.call(this);
 
   this.element = element;
-
-  this.buttons = {};
 
   this.preventContextMenu = true;
 
@@ -3129,8 +3147,6 @@ PLAYGROUND.Touch = function(app, element) {
   this.app = app;
 
   this.element = element;
-
-  this.buttons = {};
 
   this.touches = {};
 
