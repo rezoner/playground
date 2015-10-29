@@ -125,8 +125,8 @@ PLAYGROUND.Keyboard.prototype = {
       }
 
       if (!bypass) {
-        e.returnValue = false;
-        e.keyCode = 0;
+        // e.returnValue = false;
+        // e.keyCode = 0;
         e.preventDefault();
         e.stopPropagation();
       }

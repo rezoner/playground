@@ -3,11 +3,11 @@
 /* hold gamepad state in this[0], [1] and so on */
 /* (dpad) buttons 12-14 are currently overwriten - check step method */
 
- /** Gamepads related functionality.
+/** Gamepads related functionality.
  *
  * The object also works as an array of gamepads, thus
  * PLAYGROUND.Gamepads[0] is the first one.
-  *
+ *
  * Properties:
  * - app: the main application object
  * - buttons: maps numeric ids to button names
@@ -35,6 +35,7 @@ PLAYGROUND.Gamepads = function(app) {
   this.gamepadmoveEvent = {};
   this.gamepaddownEvent = {};
   this.gamepadupEvent = {};
+  this.gamepadholdEvent = {};
 
   this.gamepads = {};
 
@@ -222,6 +223,17 @@ PLAYGROUND.Gamepads.prototype = {
           this.gamepaddownEvent.button = this.buttons[j];
           this.gamepaddownEvent.gamepad = i;
           this.trigger("gamepaddown", this.gamepaddownEvent);
+
+        }
+
+        /* gamepad hold */
+
+        if (buttons[j].pressed) {
+
+          this.gamepadholdEvent.button = this.buttons[j];
+          this.gamepadholdEvent.gamepad = i;
+          this.gamepadholdEvent.dt = this.app.elapsed;
+          this.trigger("gamepadhold", this.gamepadholdEvent);
 
         }
 

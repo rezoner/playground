@@ -1,6 +1,6 @@
 /*     
 
-  Canvas Query r5
+  Canvas Query r6
   
   http://canvasquery.com
   
@@ -8,10 +8,16 @@
   
   Canvas Query may be freely distributed under the MIT license.
 
+  r5
+
   ! fixed: leaking arguments in fastApply bailing out optimization 
   + cacheText
   + compare
   + checkerboard
+
+  r6
+
+  initial ImageBitmap support
 
 */
 
@@ -22,6 +28,7 @@
 
   var Canvas = window.HTMLCanvasElement;
   var Image = window.HTMLImageElement;
+  var ImageBitmap = window.ImageBitmap || window.HTMLImageElement;
   var COCOONJS = navigator.isCocoonJS;
 
   var cq = function(selector) {
@@ -36,6 +43,8 @@
     } else if (typeof selector === "number") {
       var canvas = cq.createCanvas(arguments[0], arguments[1]);
     } else if (selector instanceof Image) {
+      var canvas = cq.createCanvas(selector);
+    } else if (selector instanceof ImageBitmap) {
       var canvas = cq.createCanvas(selector);
     } else if (selector instanceof cq.Layer) {
       return selector;
@@ -199,7 +208,7 @@
         this.tempLayer = cq(1, 1);
       }
 
-      if (width instanceof Image) {
+      if (width instanceof Image || width instanceof ImageBitmap) {
         this.tempLayer.width = width.width;
         this.tempLayer.height = width.height;
         this.tempLayer.context.drawImage(width, 0, 0);
@@ -443,23 +452,31 @@
     },
 
     createCanvas: function(width, height) {
+
       var result = document.createElement("canvas");
 
-      if (arguments[0] instanceof Image || arguments[0] instanceof Canvas) {
+      if (arguments[0] instanceof Image || arguments[0] instanceof Canvas || arguments[0] instanceof ImageBitmap) {
+
         var image = arguments[0];
+        
         result.width = image.width;
         result.height = image.height;
+        
         result.getContext("2d").drawImage(image, 0, 0);
+
       } else {
+
         result.width = width;
         result.height = height;
+
       }
 
-
       return result;
+
     },
 
     createCocoonCanvas: function(width, height) {
+
       var result = document.createElement("screencanvas");
 
       if (arguments[0] instanceof Image) {
@@ -473,10 +490,13 @@
       }
 
       return result;
+
     },
 
     createImageData: function(width, height) {
+
       return cq.createCanvas(width, height).getContext("2d").createImageData(width, height);
+
     }
 
   });
@@ -1617,26 +1637,28 @@
 
           var padding = t.padding;
 
-          this.drawImage(image,
-            region[0] + padding,
-            region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
-            x + padding, y + padding,
-            w - padding * 2,
-            h - padding * 2
-          );
+          if (w > padding * 2 && h > padding * 2) {
+
+            this.drawImage(image,
+              region[0] + padding,
+              region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
+              x + padding, y + padding,
+              w - padding * 2,
+              h - padding * 2
+            );
 
 
-          this.drawImage(image, region[0], region[1] + padding, padding, region[3] - 2 * padding, x, y + padding, padding, h - padding * 2);
-          this.drawImage(image, region[0] + region[2] - padding, region[1] + padding, padding, region[3] - 2 * padding, x + w - padding, y + padding, padding, h - padding * 2);
-          this.drawImage(image, region[0] + padding, region[1], region[2] - padding * 2, padding, x + padding, y, w - padding * 2, padding);
-          this.drawImage(image, region[0] + padding, region[1] + region[3] - padding, region[2] - padding * 2, padding, x + padding, y + h - padding, w - padding * 2, padding);
+            this.drawImage(image, region[0], region[1] + padding, padding, region[3] - 2 * padding, x, y + padding, padding, h - padding * 2);
+            this.drawImage(image, region[0] + region[2] - padding, region[1] + padding, padding, region[3] - 2 * padding, x + w - padding, y + padding, padding, h - padding * 2);
+            this.drawImage(image, region[0] + padding, region[1], region[2] - padding * 2, padding, x + padding, y, w - padding * 2, padding);
+            this.drawImage(image, region[0] + padding, region[1] + region[3] - padding, region[2] - padding * 2, padding, x + padding, y + h - padding, w - padding * 2, padding);
 
-          this.drawImage(image, region[0], region[1], padding, padding, x, y, padding, padding);
-          this.drawImage(image, region[0], region[1] + region[3] - padding, padding, padding, x, y + h - padding, padding, padding);
-          this.drawImage(image, region[0] + region[2] - padding, region[1], padding, padding, x + w - padding, y, padding, padding);
-          this.drawImage(image, region[0] + region[2] - padding, region[1] + region[3] - padding, padding, padding, x + w - padding, y + h - padding, padding, padding);
+            this.drawImage(image, region[0], region[1], padding, padding, x, y, padding, padding);
+            this.drawImage(image, region[0], region[1] + region[3] - padding, padding, padding, x, y + h - padding, padding, padding);
+            this.drawImage(image, region[0] + region[2] - padding, region[1], padding, padding, x + w - padding, y, padding, padding);
+            this.drawImage(image, region[0] + region[2] - padding, region[1] + region[3] - padding, padding, padding, x + w - padding, y + h - padding, padding, padding);
 
-
+          }
 
         }
 

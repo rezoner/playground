@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r7
+  PlaygroundJS r8
   
   http://playgroundjs.com
   
@@ -13,6 +13,11 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r8
+
+  + fixed Transitions for CommonJS
+  + images expand into hierarchy
 
   r7
 
@@ -1011,63 +1016,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.States.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Application.js */
 
-/** Main application object for playground.js
-  
-  The object inherits from PLAYGROUND.Events and generates
-  a number of events:
-
-  - Local events:
-    - create: the application is being constructed
-    - ready: the application has been constructed
-    - imageready: after an image was loaded
-    - states events are broadcasted as local events.
-  - Global events:
-    - preload: allows loading custom resources
-    - resize: window resize event
-    - mouse, touch, keyboard and gamepads subcomponents
-      have their events broadcasted as global events.
-  The arguments that can be used to customize the application at
-  initialization time are:
-  - scale: the scale (may be auto-computed)
-  - width: the width in pixels/scale (may be auto-computed if not specified)
-  - height: the height in pixels/scale (may be auto-computed if not specified)
-  - smoothing:
-  - paths:
-       - base: path always prepended
-       - images: path relative to `base` for images
-       - data: path relative to `base` for json and text files
-       - atlases: texture atlases
-       - sounds: music and sounds in mp3 and ogg formats
-  - skipEvents: prevents core functions from emitting events
-  - disabledUntilLoaded: no events in loading stage
-  - LoadingScreen:
-  - container: the document element hosting display area
-  Internally, the application derives other variables:
-  - autoWidth: adjust the width on resize
-  - autoHeight: adjust the height on resize
-  - autoScale: adjust the scale on resize
-  - customContainer: true if the container is not the body element
-  - offsetX: horizontal offset in pixels for effective drawing area
-  - offsetY: vertical offset in pixels for effective drawing area
-  - center: {x: , y: } in pixels/scale
-  - firstBatch: set to true while initial loading is in progress
-  Inner workings are logically divided into:
-  - loader
-  - states
-  - mouse
-  - touch
-  - keyboard
-  - gamepads
-  - tweens
-  - ease
-  A number of arrays help manage the resources:
-  - images: asset container
-  - atlases: asset container
-  - data: asset container
-  - plugins: list of instantiated plug-ins
-  - data: associative array for data objects loaded
-*/
-
 PLAYGROUND.Application = function(args) {
 
   var app = this;
@@ -1170,7 +1118,7 @@ PLAYGROUND.Application = function(args) {
 
   /* flow */
 
-  this.emitGlobalEvent("preload");
+  this.emitLocalEvent("preload");
 
   this.firstBatch = true;
 
@@ -1234,22 +1182,52 @@ PLAYGROUND.Application.prototype = {
     disabledUntilLoaded: true
   },
 
-  /** Change active state.
-   *
-   * Simply forwarded to PLAYGROUND.States.
-   */
+  /**
+      Change active state.
+      Simply forwarded to PLAYGROUND.States.  
+
+  */
+
   setState: function(state) {
 
     this.states.set(state);
 
   },
 
-  /** Compute a fully qualified path.
+  /**
+
+    Expand string "path/to/something" into objects path.to.something
+    and insert the asset in the end
+
+  */
+
+  insertAsset: function(asset, collection, path) {
+
+    var pathArray = path.split("/");
+
+    var current = collection;
+
+    for (var i = 0; i < pathArray.length - 1; i++) {
+
+      var segment = pathArray[i];
+
+      if (!current[segment]) current[segment] = {};
+
+      current = current[segment];
+
+    }
+
+    current[pathArray.pop()] = asset;
+
+  },
+
+  /* Compute a fully qualified path.
    *
    * `paths.base` is always prepended to the result.
    *
    * @param to a key in `paths` or a string (without ending `/`).
    */
+
   getPath: function(to) {
 
     return this.paths.base + (this.paths[to] || (to + "/"));
@@ -1266,10 +1244,11 @@ PLAYGROUND.Application.prototype = {
    *
    * @returns a dictionary with standardised information
    */
+
   getAssetEntry: function(path, folder, defaultExtension) {
 
     /* translate folder according to user provided paths
-       or leave as is */
+       or leave it as is */
 
     var folder = this.paths[folder] || (folder + "/");
 
@@ -1297,6 +1276,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Emits events that shouldn't flow down to the state. */
+
   emitLocalEvent: function(event, data) {
 
     this.trigger(event, data);
@@ -1306,6 +1286,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Emits events that should be passed to the state. */
+
   emitGlobalEvent: function(event, data) {
 
     if (!this.state) return this.emitLocalEvent(event, data);
@@ -1332,6 +1313,7 @@ PLAYGROUND.Application.prototype = {
    * `offsetX`, `offsetY` and `center` are always updated.
    * `width`, `height` and `scale` may also be updated.
    */
+
   updateSize: function() {
 
     if (this.customContainer) {
@@ -1389,6 +1371,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Responds to windows resize event. */
+
   handleResize: function() {
 
     this.updateSize();
@@ -1405,7 +1388,7 @@ PLAYGROUND.Application.prototype = {
    * It shall be later an abstraction using 'fs' in node-webkit
    *
    * @returns a promise
-  */
+   */
 
   request: function(url) {
 
@@ -1440,6 +1423,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Imaginary timeout to delay loading. */
+
   loadFoo: function(timeout) {
 
     var loader = this.loader;
@@ -1480,6 +1464,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Loads one asset as data/json or text (internal). */
+
   loadDataItem: function(name) {
 
     var entry = this.getAssetEntry(name, "data", "json");
@@ -1516,6 +1501,7 @@ PLAYGROUND.Application.prototype = {
    *
    * The list may be nested.
    */
+
   loadImages: function() {
 
     var promises = [];
@@ -1544,6 +1530,7 @@ PLAYGROUND.Application.prototype = {
 
 
   /** Loads a single image (internal). */
+
   loadOneImage: function(name) {
 
     var app = this;
@@ -1573,6 +1560,8 @@ PLAYGROUND.Application.prototype = {
 
           entry.image = image;
 
+          app.insertAsset(image, app.images, entry.key);
+
           app.emitLocalEvent("imageready", entry);
 
         });
@@ -1596,11 +1585,14 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load a single font.
-   *
-   * At this point it doesn't really load font
-   *  it just ensures the font has been loaded (use css font-face)
-   */
+  /* 
+    Load a single font.
+   
+    At this point it doesn't really load font
+    it just ensures the font has been loaded (use css font-face)
+
+  */
+
   loadFont: function() {
 
     var promises = [];
@@ -1617,14 +1609,18 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load fonts.  */
+  /** Load fonts. */
+
   loadFonts: function() {
 
     return this.loadFont.apply(this, arguments);
 
   },
 
-  /** Load a single font (internal).  */
+  /** Load a single font (internal).  
+      It actually doesn't load any font - just ensures it has been loaded (with css)
+  */
+
   loadFontItem: function(name) {
 
     var app = this;
@@ -1665,6 +1661,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Render placeholder */
+
   render: function() {
 
   }
@@ -1757,11 +1754,11 @@ PLAYGROUND.GameLoop = function(app) {
 /* hold gamepad state in this[0], [1] and so on */
 /* (dpad) buttons 12-14 are currently overwriten - check step method */
 
- /** Gamepads related functionality.
+/** Gamepads related functionality.
  *
  * The object also works as an array of gamepads, thus
  * PLAYGROUND.Gamepads[0] is the first one.
-  *
+ *
  * Properties:
  * - app: the main application object
  * - buttons: maps numeric ids to button names
@@ -1789,6 +1786,7 @@ PLAYGROUND.Gamepads = function(app) {
   this.gamepadmoveEvent = {};
   this.gamepaddownEvent = {};
   this.gamepadupEvent = {};
+  this.gamepadholdEvent = {};
 
   this.gamepads = {};
 
@@ -1979,6 +1977,17 @@ PLAYGROUND.Gamepads.prototype = {
 
         }
 
+        /* gamepad hold */
+
+        if (buttons[j].pressed) {
+
+          this.gamepadholdEvent.button = this.buttons[j];
+          this.gamepadholdEvent.gamepad = i;
+          this.gamepadholdEvent.dt = this.app.elapsed;
+          this.trigger("gamepadhold", this.gamepadholdEvent);
+
+        }
+
         /* gamepad up */
         else if (!buttons[j].pressed && previous.buttons[key]) {
 
@@ -2127,8 +2136,8 @@ PLAYGROUND.Keyboard.prototype = {
       }
 
       if (!bypass) {
-        e.returnValue = false;
-        e.keyCode = 0;
+        // e.returnValue = false;
+        // e.keyCode = 0;
         e.preventDefault();
         e.stopPropagation();
       }
@@ -2592,7 +2601,7 @@ PLAYGROUND.Mouse.prototype = {
           absDeltaXY = 0,
           fn;
 
-        orgEvent.type = "mousewheel";
+        // orgEvent.type = "mousewheel";
 
         // Old school scrollwheel delta
         if (orgEvent.wheelDelta) {
@@ -4067,7 +4076,7 @@ PLAYGROUND.LoadingScreen = {
 
 /*     
 
-  Canvas Query r5
+  Canvas Query r6
   
   http://canvasquery.com
   
@@ -4075,10 +4084,16 @@ PLAYGROUND.LoadingScreen = {
   
   Canvas Query may be freely distributed under the MIT license.
 
+  r5
+
   ! fixed: leaking arguments in fastApply bailing out optimization 
   + cacheText
   + compare
   + checkerboard
+
+  r6
+
+  initial ImageBitmap support
 
 */
 
@@ -4089,6 +4104,7 @@ PLAYGROUND.LoadingScreen = {
 
   var Canvas = window.HTMLCanvasElement;
   var Image = window.HTMLImageElement;
+  var ImageBitmap = window.ImageBitmap || window.HTMLImageElement;
   var COCOONJS = navigator.isCocoonJS;
 
   var cq = function(selector) {
@@ -4103,6 +4119,8 @@ PLAYGROUND.LoadingScreen = {
     } else if (typeof selector === "number") {
       var canvas = cq.createCanvas(arguments[0], arguments[1]);
     } else if (selector instanceof Image) {
+      var canvas = cq.createCanvas(selector);
+    } else if (selector instanceof ImageBitmap) {
       var canvas = cq.createCanvas(selector);
     } else if (selector instanceof cq.Layer) {
       return selector;
@@ -4266,7 +4284,7 @@ PLAYGROUND.LoadingScreen = {
         this.tempLayer = cq(1, 1);
       }
 
-      if (width instanceof Image) {
+      if (width instanceof Image || width instanceof ImageBitmap) {
         this.tempLayer.width = width.width;
         this.tempLayer.height = width.height;
         this.tempLayer.context.drawImage(width, 0, 0);
@@ -4510,23 +4528,31 @@ PLAYGROUND.LoadingScreen = {
     },
 
     createCanvas: function(width, height) {
+
       var result = document.createElement("canvas");
 
-      if (arguments[0] instanceof Image || arguments[0] instanceof Canvas) {
+      if (arguments[0] instanceof Image || arguments[0] instanceof Canvas || arguments[0] instanceof ImageBitmap) {
+
         var image = arguments[0];
+        
         result.width = image.width;
         result.height = image.height;
+        
         result.getContext("2d").drawImage(image, 0, 0);
+
       } else {
+
         result.width = width;
         result.height = height;
+
       }
 
-
       return result;
+
     },
 
     createCocoonCanvas: function(width, height) {
+
       var result = document.createElement("screencanvas");
 
       if (arguments[0] instanceof Image) {
@@ -4540,10 +4566,13 @@ PLAYGROUND.LoadingScreen = {
       }
 
       return result;
+
     },
 
     createImageData: function(width, height) {
+
       return cq.createCanvas(width, height).getContext("2d").createImageData(width, height);
+
     }
 
   });
@@ -5684,26 +5713,28 @@ PLAYGROUND.LoadingScreen = {
 
           var padding = t.padding;
 
-          this.drawImage(image,
-            region[0] + padding,
-            region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
-            x + padding, y + padding,
-            w - padding * 2,
-            h - padding * 2
-          );
+          if (w > padding * 2 && h > padding * 2) {
+
+            this.drawImage(image,
+              region[0] + padding,
+              region[1] + padding, (region[2] - padding * 2), (region[3] - padding * 2),
+              x + padding, y + padding,
+              w - padding * 2,
+              h - padding * 2
+            );
 
 
-          this.drawImage(image, region[0], region[1] + padding, padding, region[3] - 2 * padding, x, y + padding, padding, h - padding * 2);
-          this.drawImage(image, region[0] + region[2] - padding, region[1] + padding, padding, region[3] - 2 * padding, x + w - padding, y + padding, padding, h - padding * 2);
-          this.drawImage(image, region[0] + padding, region[1], region[2] - padding * 2, padding, x + padding, y, w - padding * 2, padding);
-          this.drawImage(image, region[0] + padding, region[1] + region[3] - padding, region[2] - padding * 2, padding, x + padding, y + h - padding, w - padding * 2, padding);
+            this.drawImage(image, region[0], region[1] + padding, padding, region[3] - 2 * padding, x, y + padding, padding, h - padding * 2);
+            this.drawImage(image, region[0] + region[2] - padding, region[1] + padding, padding, region[3] - 2 * padding, x + w - padding, y + padding, padding, h - padding * 2);
+            this.drawImage(image, region[0] + padding, region[1], region[2] - padding * 2, padding, x + padding, y, w - padding * 2, padding);
+            this.drawImage(image, region[0] + padding, region[1] + region[3] - padding, region[2] - padding * 2, padding, x + padding, y + h - padding, w - padding * 2, padding);
 
-          this.drawImage(image, region[0], region[1], padding, padding, x, y, padding, padding);
-          this.drawImage(image, region[0], region[1] + region[3] - padding, padding, padding, x, y + h - padding, padding, padding);
-          this.drawImage(image, region[0] + region[2] - padding, region[1], padding, padding, x + w - padding, y, padding, padding);
-          this.drawImage(image, region[0] + region[2] - padding, region[1] + region[3] - padding, padding, padding, x + w - padding, y + h - padding, padding, padding);
+            this.drawImage(image, region[0], region[1], padding, padding, x, y, padding, padding);
+            this.drawImage(image, region[0], region[1] + region[3] - padding, padding, padding, x, y + h - padding, padding, padding);
+            this.drawImage(image, region[0] + region[2] - padding, region[1], padding, padding, x + w - padding, y, padding, padding);
+            this.drawImage(image, region[0] + region[2] - padding, region[1] + region[3] - padding, padding, padding, x + w - padding, y + h - padding, padding, padding);
 
-
+          }
 
         }
 
@@ -6436,6 +6467,7 @@ PLAYGROUND.Renderer.prototype = {
  *
  * Reference: http://playgroundjs.com/playground-transitions
  */
+
 PLAYGROUND.Transitions = function(app) {
 
   this.app = app;
@@ -6459,7 +6491,7 @@ PLAYGROUND.Transitions.prototype = {
 
   enterstate: function(data) {
 
-    this.screenshot = this.app.layer.cache();
+    this.app.screenshot = this.screenshot = this.app.layer.cache();
 
     if (data.prev) {
 
@@ -6476,7 +6508,7 @@ PLAYGROUND.Transitions.prototype = {
 
     var transition = PLAYGROUND.Transitions[this.app.transition];
 
-    transition(this.progress, this.app.layer, this.screenshot);
+    transition(this.app, this.progress, this.screenshot);
 
   },
 
@@ -6492,37 +6524,36 @@ PLAYGROUND.Transitions.prototype = {
 
 };
 
-PLAYGROUND.Transitions.implode = function(progress, layer, screenshot) {
+PLAYGROUND.Transitions.implode = function(app, progress, screenshot) {
 
   progress = app.ease(progress, "outCubic");
 
   var negative = 1 - progress;
 
-  layer.save();
-  layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
-  layer.drawImage(screenshot, 0, 0);
+  app.layer.save();
+  app.layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
+  app.layer.drawImage(screenshot, 0, 0);
 
-  layer.restore();
+  app.layer.restore();
 
 };
 
-PLAYGROUND.Transitions.split = function(progress, layer, screenshot) {
+PLAYGROUND.Transitions.split = function(app, progress, screenshot) {
 
   progress = app.ease(progress, "inOutCubic");
 
   var negative = 1 - progress;
 
-  layer.save();
+  app.layer.save();
 
-  layer.a(negative).clear("#fff").ra();
+  app.layer.a(negative).clear("#fff").ra();
 
-  layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
-  layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
+  app.layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
+  app.layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
 
-  layer.restore();
+  app.layer.restore();
 
 };
-
 
 /* file: src/layer/LoadingScreen.js */
 
@@ -6531,6 +6562,7 @@ PLAYGROUND.Transitions.split = function(progress, layer, screenshot) {
  * In playground.js build this file will be appended after
  * `src/LoadingScreen.js` and, thus, will override it.
  */
+ 
 PLAYGROUND.LoadingScreen = {
 
   logoRaw: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAAASBAMAAADPiN0xAAAAGFBMVEUAAQAtLixHSUdnaGaJioimqKXMzsv7/fr5shgVAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98EAwkeA4oQWJ4AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAB9klEQVQ4y72UvW+rMBDAz+FrpVKrrFmesmapWNOlrKjSe1kZ+uoVAvj+/frujG1SaJcqJwU7voOf7xMQzQmsIDi5NPTMsLRntH3U+F6SAZo3NlCvcgBFJz8o+vkDiE63lI95Y/UmpinsZWkgJWJiDbAVQ16htptxSTNloIlugwaw001Ey3ASF3so6L1qLNXzQS5S0UGKL/CI5wWNriE0UH9Yty37LqIVg+wsqu7Ix0MwVBSF/dU+jv2SNnma021LEdPqVnMeU3xAu0kXcSGjmq7Ox4E2Wn88LZ2+EFj3avjixzai6VPVyuYveZLHF2XfdDnvAq27DIHGuq+0DJFsE30OtB1KqOwd8Dr7PcM4b+jfj2g5lp4WyntBK66qua3JzEA+uXJpwH/NlVuzRVPY/kTLB2mjuN+KwdZ8FOy8j2gDbEUSqumnSCY4lf4ibq3IhVM4ycZQRnv+zFqVdJQVn6BxvUqebGpuaNo3sZxwBzjajiMZOoBiwyVF+kCr+nUaJOaGpnAeRPPJZTr4FqmHRXcneEo4DqQ/ftfdnLeDrUAME8xWKPeKCwW6YkEpXfs3p1EWJhdcUAYP0TI/uYaV8cgjwBovaeyWwji2T9rTFIdS/cP/MnkTLRUWxgNNZVin7bT5fqT9miDcUVJzR1gRpfIONMmulU+5Qqr6zXAUqAAAAABJRU5ErkJggg==",

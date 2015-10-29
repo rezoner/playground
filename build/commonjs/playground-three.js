@@ -5,7 +5,7 @@ var PLAYGROUND;
 
 /*     
 
-  PlaygroundJS r7
+  PlaygroundJS r8
   
   http://playgroundjs.com
   
@@ -14,6 +14,11 @@ var PLAYGROUND;
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r8
+
+  + fixed Transitions for CommonJS
+  + images expand into hierarchy
 
   r7
 
@@ -1012,63 +1017,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.States.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Application.js */
 
-/** Main application object for playground.js
-  
-  The object inherits from PLAYGROUND.Events and generates
-  a number of events:
-
-  - Local events:
-    - create: the application is being constructed
-    - ready: the application has been constructed
-    - imageready: after an image was loaded
-    - states events are broadcasted as local events.
-  - Global events:
-    - preload: allows loading custom resources
-    - resize: window resize event
-    - mouse, touch, keyboard and gamepads subcomponents
-      have their events broadcasted as global events.
-  The arguments that can be used to customize the application at
-  initialization time are:
-  - scale: the scale (may be auto-computed)
-  - width: the width in pixels/scale (may be auto-computed if not specified)
-  - height: the height in pixels/scale (may be auto-computed if not specified)
-  - smoothing:
-  - paths:
-       - base: path always prepended
-       - images: path relative to `base` for images
-       - data: path relative to `base` for json and text files
-       - atlases: texture atlases
-       - sounds: music and sounds in mp3 and ogg formats
-  - skipEvents: prevents core functions from emitting events
-  - disabledUntilLoaded: no events in loading stage
-  - LoadingScreen:
-  - container: the document element hosting display area
-  Internally, the application derives other variables:
-  - autoWidth: adjust the width on resize
-  - autoHeight: adjust the height on resize
-  - autoScale: adjust the scale on resize
-  - customContainer: true if the container is not the body element
-  - offsetX: horizontal offset in pixels for effective drawing area
-  - offsetY: vertical offset in pixels for effective drawing area
-  - center: {x: , y: } in pixels/scale
-  - firstBatch: set to true while initial loading is in progress
-  Inner workings are logically divided into:
-  - loader
-  - states
-  - mouse
-  - touch
-  - keyboard
-  - gamepads
-  - tweens
-  - ease
-  A number of arrays help manage the resources:
-  - images: asset container
-  - atlases: asset container
-  - data: asset container
-  - plugins: list of instantiated plug-ins
-  - data: associative array for data objects loaded
-*/
-
 PLAYGROUND.Application = function(args) {
 
   var app = this;
@@ -1171,7 +1119,7 @@ PLAYGROUND.Application = function(args) {
 
   /* flow */
 
-  this.emitGlobalEvent("preload");
+  this.emitLocalEvent("preload");
 
   this.firstBatch = true;
 
@@ -1235,22 +1183,52 @@ PLAYGROUND.Application.prototype = {
     disabledUntilLoaded: true
   },
 
-  /** Change active state.
-   *
-   * Simply forwarded to PLAYGROUND.States.
-   */
+  /**
+      Change active state.
+      Simply forwarded to PLAYGROUND.States.  
+
+  */
+
   setState: function(state) {
 
     this.states.set(state);
 
   },
 
-  /** Compute a fully qualified path.
+  /**
+
+    Expand string "path/to/something" into objects path.to.something
+    and insert the asset in the end
+
+  */
+
+  insertAsset: function(asset, collection, path) {
+
+    var pathArray = path.split("/");
+
+    var current = collection;
+
+    for (var i = 0; i < pathArray.length - 1; i++) {
+
+      var segment = pathArray[i];
+
+      if (!current[segment]) current[segment] = {};
+
+      current = current[segment];
+
+    }
+
+    current[pathArray.pop()] = asset;
+
+  },
+
+  /* Compute a fully qualified path.
    *
    * `paths.base` is always prepended to the result.
    *
    * @param to a key in `paths` or a string (without ending `/`).
    */
+
   getPath: function(to) {
 
     return this.paths.base + (this.paths[to] || (to + "/"));
@@ -1267,10 +1245,11 @@ PLAYGROUND.Application.prototype = {
    *
    * @returns a dictionary with standardised information
    */
+
   getAssetEntry: function(path, folder, defaultExtension) {
 
     /* translate folder according to user provided paths
-       or leave as is */
+       or leave it as is */
 
     var folder = this.paths[folder] || (folder + "/");
 
@@ -1298,6 +1277,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Emits events that shouldn't flow down to the state. */
+
   emitLocalEvent: function(event, data) {
 
     this.trigger(event, data);
@@ -1307,6 +1287,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Emits events that should be passed to the state. */
+
   emitGlobalEvent: function(event, data) {
 
     if (!this.state) return this.emitLocalEvent(event, data);
@@ -1333,6 +1314,7 @@ PLAYGROUND.Application.prototype = {
    * `offsetX`, `offsetY` and `center` are always updated.
    * `width`, `height` and `scale` may also be updated.
    */
+
   updateSize: function() {
 
     if (this.customContainer) {
@@ -1390,6 +1372,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Responds to windows resize event. */
+
   handleResize: function() {
 
     this.updateSize();
@@ -1406,7 +1389,7 @@ PLAYGROUND.Application.prototype = {
    * It shall be later an abstraction using 'fs' in node-webkit
    *
    * @returns a promise
-  */
+   */
 
   request: function(url) {
 
@@ -1441,6 +1424,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Imaginary timeout to delay loading. */
+
   loadFoo: function(timeout) {
 
     var loader = this.loader;
@@ -1481,6 +1465,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Loads one asset as data/json or text (internal). */
+
   loadDataItem: function(name) {
 
     var entry = this.getAssetEntry(name, "data", "json");
@@ -1517,6 +1502,7 @@ PLAYGROUND.Application.prototype = {
    *
    * The list may be nested.
    */
+
   loadImages: function() {
 
     var promises = [];
@@ -1545,6 +1531,7 @@ PLAYGROUND.Application.prototype = {
 
 
   /** Loads a single image (internal). */
+
   loadOneImage: function(name) {
 
     var app = this;
@@ -1574,6 +1561,8 @@ PLAYGROUND.Application.prototype = {
 
           entry.image = image;
 
+          app.insertAsset(image, app.images, entry.key);
+
           app.emitLocalEvent("imageready", entry);
 
         });
@@ -1597,11 +1586,14 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load a single font.
-   *
-   * At this point it doesn't really load font
-   *  it just ensures the font has been loaded (use css font-face)
-   */
+  /* 
+    Load a single font.
+   
+    At this point it doesn't really load font
+    it just ensures the font has been loaded (use css font-face)
+
+  */
+
   loadFont: function() {
 
     var promises = [];
@@ -1618,14 +1610,18 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load fonts.  */
+  /** Load fonts. */
+
   loadFonts: function() {
 
     return this.loadFont.apply(this, arguments);
 
   },
 
-  /** Load a single font (internal).  */
+  /** Load a single font (internal).  
+      It actually doesn't load any font - just ensures it has been loaded (with css)
+  */
+
   loadFontItem: function(name) {
 
     var app = this;
@@ -1666,6 +1662,7 @@ PLAYGROUND.Application.prototype = {
   },
 
   /** Render placeholder */
+
   render: function() {
 
   }
@@ -1758,11 +1755,11 @@ PLAYGROUND.GameLoop = function(app) {
 /* hold gamepad state in this[0], [1] and so on */
 /* (dpad) buttons 12-14 are currently overwriten - check step method */
 
- /** Gamepads related functionality.
+/** Gamepads related functionality.
  *
  * The object also works as an array of gamepads, thus
  * PLAYGROUND.Gamepads[0] is the first one.
-  *
+ *
  * Properties:
  * - app: the main application object
  * - buttons: maps numeric ids to button names
@@ -1790,6 +1787,7 @@ PLAYGROUND.Gamepads = function(app) {
   this.gamepadmoveEvent = {};
   this.gamepaddownEvent = {};
   this.gamepadupEvent = {};
+  this.gamepadholdEvent = {};
 
   this.gamepads = {};
 
@@ -1980,6 +1978,17 @@ PLAYGROUND.Gamepads.prototype = {
 
         }
 
+        /* gamepad hold */
+
+        if (buttons[j].pressed) {
+
+          this.gamepadholdEvent.button = this.buttons[j];
+          this.gamepadholdEvent.gamepad = i;
+          this.gamepadholdEvent.dt = this.app.elapsed;
+          this.trigger("gamepadhold", this.gamepadholdEvent);
+
+        }
+
         /* gamepad up */
         else if (!buttons[j].pressed && previous.buttons[key]) {
 
@@ -2128,8 +2137,8 @@ PLAYGROUND.Keyboard.prototype = {
       }
 
       if (!bypass) {
-        e.returnValue = false;
-        e.keyCode = 0;
+        // e.returnValue = false;
+        // e.keyCode = 0;
         e.preventDefault();
         e.stopPropagation();
       }
@@ -2593,7 +2602,7 @@ PLAYGROUND.Mouse.prototype = {
           absDeltaXY = 0,
           fn;
 
-        orgEvent.type = "mousewheel";
+        // orgEvent.type = "mousewheel";
 
         // Old school scrollwheel delta
         if (orgEvent.wheelDelta) {

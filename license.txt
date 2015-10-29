@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r7
+  PlaygroundJS r8
   
   http://playgroundjs.com
   
@@ -9,6 +9,11 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r8
+
+  + fixed Transitions for CommonJS
+  + images expand into hierarchy
 
   r7
 

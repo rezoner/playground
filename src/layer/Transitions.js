@@ -2,6 +2,7 @@
  *
  * Reference: http://playgroundjs.com/playground-transitions
  */
+
 PLAYGROUND.Transitions = function(app) {
 
   this.app = app;
@@ -25,7 +26,7 @@ PLAYGROUND.Transitions.prototype = {
 
   enterstate: function(data) {
 
-    this.screenshot = this.app.layer.cache();
+    this.app.screenshot = this.screenshot = this.app.layer.cache();
 
     if (data.prev) {
 
@@ -42,7 +43,7 @@ PLAYGROUND.Transitions.prototype = {
 
     var transition = PLAYGROUND.Transitions[this.app.transition];
 
-    transition(this.progress, this.app.layer, this.screenshot);
+    transition(this.app, this.progress, this.screenshot);
 
   },
 
@@ -58,33 +59,33 @@ PLAYGROUND.Transitions.prototype = {
 
 };
 
-PLAYGROUND.Transitions.implode = function(progress, layer, screenshot) {
+PLAYGROUND.Transitions.implode = function(app, progress, screenshot) {
 
   progress = app.ease(progress, "outCubic");
 
   var negative = 1 - progress;
 
-  layer.save();
-  layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
-  layer.drawImage(screenshot, 0, 0);
+  app.layer.save();
+  app.layer.tars(app.center.x, app.center.y, 0.5, 0.5, 0, 0.5 + 0.5 * negative, negative);
+  app.layer.drawImage(screenshot, 0, 0);
 
-  layer.restore();
+  app.layer.restore();
 
 };
 
-PLAYGROUND.Transitions.split = function(progress, layer, screenshot) {
+PLAYGROUND.Transitions.split = function(app, progress, screenshot) {
 
   progress = app.ease(progress, "inOutCubic");
 
   var negative = 1 - progress;
 
-  layer.save();
+  app.layer.save();
 
-  layer.a(negative).clear("#fff").ra();
+  app.layer.a(negative).clear("#fff").ra();
 
-  layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
-  layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
+  app.layer.drawImage(screenshot, 0, 0, app.width, app.height / 2 | 0, 0, 0, app.width, negative * app.height / 2 | 0);
+  app.layer.drawImage(screenshot, 0, app.height / 2 | 0, app.width, app.height / 2 | 0, 0, app.height / 2 + progress * app.height / 2 + 1 | 0, app.width, Math.max(1, negative * app.height * 0.5 | 0));
 
-  layer.restore();
+  app.layer.restore();
 
 };

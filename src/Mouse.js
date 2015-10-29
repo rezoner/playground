@@ -220,7 +220,7 @@ PLAYGROUND.Mouse.prototype = {
           absDeltaXY = 0,
           fn;
 
-        orgEvent.type = "mousewheel";
+        // orgEvent.type = "mousewheel";
 
         // Old school scrollwheel delta
         if (orgEvent.wheelDelta) {
