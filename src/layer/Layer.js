@@ -1,10 +1,14 @@
-/** Renderer build on top of CanvasQuery library.
- *
- * The application is enhanced with a `layer` member that
- * provides access to the canvas.
- *
- * Reference: http://playgroundjs.com/playground-layer
- */
+/** 
+  
+  Renderer build on top of CanvasQuery library.
+ 
+  The application is enhanced with a `layer` member that
+  provides access to the canvas.
+ 
+  Reference: http://playgroundjs.com/playground-layer
+
+*/
+
 PLAYGROUND.Renderer = function(app) {
 
   this.app = app;
@@ -47,9 +51,17 @@ PLAYGROUND.Renderer.prototype = {
     layer.canvas.style.webkitTransformStyle = "preserve-3d";
 
     cq.smoothing = this.app.smoothing;
+
     layer.update();
 
     layer.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+
+    layer.canvas.addEventListener("mousedown", function() {
+
+      this.focus();
+
+    });
+
   }
 
 };

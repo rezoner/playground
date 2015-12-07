@@ -13,6 +13,7 @@
  * Callbacks for other events are simply called with
  * `context` and `data`.
  */
+
 PLAYGROUND.Events = function() {
 
   this.listeners = {};
@@ -32,6 +33,7 @@ PLAYGROUND.Events.prototype = {
    *
    * @returns the listner object
    */
+
   on: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -66,6 +68,7 @@ PLAYGROUND.Events.prototype = {
    *
    * @returns the listner object
    */
+
   once: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -97,13 +100,18 @@ PLAYGROUND.Events.prototype = {
    * @param event the name of the event
    * @param callback identifying the listner
    */
+
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
+
       if (this.listeners[event][i] === callback) {
+      
         this.listeners[event].splice(i--, 1);
         len--;
+      
       }
+
     }
 
   },
@@ -117,6 +125,7 @@ PLAYGROUND.Events.prototype = {
    * @param data array of arguments for the callbacks
    *
    */
+
   trigger: function(event, data) {
 
     /* if you prefer events pipe */
@@ -136,6 +145,7 @@ PLAYGROUND.Events.prototype = {
     /* or subscribed to single event */
 
     if (this.listeners[event]) {
+      
       for (var i = 0, len = this.listeners[event].length; i < len; i++) {
 
         var listener = this.listeners[event][i];
@@ -147,6 +157,7 @@ PLAYGROUND.Events.prototype = {
           len--;
         }
       }
+      
     }
 
   }

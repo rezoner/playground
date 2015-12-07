@@ -8,6 +8,11 @@
   
   Canvas Query may be freely distributed under the MIT license.
 
+  r6 
+
+  + drawImageCentered
+  + drawImageRegionCentered
+
   r5
 
   ! fixed: leaking arguments in fastApply bailing out optimization 
@@ -32,24 +37,40 @@
   var COCOONJS = navigator.isCocoonJS;
 
   var cq = function(selector) {
+
     if (arguments.length === 0) {
+
       var canvas = cq.createCanvas(window.innerWidth, window.innerHeight);
+
       window.addEventListener("resize", function() {
         // canvas.width = window.innerWidth;
         // canvas.height = window.innerHeight;
       });
+
     } else if (typeof selector === "string") {
+
       var canvas = document.querySelector(selector);
+
     } else if (typeof selector === "number") {
+
       var canvas = cq.createCanvas(arguments[0], arguments[1]);
+
     } else if (selector instanceof Image) {
+
       var canvas = cq.createCanvas(selector);
+
     } else if (selector instanceof ImageBitmap) {
+
       var canvas = cq.createCanvas(selector);
+
     } else if (selector instanceof cq.Layer) {
+
       return selector;
+
     } else {
+
       var canvas = selector;
+
     }
 
     return new cq.Layer(canvas);
@@ -57,6 +78,7 @@
 
   cq.lineSpacing = 1.0;
   cq.defaultFont = "Arial";
+  cq.textBaseline = "alphabetic";
 
   cq.palettes = {
 
@@ -69,6 +91,7 @@
     nes: ["#7C7C7C", "#0000FC", "#0000BC", "#4428BC", "#940084", "#A80020", "#A81000", "#881400", "#503000", "#007800", "#006800", "#005800", "#004058", "#000000", "#000000", "#000000", "#BCBCBC", "#0078F8", "#0058F8", "#6844FC", "#D800CC", "#E40058", "#F83800", "#E45C10", "#AC7C00", "#00B800", "#00A800", "#00A844", "#008888", "#000000", "#000000", "#000000", "#F8F8F8", "#3CBCFC", "#6888FC", "#9878F8", "#F878F8", "#F85898", "#F87858", "#FCA044", "#F8B800", "#B8F818", "#58D854", "#58F898", "#00E8D8", "#787878", "#000000", "#000000", "#FCFCFC", "#A4E4FC", "#B8B8F8", "#D8B8F8", "#F8B8F8", "#F8A4C0", "#F0D0B0", "#FCE0A8", "#F8D878", "#D8F878", "#B8F8B8", "#B8F8D8", "#00FCFC", "#F8D8F8", "#000000"],
 
   };
+
 
   cq.cocoon = function(selector) {
     if (arguments.length === 0) {
@@ -458,10 +481,10 @@
       if (arguments[0] instanceof Image || arguments[0] instanceof Canvas || arguments[0] instanceof ImageBitmap) {
 
         var image = arguments[0];
-        
+
         result.width = image.width;
         result.height = image.height;
-        
+
         result.getContext("2d").drawImage(image, 0, 0);
 
       } else {
@@ -502,12 +525,14 @@
   });
 
   cq.Layer = function(canvas) {
+
     this.context = canvas.getContext("2d");
     this.canvas = canvas;
     this.alignX = 0;
     this.alignY = 0;
     this.aligned = false;
     this.update();
+
   };
 
   cq.Layer.prototype = {
@@ -522,16 +547,23 @@
 
       this.context.mozImageSmoothingEnabled = smoothing;
       this.context.msImageSmoothingEnabled = smoothing;
+      this.context.webkitImageSmoothingEnabled = smoothing;
       this.context.imageSmoothingEnabled = smoothing;
+      this.context.textBaseline = cq.textBaseline;
 
       if (COCOONJS) Cocoon.Utils.setAntialias(smoothing);
     },
 
     appendTo: function(selector) {
+
       if (typeof selector === "object") {
+
         var element = selector;
+
       } else {
+
         var element = document.querySelector(selector);
+
       }
 
       element.appendChild(this.canvas);
@@ -540,15 +572,25 @@
     },
 
     a: function(a) {
+
       if (arguments.length) {
+        
         this.previousAlpha = this.globalAlpha();
+        
         return this.globalAlpha(a);
-      } else
+
+      } else {
+
         return this.globalAlpha();
+
+      }
+
     },
 
     ra: function() {
+
       return this.a(this.previousAlpha);
+
     },
     /*
         drawImage: function() {
@@ -628,9 +670,13 @@
     fillRect: function() {
 
       if (this.alignX || this.alignY) {
+
         this.context.fillRect(arguments[0] - arguments[2] * this.alignX | 0, arguments[1] - arguments[3] * this.alignY | 0, arguments[2], arguments[3]);
+
       } else {
+
         this.context.fillRect(arguments[0], arguments[1], arguments[2], arguments[3]);
+
       }
 
       // cq.fastApply(this.context.fillRect, this.context, arguments);
@@ -642,9 +688,13 @@
     strokeRect: function() {
 
       if (this.alignX || this.alignY) {
+        
         this.context.strokeRect(arguments[0] - arguments[2] * this.alignX | 0, arguments[1] - arguments[3] * this.alignY | 0, arguments[2], arguments[3]);
+
       } else {
+
         this.context.strokeRect(arguments[0], arguments[1], arguments[2], arguments[3]);
+        
       }
 
       // cq.fastApply(this.context.strokeRect, this.context, arguments);
@@ -682,6 +732,34 @@
       }
 
       // cq.fastApply(this.context.drawImage, this.context, arguments);
+
+      return this;
+
+    },
+
+    drawImageCentered: function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+
+      if (sWidth == null) {
+        sx -= image.width * 0.5 | 0;
+        sy -= image.height * 0.5 | 0;
+      } else {
+        dx -= dWidth * 0.5 | 0;
+        dy -= dHeight * 0.5 | 0;
+      }
+
+      if (sWidth == null) {
+
+        this.context.drawImage(image, sx, sy);
+
+      } else if (dx == null) {
+
+        this.context.drawImage(image, sx, sy, sWidth, sHeight);
+
+      } else {
+
+        this.context.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+
+      }
 
       return this;
 
@@ -764,22 +842,39 @@
     },
 
     drawRegion: function(image, region, x, y, scale) {
+
       scale = scale || 1;
 
       return this.drawImage(
         image, region[0], region[1], region[2], region[3],
         x | 0, y | 0, region[2] * scale | 0, region[3] * scale | 0
       );
+
+    },
+
+    drawRegionCentered: function(image, region, x, y, scale) {
+
+      scale = scale || 1;
+
+      return this.drawImageCentered(
+        image, region[0], region[1], region[2], region[3],
+        x | 0, y | 0, region[2] * scale | 0, region[3] * scale | 0
+      );
+
     },
 
     cache: function() {
+
       return this.clone().canvas;
 
       /* FFS .... image.src is no longer synchronous when assigning dataURL */
 
       var image = new Image;
+
       image.src = this.canvas.toDataURL();
+
       return image;
+
     },
 
     blendOn: function(what, mode, mix) {
@@ -1091,7 +1186,6 @@
     mapPalette: function() {
 
     },
-
 
     polygon: function(array, x, y) {
 
@@ -1579,8 +1673,9 @@
         height: lines.length * h,
         width: maxWidth,
         lines: lines.length,
-        lineHeight: h
+        fontHeight: h
       }
+      
     },
 
     repeatImageRegion: function(image, sx, sy, sw, sh, dx, dy, dw, dh) {

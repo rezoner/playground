@@ -29,9 +29,29 @@ PLAYGROUND.Utils = {
   extend: function() {
 
     for (var i = 1; i < arguments.length; i++) {
+
       for (var j in arguments[i]) {
+
         arguments[0][j] = arguments[i][j];
+
       }
+
+    }
+
+    return arguments[0];
+
+  },
+
+  defaults: function() {
+
+    for (var i = 1; i < arguments.length; i++) {
+
+      for (var j in arguments[i]) {
+
+        if (typeof arguments[0][j] === "undefined") arguments[0][j] = arguments[i][j];
+
+      }
+
     }
 
     return arguments[0];

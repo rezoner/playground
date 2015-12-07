@@ -4,7 +4,7 @@
 
 /*     
 
-  PlaygroundJS r8
+  PlaygroundJS r9
   
   http://playgroundjs.com
   
@@ -13,6 +13,11 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r9
+
+  + json data extend
+  + tween step event
 
   r8
 
@@ -32,7 +37,7 @@
   
   r5
 
-  + game loop nicely split into render and step - check profiler
+  + game loop split into render and step - check profiler
   + fixed loader last item
   + fixed some flow issues
   + imageready event
@@ -497,9 +502,29 @@ PLAYGROUND.Utils = {
   extend: function() {
 
     for (var i = 1; i < arguments.length; i++) {
+
       for (var j in arguments[i]) {
+
         arguments[0][j] = arguments[i][j];
+
       }
+
+    }
+
+    return arguments[0];
+
+  },
+
+  defaults: function() {
+
+    for (var i = 1; i < arguments.length; i++) {
+
+      for (var j in arguments[i]) {
+
+        if (typeof arguments[0][j] === "undefined") arguments[0][j] = arguments[i][j];
+
+      }
+
     }
 
     return arguments[0];
@@ -758,6 +783,7 @@ PLAYGROUND.Utils.ease = ease;
  * Callbacks for other events are simply called with
  * `context` and `data`.
  */
+
 PLAYGROUND.Events = function() {
 
   this.listeners = {};
@@ -777,6 +803,7 @@ PLAYGROUND.Events.prototype = {
    *
    * @returns the listner object
    */
+
   on: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -811,6 +838,7 @@ PLAYGROUND.Events.prototype = {
    *
    * @returns the listner object
    */
+
   once: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -842,13 +870,18 @@ PLAYGROUND.Events.prototype = {
    * @param event the name of the event
    * @param callback identifying the listner
    */
+
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
+
       if (this.listeners[event][i] === callback) {
+      
         this.listeners[event].splice(i--, 1);
         len--;
+      
       }
+
     }
 
   },
@@ -862,6 +895,7 @@ PLAYGROUND.Events.prototype = {
    * @param data array of arguments for the callbacks
    *
    */
+
   trigger: function(event, data) {
 
     /* if you prefer events pipe */
@@ -881,6 +915,7 @@ PLAYGROUND.Events.prototype = {
     /* or subscribed to single event */
 
     if (this.listeners[event]) {
+      
       for (var i = 0, len = this.listeners[event].length; i < len; i++) {
 
         var listener = this.listeners[event][i];
@@ -892,6 +927,7 @@ PLAYGROUND.Events.prototype = {
           len--;
         }
       }
+      
     }
 
   }
@@ -926,6 +962,7 @@ PLAYGROUND.Events.prototype = {
  *
  * Reference: http://playgroundjs.com/playground-states
  */
+
 PLAYGROUND.States = function(app) {
 
   this.app = app;
@@ -939,6 +976,7 @@ PLAYGROUND.States = function(app) {
 PLAYGROUND.States.prototype = {
 
   /** Called each frame to update logic. */
+
   step: function(delta) {
 
     if (!this.next) return;
@@ -999,6 +1037,7 @@ PLAYGROUND.States.prototype = {
    * Don't call this function directly. Instead, use
    * `PLAYGROUND.Application.setState()`.
    */
+   
   set: function(state) {
 
     if (this.current && this.current.leave) this.current.leave();
@@ -1041,6 +1080,8 @@ PLAYGROUND.Application = function(args) {
   if (this.container !== document.body) this.customContainer = true;
 
   if (typeof this.container === "string") this.container = document.querySelector(this.container);
+
+  this.container.style.background = this.background;
 
   this.updateSize();
 
@@ -1171,6 +1212,7 @@ PLAYGROUND.Application = function(args) {
 PLAYGROUND.Application.prototype = {
 
   defaults: {
+    background: "#272822",
     smoothing: 1,
     paths: {
       base: "",
@@ -1477,10 +1519,32 @@ PLAYGROUND.Application.prototype = {
 
     function processData(request) {
 
+      var extend = entry.key.indexOf("/") > -1;
+
       if (entry.ext === "json") {
-        app.data[entry.key] = JSON.parse(request.responseText);
+
+        var data = JSON.parse(request.responseText);
+
+        if (extend) {
+
+          var key = entry.key.split("/")[0];
+
+          if (!app.data[key]) app.data[key] = {};
+
+          PLAYGROUND.Utils.extend(app.data[key], data);
+
+        } else {
+
+          if (!app.data[entry.key]) app.data[entry.key] = {};
+
+          PLAYGROUND.Utils.defaults(app.data[entry.key], data);
+
+        }
+
       } else {
+
         app.data[entry.key] = request.responseText;
+
       }
 
       app.loader.success(entry.url);
@@ -2179,6 +2243,7 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototy
  *
  * Reference: http://playgroundjs.com/playground-pointer
  */
+
 PLAYGROUND.Pointer = function(app) {
 
   this.app = app;
@@ -2194,21 +2259,33 @@ PLAYGROUND.Pointer = function(app) {
 
   this.pointers = app.pointers = {};
 
+  this.lastTap = 0;
+
 };
 
 PLAYGROUND.Pointer.plugin = true;
 
 PLAYGROUND.Pointer.prototype = {
 
-  updatePointer: function(pointer) {
+  updatePointer: function(e) {
 
-    this.pointers[pointer.id] = pointer;
+    if (!this.pointers[e.id]) this.pointers[e.id] = {};
+
+    var pointer = this.pointers[e.id];
+
+    pointer.x = e.x;
+    pointer.y = e.y;
+    pointer.touch = e.touch;
+    pointer.mouse = e.mouse;
+    pointer.id = e.id;
+
+    return pointer;
 
   },
 
-  removePointer: function(pointer) {
+  removePointer: function(e) {
 
-    delete this.pointers[pointer.id];
+    delete this.pointers[e.id];
 
   },
 
@@ -2219,6 +2296,8 @@ PLAYGROUND.Pointer.prototype = {
     this.updatePointer(e);
 
     this.app.emitGlobalEvent("pointerdown", e);
+
+    this.tap(e);
 
   },
 
@@ -2258,6 +2337,8 @@ PLAYGROUND.Pointer.prototype = {
 
     this.app.emitGlobalEvent("pointerdown", e);
 
+    this.tap(e);
+
   },
 
   mouseup: function(e) {
@@ -2274,7 +2355,32 @@ PLAYGROUND.Pointer.prototype = {
 
     this.app.emitGlobalEvent("pointerwheel", e);
 
+  },
+
+  tap: function(e) {
+
+    var pointer = this.pointers[e.id];
+
+    var timeFrame = this.app.lifetime - pointer.lastTap;
+
+    pointer.lastTap = this.app.lifetime;
+
+    if (timeFrame < 0.4 && pointer.lastTapPosition && Utils.distance(pointer, pointer.lastTapPosition) < 5) {
+
+      this.app.emitGlobalEvent("pointerdoubletap", pointer);
+
+      pointer.lastTap = 0;
+
+    }
+
+    pointer.lastTapPosition = {
+      x: e.x,
+      y: e.y
+    };
+
   }
+
+
 
 };
 
@@ -2379,34 +2485,37 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Mouse.js */
 
-/** Mouse related functionality.
- *
- * Properties:
- * - app: the main application object
- * - element: the DOM element we're handling events for
- * - preventContextMenu: don't show default menu
- * - mousemoveEvent: last mouse move event is cached in this
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - mozMovementX, mozMovementY: change in position from previous event
- * - mousedownEvent and mouseupEvent: last button press or release event
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - button: one of `left`, `middle`, `right`
- * - x, y: alias for mousemoveEvent.x, .y
- *
- * Events generated by this object (PLAYGROUND.Application.mouseToTouch
- * decides the variant to trigger):
- * - touchmove or mousemove: change in position
- * - touchstart or mousedown: action starts
- * - touchend or mouseup: action ends
- * - mousewheel: wheel event
- *
- * Reference: http://playgroundjs.com/playground-mouse
+/** 
+
+  Mouse related functionality.
+
+  Properties:
+  - app: the main application object
+  - element: the DOM element we're handling events for
+  - preventContextMenu: don't show default menu
+  - mousemoveEvent: last mouse move event is cached in this
+      - id, identifier: event id for compatibility with touches
+      - x, y: the absolute position in pixels
+      - original: original event
+      - mozMovementX, mozMovementY: change in position from previous event
+  - mousedownEvent and mouseupEvent: last button press or release event
+      - id, identifier: event id for compatibility with touches
+      - x, y: the absolute position in pixels
+      - original: original event
+      - button: one of `left`, `middle`, `right`
+  - x, y: alias for mousemoveEvent.x, .y
+  Events generated by this object (PLAYGROUND.Application.mouseToTouch
+  decides the variant to trigger):
+  - touchmove or mousemove: change in position
+  - touchstart or mousedown: action starts
+  - touchend or mouseup: action ends
+  - mousewheel: wheel event
+ 
+  Reference: http://playgroundjs.com/playground-mouse
+
  */
- PLAYGROUND.Mouse = function(app, element) {
+
+PLAYGROUND.Mouse = function(app, element) {
 
   var self = this;
 
@@ -3489,19 +3598,13 @@ PLAYGROUND.Tween.prototype = {
         });
 
         this.index = 0;
+
       } else {
 
-        this.trigger("finished", {
-          tween: this
-        });
-
-        this.trigger("finish", {
-          tween: this
-        });
-
-        this.finished = true;
         this.manager.remove(this);
+
         return;
+
       }
     }
 
@@ -3577,11 +3680,13 @@ PLAYGROUND.Tween.prototype = {
   },
 
   /** TBD */
+
   prev: function() {
 
   },
 
   /** Select an action if none is current then perform required steps. */
+
   step: function(delta) {
 
     this.delta += delta;
@@ -3649,7 +3754,18 @@ PLAYGROUND.Tween.prototype = {
     }
 
     if (this.progress >= 1) {
+
       this.next();
+
+    }
+
+    if (this.listeners["step"]) {
+
+      this.trigger("step", {
+        tween: this,
+        dt: delta
+      });
+
     }
 
   },
@@ -3659,10 +3775,25 @@ PLAYGROUND.Tween.prototype = {
    * The function is called in response to `step()`; it will advance the
    * index to next slot in the animation if
    */
+
   doWait: function(delta) {
 
     if (this.delta >= this.duration) this.next();
 
+  },
+
+  onremove: function() {
+
+    this.trigger("finished", {
+      tween: this
+    });
+
+    this.trigger("finish", {
+      tween: this
+    });
+
+    this.finished = true;
+    
   }
 
 };
@@ -3754,6 +3885,7 @@ PLAYGROUND.TweenManager.prototype = {
    * tagged as such.
    *
    */
+
   step: function(delta) {
 
     this.delta += delta;
@@ -3771,6 +3903,7 @@ PLAYGROUND.TweenManager.prototype = {
   },
 
   /** Add a tween to internal list. */
+
   add: function(tween) {
 
     tween._remove = false;
@@ -3781,15 +3914,17 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-   /** Marks a tween for removing during next step(). */
+  /** Marks a tween for removing during next step(). */
+
   remove: function(tween) {
+
+    tween.onremove();
 
     tween._remove = true;
 
   }
 
 };
-
 
 /* file: src/Atlases.js */
 
@@ -4084,6 +4219,11 @@ PLAYGROUND.LoadingScreen = {
   
   Canvas Query may be freely distributed under the MIT license.
 
+  r6 
+
+  + drawImageCentered
+  + drawImageRegionCentered
+
   r5
 
   ! fixed: leaking arguments in fastApply bailing out optimization 
@@ -4108,24 +4248,40 @@ PLAYGROUND.LoadingScreen = {
   var COCOONJS = navigator.isCocoonJS;
 
   var cq = function(selector) {
+
     if (arguments.length === 0) {
+
       var canvas = cq.createCanvas(window.innerWidth, window.innerHeight);
+
       window.addEventListener("resize", function() {
         // canvas.width = window.innerWidth;
         // canvas.height = window.innerHeight;
       });
+
     } else if (typeof selector === "string") {
+
       var canvas = document.querySelector(selector);
+
     } else if (typeof selector === "number") {
+
       var canvas = cq.createCanvas(arguments[0], arguments[1]);
+
     } else if (selector instanceof Image) {
+
       var canvas = cq.createCanvas(selector);
+
     } else if (selector instanceof ImageBitmap) {
+
       var canvas = cq.createCanvas(selector);
+
     } else if (selector instanceof cq.Layer) {
+
       return selector;
+
     } else {
+
       var canvas = selector;
+
     }
 
     return new cq.Layer(canvas);
@@ -4133,6 +4289,7 @@ PLAYGROUND.LoadingScreen = {
 
   cq.lineSpacing = 1.0;
   cq.defaultFont = "Arial";
+  cq.textBaseline = "alphabetic";
 
   cq.palettes = {
 
@@ -4145,6 +4302,7 @@ PLAYGROUND.LoadingScreen = {
     nes: ["#7C7C7C", "#0000FC", "#0000BC", "#4428BC", "#940084", "#A80020", "#A81000", "#881400", "#503000", "#007800", "#006800", "#005800", "#004058", "#000000", "#000000", "#000000", "#BCBCBC", "#0078F8", "#0058F8", "#6844FC", "#D800CC", "#E40058", "#F83800", "#E45C10", "#AC7C00", "#00B800", "#00A800", "#00A844", "#008888", "#000000", "#000000", "#000000", "#F8F8F8", "#3CBCFC", "#6888FC", "#9878F8", "#F878F8", "#F85898", "#F87858", "#FCA044", "#F8B800", "#B8F818", "#58D854", "#58F898", "#00E8D8", "#787878", "#000000", "#000000", "#FCFCFC", "#A4E4FC", "#B8B8F8", "#D8B8F8", "#F8B8F8", "#F8A4C0", "#F0D0B0", "#FCE0A8", "#F8D878", "#D8F878", "#B8F8B8", "#B8F8D8", "#00FCFC", "#F8D8F8", "#000000"],
 
   };
+
 
   cq.cocoon = function(selector) {
     if (arguments.length === 0) {
@@ -4534,10 +4692,10 @@ PLAYGROUND.LoadingScreen = {
       if (arguments[0] instanceof Image || arguments[0] instanceof Canvas || arguments[0] instanceof ImageBitmap) {
 
         var image = arguments[0];
-        
+
         result.width = image.width;
         result.height = image.height;
-        
+
         result.getContext("2d").drawImage(image, 0, 0);
 
       } else {
@@ -4578,12 +4736,14 @@ PLAYGROUND.LoadingScreen = {
   });
 
   cq.Layer = function(canvas) {
+
     this.context = canvas.getContext("2d");
     this.canvas = canvas;
     this.alignX = 0;
     this.alignY = 0;
     this.aligned = false;
     this.update();
+
   };
 
   cq.Layer.prototype = {
@@ -4598,16 +4758,23 @@ PLAYGROUND.LoadingScreen = {
 
       this.context.mozImageSmoothingEnabled = smoothing;
       this.context.msImageSmoothingEnabled = smoothing;
+      this.context.webkitImageSmoothingEnabled = smoothing;
       this.context.imageSmoothingEnabled = smoothing;
+      this.context.textBaseline = cq.textBaseline;
 
       if (COCOONJS) Cocoon.Utils.setAntialias(smoothing);
     },
 
     appendTo: function(selector) {
+
       if (typeof selector === "object") {
+
         var element = selector;
+
       } else {
+
         var element = document.querySelector(selector);
+
       }
 
       element.appendChild(this.canvas);
@@ -4616,15 +4783,25 @@ PLAYGROUND.LoadingScreen = {
     },
 
     a: function(a) {
+
       if (arguments.length) {
+        
         this.previousAlpha = this.globalAlpha();
+        
         return this.globalAlpha(a);
-      } else
+
+      } else {
+
         return this.globalAlpha();
+
+      }
+
     },
 
     ra: function() {
+
       return this.a(this.previousAlpha);
+
     },
     /*
         drawImage: function() {
@@ -4704,9 +4881,13 @@ PLAYGROUND.LoadingScreen = {
     fillRect: function() {
 
       if (this.alignX || this.alignY) {
+
         this.context.fillRect(arguments[0] - arguments[2] * this.alignX | 0, arguments[1] - arguments[3] * this.alignY | 0, arguments[2], arguments[3]);
+
       } else {
+
         this.context.fillRect(arguments[0], arguments[1], arguments[2], arguments[3]);
+
       }
 
       // cq.fastApply(this.context.fillRect, this.context, arguments);
@@ -4718,9 +4899,13 @@ PLAYGROUND.LoadingScreen = {
     strokeRect: function() {
 
       if (this.alignX || this.alignY) {
+        
         this.context.strokeRect(arguments[0] - arguments[2] * this.alignX | 0, arguments[1] - arguments[3] * this.alignY | 0, arguments[2], arguments[3]);
+
       } else {
+
         this.context.strokeRect(arguments[0], arguments[1], arguments[2], arguments[3]);
+        
       }
 
       // cq.fastApply(this.context.strokeRect, this.context, arguments);
@@ -4758,6 +4943,34 @@ PLAYGROUND.LoadingScreen = {
       }
 
       // cq.fastApply(this.context.drawImage, this.context, arguments);
+
+      return this;
+
+    },
+
+    drawImageCentered: function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+
+      if (sWidth == null) {
+        sx -= image.width * 0.5 | 0;
+        sy -= image.height * 0.5 | 0;
+      } else {
+        dx -= dWidth * 0.5 | 0;
+        dy -= dHeight * 0.5 | 0;
+      }
+
+      if (sWidth == null) {
+
+        this.context.drawImage(image, sx, sy);
+
+      } else if (dx == null) {
+
+        this.context.drawImage(image, sx, sy, sWidth, sHeight);
+
+      } else {
+
+        this.context.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+
+      }
 
       return this;
 
@@ -4840,22 +5053,39 @@ PLAYGROUND.LoadingScreen = {
     },
 
     drawRegion: function(image, region, x, y, scale) {
+
       scale = scale || 1;
 
       return this.drawImage(
         image, region[0], region[1], region[2], region[3],
         x | 0, y | 0, region[2] * scale | 0, region[3] * scale | 0
       );
+
+    },
+
+    drawRegionCentered: function(image, region, x, y, scale) {
+
+      scale = scale || 1;
+
+      return this.drawImageCentered(
+        image, region[0], region[1], region[2], region[3],
+        x | 0, y | 0, region[2] * scale | 0, region[3] * scale | 0
+      );
+
     },
 
     cache: function() {
+
       return this.clone().canvas;
 
       /* FFS .... image.src is no longer synchronous when assigning dataURL */
 
       var image = new Image;
+
       image.src = this.canvas.toDataURL();
+
       return image;
+
     },
 
     blendOn: function(what, mode, mix) {
@@ -5167,7 +5397,6 @@ PLAYGROUND.LoadingScreen = {
     mapPalette: function() {
 
     },
-
 
     polygon: function(array, x, y) {
 
@@ -5655,8 +5884,9 @@ PLAYGROUND.LoadingScreen = {
         height: lines.length * h,
         width: maxWidth,
         lines: lines.length,
-        lineHeight: h
+        fontHeight: h
       }
+      
     },
 
     repeatImageRegion: function(image, sx, sy, sw, sh, dx, dy, dw, dh) {
@@ -6405,13 +6635,17 @@ PLAYGROUND.LoadingScreen = {
 
 /* file: src/layer/Layer.js */
 
-/** Renderer build on top of CanvasQuery library.
- *
- * The application is enhanced with a `layer` member that
- * provides access to the canvas.
- *
- * Reference: http://playgroundjs.com/playground-layer
- */
+/** 
+  
+  Renderer build on top of CanvasQuery library.
+ 
+  The application is enhanced with a `layer` member that
+  provides access to the canvas.
+ 
+  Reference: http://playgroundjs.com/playground-layer
+
+*/
+
 PLAYGROUND.Renderer = function(app) {
 
   this.app = app;
@@ -6454,9 +6688,17 @@ PLAYGROUND.Renderer.prototype = {
     layer.canvas.style.webkitTransformStyle = "preserve-3d";
 
     cq.smoothing = this.app.smoothing;
+
     layer.update();
 
     layer.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+
+    layer.canvas.addEventListener("mousedown", function() {
+
+      this.focus();
+
+    });
+
   }
 
 };
@@ -6562,7 +6804,7 @@ PLAYGROUND.Transitions.split = function(app, progress, screenshot) {
  * In playground.js build this file will be appended after
  * `src/LoadingScreen.js` and, thus, will override it.
  */
- 
+
 PLAYGROUND.LoadingScreen = {
 
   logoRaw: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAAASBAMAAADPiN0xAAAAGFBMVEUAAQAtLixHSUdnaGaJioimqKXMzsv7/fr5shgVAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98EAwkeA4oQWJ4AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAB9klEQVQ4y72UvW+rMBDAz+FrpVKrrFmesmapWNOlrKjSe1kZ+uoVAvj+/frujG1SaJcqJwU7voOf7xMQzQmsIDi5NPTMsLRntH3U+F6SAZo3NlCvcgBFJz8o+vkDiE63lI95Y/UmpinsZWkgJWJiDbAVQ16htptxSTNloIlugwaw001Ey3ASF3so6L1qLNXzQS5S0UGKL/CI5wWNriE0UH9Yty37LqIVg+wsqu7Ix0MwVBSF/dU+jv2SNnma021LEdPqVnMeU3xAu0kXcSGjmq7Ox4E2Wn88LZ2+EFj3avjixzai6VPVyuYveZLHF2XfdDnvAq27DIHGuq+0DJFsE30OtB1KqOwd8Dr7PcM4b+jfj2g5lp4WyntBK66qua3JzEA+uXJpwH/NlVuzRVPY/kTLB2mjuN+KwdZ8FOy8j2gDbEUSqumnSCY4lf4ibq3IhVM4ycZQRnv+zFqVdJQVn6BxvUqebGpuaNo3sZxwBzjajiMZOoBiwyVF+kCr+nUaJOaGpnAeRPPJZTr4FqmHRXcneEo4DqQ/ftfdnLeDrUAME8xWKPeKCwW6YkEpXfs3p1EWJhdcUAYP0TI/uYaV8cgjwBovaeyWwji2T9rTFIdS/cP/MnkTLRUWxgNNZVin7bT5fqT9miDcUVJzR1gRpfIONMmulU+5Qqr6zXAUqAAAAABJRU5ErkJggg==",
@@ -6579,8 +6821,6 @@ PLAYGROUND.LoadingScreen = {
 
     this.logo.src = this.logoRaw;
 
-    this.background = "#272822";
-    this.app.container.style.background = "#272822";
 
     if (window.getComputedStyle) {
       // this.background = window.getComputedStyle(document.body).backgroundColor || "#000";
@@ -6625,7 +6865,7 @@ PLAYGROUND.LoadingScreen = {
 
     if (!this.ready) return;
 
-    this.app.layer.clear(this.background);
+    this.app.layer.clear(this.app.background);
 
     this.app.layer.fillStyle("#fff");
 

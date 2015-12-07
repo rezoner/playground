@@ -11,6 +11,7 @@
  *
  * Reference: http://playgroundjs.com/playground-pointer
  */
+
 PLAYGROUND.Pointer = function(app) {
 
   this.app = app;
@@ -26,21 +27,33 @@ PLAYGROUND.Pointer = function(app) {
 
   this.pointers = app.pointers = {};
 
+  this.lastTap = 0;
+
 };
 
 PLAYGROUND.Pointer.plugin = true;
 
 PLAYGROUND.Pointer.prototype = {
 
-  updatePointer: function(pointer) {
+  updatePointer: function(e) {
 
-    this.pointers[pointer.id] = pointer;
+    if (!this.pointers[e.id]) this.pointers[e.id] = {};
+
+    var pointer = this.pointers[e.id];
+
+    pointer.x = e.x;
+    pointer.y = e.y;
+    pointer.touch = e.touch;
+    pointer.mouse = e.mouse;
+    pointer.id = e.id;
+
+    return pointer;
 
   },
 
-  removePointer: function(pointer) {
+  removePointer: function(e) {
 
-    delete this.pointers[pointer.id];
+    delete this.pointers[e.id];
 
   },
 
@@ -51,6 +64,8 @@ PLAYGROUND.Pointer.prototype = {
     this.updatePointer(e);
 
     this.app.emitGlobalEvent("pointerdown", e);
+
+    this.tap(e);
 
   },
 
@@ -90,6 +105,8 @@ PLAYGROUND.Pointer.prototype = {
 
     this.app.emitGlobalEvent("pointerdown", e);
 
+    this.tap(e);
+
   },
 
   mouseup: function(e) {
@@ -106,6 +123,31 @@ PLAYGROUND.Pointer.prototype = {
 
     this.app.emitGlobalEvent("pointerwheel", e);
 
+  },
+
+  tap: function(e) {
+
+    var pointer = this.pointers[e.id];
+
+    var timeFrame = this.app.lifetime - pointer.lastTap;
+
+    pointer.lastTap = this.app.lifetime;
+
+    if (timeFrame < 0.4 && pointer.lastTapPosition && Utils.distance(pointer, pointer.lastTapPosition) < 5) {
+
+      this.app.emitGlobalEvent("pointerdoubletap", pointer);
+
+      pointer.lastTap = 0;
+
+    }
+
+    pointer.lastTapPosition = {
+      x: e.x,
+      y: e.y
+    };
+
   }
+
+
 
 };

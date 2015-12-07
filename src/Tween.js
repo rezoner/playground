@@ -214,19 +214,13 @@ PLAYGROUND.Tween.prototype = {
         });
 
         this.index = 0;
+
       } else {
 
-        this.trigger("finished", {
-          tween: this
-        });
-
-        this.trigger("finish", {
-          tween: this
-        });
-
-        this.finished = true;
         this.manager.remove(this);
+
         return;
+
       }
     }
 
@@ -302,11 +296,13 @@ PLAYGROUND.Tween.prototype = {
   },
 
   /** TBD */
+
   prev: function() {
 
   },
 
   /** Select an action if none is current then perform required steps. */
+
   step: function(delta) {
 
     this.delta += delta;
@@ -374,7 +370,18 @@ PLAYGROUND.Tween.prototype = {
     }
 
     if (this.progress >= 1) {
+
       this.next();
+
+    }
+
+    if (this.listeners["step"]) {
+
+      this.trigger("step", {
+        tween: this,
+        dt: delta
+      });
+
     }
 
   },
@@ -384,10 +391,25 @@ PLAYGROUND.Tween.prototype = {
    * The function is called in response to `step()`; it will advance the
    * index to next slot in the animation if
    */
+
   doWait: function(delta) {
 
     if (this.delta >= this.duration) this.next();
 
+  },
+
+  onremove: function() {
+
+    this.trigger("finished", {
+      tween: this
+    });
+
+    this.trigger("finish", {
+      tween: this
+    });
+
+    this.finished = true;
+    
   }
 
 };
@@ -479,6 +501,7 @@ PLAYGROUND.TweenManager.prototype = {
    * tagged as such.
    *
    */
+
   step: function(delta) {
 
     this.delta += delta;
@@ -496,6 +519,7 @@ PLAYGROUND.TweenManager.prototype = {
   },
 
   /** Add a tween to internal list. */
+
   add: function(tween) {
 
     tween._remove = false;
@@ -506,8 +530,11 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-   /** Marks a tween for removing during next step(). */
+  /** Marks a tween for removing during next step(). */
+
   remove: function(tween) {
+
+    tween.onremove();
 
     tween._remove = true;
 

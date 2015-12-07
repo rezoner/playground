@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r8
+  PlaygroundJS r9
   
   http://playgroundjs.com
   
@@ -9,6 +9,11 @@
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r9
+
+  + json data extend
+  + tween step event
 
   r8
 
@@ -28,7 +33,7 @@
   
   r5
 
-  + game loop nicely split into render and step - check profiler
+  + game loop split into render and step - check profiler
   + fixed loader last item
   + fixed some flow issues
   + imageready event

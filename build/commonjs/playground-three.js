@@ -5,7 +5,7 @@ var PLAYGROUND;
 
 /*     
 
-  PlaygroundJS r8
+  PlaygroundJS r9
   
   http://playgroundjs.com
   
@@ -14,6 +14,11 @@ var PLAYGROUND;
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r9
+
+  + json data extend
+  + tween step event
 
   r8
 
@@ -33,7 +38,7 @@ var PLAYGROUND;
   
   r5
 
-  + game loop nicely split into render and step - check profiler
+  + game loop split into render and step - check profiler
   + fixed loader last item
   + fixed some flow issues
   + imageready event
@@ -498,9 +503,29 @@ PLAYGROUND.Utils = {
   extend: function() {
 
     for (var i = 1; i < arguments.length; i++) {
+
       for (var j in arguments[i]) {
+
         arguments[0][j] = arguments[i][j];
+
       }
+
+    }
+
+    return arguments[0];
+
+  },
+
+  defaults: function() {
+
+    for (var i = 1; i < arguments.length; i++) {
+
+      for (var j in arguments[i]) {
+
+        if (typeof arguments[0][j] === "undefined") arguments[0][j] = arguments[i][j];
+
+      }
+
     }
 
     return arguments[0];
@@ -759,6 +784,7 @@ PLAYGROUND.Utils.ease = ease;
  * Callbacks for other events are simply called with
  * `context` and `data`.
  */
+
 PLAYGROUND.Events = function() {
 
   this.listeners = {};
@@ -778,6 +804,7 @@ PLAYGROUND.Events.prototype = {
    *
    * @returns the listner object
    */
+
   on: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -812,6 +839,7 @@ PLAYGROUND.Events.prototype = {
    *
    * @returns the listner object
    */
+
   once: function(event, callback, context) {
 
     if (typeof event === "object") {
@@ -843,13 +871,18 @@ PLAYGROUND.Events.prototype = {
    * @param event the name of the event
    * @param callback identifying the listner
    */
+
   off: function(event, callback) {
 
     for (var i = 0, len = this.listeners[event].length; i < len; i++) {
+
       if (this.listeners[event][i] === callback) {
+      
         this.listeners[event].splice(i--, 1);
         len--;
+      
       }
+
     }
 
   },
@@ -863,6 +896,7 @@ PLAYGROUND.Events.prototype = {
    * @param data array of arguments for the callbacks
    *
    */
+
   trigger: function(event, data) {
 
     /* if you prefer events pipe */
@@ -882,6 +916,7 @@ PLAYGROUND.Events.prototype = {
     /* or subscribed to single event */
 
     if (this.listeners[event]) {
+      
       for (var i = 0, len = this.listeners[event].length; i < len; i++) {
 
         var listener = this.listeners[event][i];
@@ -893,6 +928,7 @@ PLAYGROUND.Events.prototype = {
           len--;
         }
       }
+      
     }
 
   }
@@ -927,6 +963,7 @@ PLAYGROUND.Events.prototype = {
  *
  * Reference: http://playgroundjs.com/playground-states
  */
+
 PLAYGROUND.States = function(app) {
 
   this.app = app;
@@ -940,6 +977,7 @@ PLAYGROUND.States = function(app) {
 PLAYGROUND.States.prototype = {
 
   /** Called each frame to update logic. */
+
   step: function(delta) {
 
     if (!this.next) return;
@@ -1000,6 +1038,7 @@ PLAYGROUND.States.prototype = {
    * Don't call this function directly. Instead, use
    * `PLAYGROUND.Application.setState()`.
    */
+   
   set: function(state) {
 
     if (this.current && this.current.leave) this.current.leave();
@@ -1042,6 +1081,8 @@ PLAYGROUND.Application = function(args) {
   if (this.container !== document.body) this.customContainer = true;
 
   if (typeof this.container === "string") this.container = document.querySelector(this.container);
+
+  this.container.style.background = this.background;
 
   this.updateSize();
 
@@ -1172,6 +1213,7 @@ PLAYGROUND.Application = function(args) {
 PLAYGROUND.Application.prototype = {
 
   defaults: {
+    background: "#272822",
     smoothing: 1,
     paths: {
       base: "",
@@ -1478,10 +1520,32 @@ PLAYGROUND.Application.prototype = {
 
     function processData(request) {
 
+      var extend = entry.key.indexOf("/") > -1;
+
       if (entry.ext === "json") {
-        app.data[entry.key] = JSON.parse(request.responseText);
+
+        var data = JSON.parse(request.responseText);
+
+        if (extend) {
+
+          var key = entry.key.split("/")[0];
+
+          if (!app.data[key]) app.data[key] = {};
+
+          PLAYGROUND.Utils.extend(app.data[key], data);
+
+        } else {
+
+          if (!app.data[entry.key]) app.data[entry.key] = {};
+
+          PLAYGROUND.Utils.defaults(app.data[entry.key], data);
+
+        }
+
       } else {
+
         app.data[entry.key] = request.responseText;
+
       }
 
       app.loader.success(entry.url);
@@ -2180,6 +2244,7 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototy
  *
  * Reference: http://playgroundjs.com/playground-pointer
  */
+
 PLAYGROUND.Pointer = function(app) {
 
   this.app = app;
@@ -2195,21 +2260,33 @@ PLAYGROUND.Pointer = function(app) {
 
   this.pointers = app.pointers = {};
 
+  this.lastTap = 0;
+
 };
 
 PLAYGROUND.Pointer.plugin = true;
 
 PLAYGROUND.Pointer.prototype = {
 
-  updatePointer: function(pointer) {
+  updatePointer: function(e) {
 
-    this.pointers[pointer.id] = pointer;
+    if (!this.pointers[e.id]) this.pointers[e.id] = {};
+
+    var pointer = this.pointers[e.id];
+
+    pointer.x = e.x;
+    pointer.y = e.y;
+    pointer.touch = e.touch;
+    pointer.mouse = e.mouse;
+    pointer.id = e.id;
+
+    return pointer;
 
   },
 
-  removePointer: function(pointer) {
+  removePointer: function(e) {
 
-    delete this.pointers[pointer.id];
+    delete this.pointers[e.id];
 
   },
 
@@ -2220,6 +2297,8 @@ PLAYGROUND.Pointer.prototype = {
     this.updatePointer(e);
 
     this.app.emitGlobalEvent("pointerdown", e);
+
+    this.tap(e);
 
   },
 
@@ -2259,6 +2338,8 @@ PLAYGROUND.Pointer.prototype = {
 
     this.app.emitGlobalEvent("pointerdown", e);
 
+    this.tap(e);
+
   },
 
   mouseup: function(e) {
@@ -2275,7 +2356,32 @@ PLAYGROUND.Pointer.prototype = {
 
     this.app.emitGlobalEvent("pointerwheel", e);
 
+  },
+
+  tap: function(e) {
+
+    var pointer = this.pointers[e.id];
+
+    var timeFrame = this.app.lifetime - pointer.lastTap;
+
+    pointer.lastTap = this.app.lifetime;
+
+    if (timeFrame < 0.4 && pointer.lastTapPosition && Utils.distance(pointer, pointer.lastTapPosition) < 5) {
+
+      this.app.emitGlobalEvent("pointerdoubletap", pointer);
+
+      pointer.lastTap = 0;
+
+    }
+
+    pointer.lastTapPosition = {
+      x: e.x,
+      y: e.y
+    };
+
   }
+
+
 
 };
 
@@ -2380,34 +2486,37 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Mouse.js */
 
-/** Mouse related functionality.
- *
- * Properties:
- * - app: the main application object
- * - element: the DOM element we're handling events for
- * - preventContextMenu: don't show default menu
- * - mousemoveEvent: last mouse move event is cached in this
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - mozMovementX, mozMovementY: change in position from previous event
- * - mousedownEvent and mouseupEvent: last button press or release event
- *     - id, identifier: event id for compatibility with touches
- *     - x, y: the absolute position in pixels
- *     - original: original event
- *     - button: one of `left`, `middle`, `right`
- * - x, y: alias for mousemoveEvent.x, .y
- *
- * Events generated by this object (PLAYGROUND.Application.mouseToTouch
- * decides the variant to trigger):
- * - touchmove or mousemove: change in position
- * - touchstart or mousedown: action starts
- * - touchend or mouseup: action ends
- * - mousewheel: wheel event
- *
- * Reference: http://playgroundjs.com/playground-mouse
+/** 
+
+  Mouse related functionality.
+
+  Properties:
+  - app: the main application object
+  - element: the DOM element we're handling events for
+  - preventContextMenu: don't show default menu
+  - mousemoveEvent: last mouse move event is cached in this
+      - id, identifier: event id for compatibility with touches
+      - x, y: the absolute position in pixels
+      - original: original event
+      - mozMovementX, mozMovementY: change in position from previous event
+  - mousedownEvent and mouseupEvent: last button press or release event
+      - id, identifier: event id for compatibility with touches
+      - x, y: the absolute position in pixels
+      - original: original event
+      - button: one of `left`, `middle`, `right`
+  - x, y: alias for mousemoveEvent.x, .y
+  Events generated by this object (PLAYGROUND.Application.mouseToTouch
+  decides the variant to trigger):
+  - touchmove or mousemove: change in position
+  - touchstart or mousedown: action starts
+  - touchend or mouseup: action ends
+  - mousewheel: wheel event
+ 
+  Reference: http://playgroundjs.com/playground-mouse
+
  */
- PLAYGROUND.Mouse = function(app, element) {
+
+PLAYGROUND.Mouse = function(app, element) {
 
   var self = this;
 
@@ -3490,19 +3599,13 @@ PLAYGROUND.Tween.prototype = {
         });
 
         this.index = 0;
+
       } else {
 
-        this.trigger("finished", {
-          tween: this
-        });
-
-        this.trigger("finish", {
-          tween: this
-        });
-
-        this.finished = true;
         this.manager.remove(this);
+
         return;
+
       }
     }
 
@@ -3578,11 +3681,13 @@ PLAYGROUND.Tween.prototype = {
   },
 
   /** TBD */
+
   prev: function() {
 
   },
 
   /** Select an action if none is current then perform required steps. */
+
   step: function(delta) {
 
     this.delta += delta;
@@ -3650,7 +3755,18 @@ PLAYGROUND.Tween.prototype = {
     }
 
     if (this.progress >= 1) {
+
       this.next();
+
+    }
+
+    if (this.listeners["step"]) {
+
+      this.trigger("step", {
+        tween: this,
+        dt: delta
+      });
+
     }
 
   },
@@ -3660,10 +3776,25 @@ PLAYGROUND.Tween.prototype = {
    * The function is called in response to `step()`; it will advance the
    * index to next slot in the animation if
    */
+
   doWait: function(delta) {
 
     if (this.delta >= this.duration) this.next();
 
+  },
+
+  onremove: function() {
+
+    this.trigger("finished", {
+      tween: this
+    });
+
+    this.trigger("finish", {
+      tween: this
+    });
+
+    this.finished = true;
+    
   }
 
 };
@@ -3755,6 +3886,7 @@ PLAYGROUND.TweenManager.prototype = {
    * tagged as such.
    *
    */
+
   step: function(delta) {
 
     this.delta += delta;
@@ -3772,6 +3904,7 @@ PLAYGROUND.TweenManager.prototype = {
   },
 
   /** Add a tween to internal list. */
+
   add: function(tween) {
 
     tween._remove = false;
@@ -3782,15 +3915,17 @@ PLAYGROUND.TweenManager.prototype = {
 
   },
 
-   /** Marks a tween for removing during next step(). */
+  /** Marks a tween for removing during next step(). */
+
   remove: function(tween) {
+
+    tween.onremove();
 
     tween._remove = true;
 
   }
 
 };
-
 
 /* file: src/Atlases.js */
 

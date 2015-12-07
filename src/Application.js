@@ -24,6 +24,8 @@ PLAYGROUND.Application = function(args) {
 
   if (typeof this.container === "string") this.container = document.querySelector(this.container);
 
+  this.container.style.background = this.background;
+
   this.updateSize();
 
   /* events */
@@ -153,6 +155,7 @@ PLAYGROUND.Application = function(args) {
 PLAYGROUND.Application.prototype = {
 
   defaults: {
+    background: "#272822",
     smoothing: 1,
     paths: {
       base: "",
@@ -459,10 +462,32 @@ PLAYGROUND.Application.prototype = {
 
     function processData(request) {
 
+      var extend = entry.key.indexOf("/") > -1;
+
       if (entry.ext === "json") {
-        app.data[entry.key] = JSON.parse(request.responseText);
+
+        var data = JSON.parse(request.responseText);
+
+        if (extend) {
+
+          var key = entry.key.split("/")[0];
+
+          if (!app.data[key]) app.data[key] = {};
+
+          PLAYGROUND.Utils.extend(app.data[key], data);
+
+        } else {
+
+          if (!app.data[entry.key]) app.data[entry.key] = {};
+
+          PLAYGROUND.Utils.defaults(app.data[entry.key], data);
+
+        }
+
       } else {
+
         app.data[entry.key] = request.responseText;
+
       }
 
       app.loader.success(entry.url);

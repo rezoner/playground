@@ -24,6 +24,7 @@
  *
  * Reference: http://playgroundjs.com/playground-states
  */
+
 PLAYGROUND.States = function(app) {
 
   this.app = app;
@@ -37,6 +38,7 @@ PLAYGROUND.States = function(app) {
 PLAYGROUND.States.prototype = {
 
   /** Called each frame to update logic. */
+
   step: function(delta) {
 
     if (!this.next) return;
@@ -97,6 +99,7 @@ PLAYGROUND.States.prototype = {
    * Don't call this function directly. Instead, use
    * `PLAYGROUND.Application.setState()`.
    */
+   
   set: function(state) {
 
     if (this.current && this.current.leave) this.current.leave();
