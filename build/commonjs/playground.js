@@ -4210,14 +4210,14 @@ PLAYGROUND.LoadingScreen = {
 
 /* file: src/lib/CanvasQuery.js */
 
-/*     
+/*
 
   Canvas Query r6
-  
+
   http://canvasquery.com
-  
+
   (c) 2012-2015 http://rezoner.net
-  
+
   Canvas Query may be freely distributed under the MIT license.
 
   r6 
@@ -4227,7 +4227,7 @@ PLAYGROUND.LoadingScreen = {
 
   r5
 
-  ! fixed: leaking arguments in fastApply bailing out optimization 
+  ! fixed: leaking arguments in fastApply bailing out optimization
   + cacheText
   + compare
   + checkerboard
@@ -5400,6 +5400,8 @@ PLAYGROUND.LoadingScreen = {
     },
 
     polygon: function(array, x, y) {
+      if (x === undefined) { x = 0; }
+      if (y === undefined) { y = 0; }
 
       this.beginPath();
 
@@ -5415,13 +5417,11 @@ PLAYGROUND.LoadingScreen = {
     },
 
     fillPolygon: function(polygon) {
-      this.beginPath();
       this.polygon(polygon);
       this.fill();
     },
 
     strokePolygon: function(polygon) {
-      this.beginPath();
       this.polygon(polygon);
       this.stroke();
     },
@@ -6091,6 +6091,14 @@ PLAYGROUND.LoadingScreen = {
 
     },
 
+    fill: function() {
+
+      this.context.fill();
+
+      return this;
+
+    },
+
     stroke: function() {
 
       this.context.stroke();
@@ -6194,7 +6202,7 @@ PLAYGROUND.LoadingScreen = {
 
     },
 
-    /* If you think that I am retarded because I use fillRect to set 
+    /* If you think that I am retarded because I use fillRect to set
        pixels - read about premultipled alpha in canvas */
 
     writeMeta: function(data) {
@@ -6633,6 +6641,7 @@ PLAYGROUND.LoadingScreen = {
   return cq;
 
 })();
+
 
 /* file: src/layer/Layer.js */
 

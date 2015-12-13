@@ -3,3 +3,4 @@ bower_components
 Thumbs.db
 *.sublime-*
 *.idea
+.DS_Store
