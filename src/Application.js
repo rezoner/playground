@@ -667,11 +667,25 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Render placeholder */
+  render: function() {},
 
-  render: function() {
+  enableInputs: function() {
+
+    this.mouse.enabled = true;
+    this.touch.enabled = true;
+    this.keyboard.enabled = true;
+
+  },
+
+  disableInputs: function() {
+
+    this.mouse.enabled = false;
+    this.touch.enabled = false;
+    this.keyboard.enabled = false;
 
   }
+
+
 
 };
 

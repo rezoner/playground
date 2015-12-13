@@ -92,6 +92,7 @@ PLAYGROUND.Tween.prototype = {
   },
 
   /** Discard all other tweens associated with same context as ours. */
+
   discard: function() {
 
     this.manager.discard(this.context, this);
@@ -409,7 +410,7 @@ PLAYGROUND.Tween.prototype = {
     });
 
     this.finished = true;
-    
+
   }
 
 };
@@ -534,9 +535,12 @@ PLAYGROUND.TweenManager.prototype = {
 
   remove: function(tween) {
 
-    tween.onremove();
+    if(tween._remove) return;
 
     tween._remove = true;
+    
+    tween.onremove();
+
 
   }
 

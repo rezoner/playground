@@ -36,6 +36,8 @@ PLAYGROUND.Touch = function(app, element) {
 
   this.touches = {};
 
+  this.enabled = true;
+
   this.x = 0;
   this.y = 0;
 
@@ -74,6 +76,8 @@ PLAYGROUND.Touch.prototype = {
 
   touchmove: function(e) {
 
+    if (!this.enabled) return;
+
     for (var i = 0; i < e.changedTouches.length; i++) {
 
       var touch = e.changedTouches[i];
@@ -98,6 +102,9 @@ PLAYGROUND.Touch.prototype = {
   },
 
   touchstart: function(e) {
+
+    if (!this.enabled) return;
+
 
     for (var i = 0; i < e.changedTouches.length; i++) {
 
@@ -125,6 +132,8 @@ PLAYGROUND.Touch.prototype = {
   },
 
   touchend: function(e) {
+
+    if (!this.enabled) return;
 
     for (var i = 0; i < e.changedTouches.length; i++) {
 

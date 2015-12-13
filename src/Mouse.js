@@ -40,6 +40,8 @@ PLAYGROUND.Mouse = function(app, element) {
 
   this.preventContextMenu = true;
 
+  this.enabled = true;
+
   this.mousemoveEvent = {};
   this.mousedownEvent = {};
   this.mouseupEvent = {};
@@ -113,12 +115,15 @@ PLAYGROUND.Mouse.prototype = {
 
   mousemove: PLAYGROUND.Utils.throttle(function(e) {
 
+    if (!this.enabled) return;
+
     this.x = this.mousemoveEvent.x = (e.pageX - this.elementOffset.x - this.app.offsetX) / this.app.scale | 0;
     this.y = this.mousemoveEvent.y = (e.pageY - this.elementOffset.y - this.app.offsetY) / this.app.scale | 0;
 
     this.mousemoveEvent.original = e;
 
     if (this.locked) {
+      
       this.mousemoveEvent.movementX = e.movementX ||
         e.mozMovementX ||
         e.webkitMovementX ||
@@ -144,12 +149,14 @@ PLAYGROUND.Mouse.prototype = {
 
   mousedown: function(e) {
 
+    if (!this.enabled) return;
+
     var buttonName = ["left", "middle", "right"][e.button];
 
     this.mousedownEvent.x = this.mousemoveEvent.x;
     this.mousedownEvent.y = this.mousemoveEvent.y;
     this.mousedownEvent.button = buttonName;
-    this.mousedownEvent.original = e;
+    this.mousedownEvent.original = e;    
 
     this[buttonName] = true;
 
@@ -165,6 +172,8 @@ PLAYGROUND.Mouse.prototype = {
   },
 
   mouseup: function(e) {
+
+    if (!this.enabled) return;
 
     var buttonName = ["left", "middle", "right"][e.button];
 
