@@ -8,10 +8,13 @@
   
   Canvas Query may be freely distributed under the MIT license.
 
-  r6 
+  r6
 
+  + ImageBitmap support
   + drawImageCentered
   + drawImageRegionCentered
+  + default textBaseline
+  + resizeBounds
 
   r5
 
@@ -19,10 +22,6 @@
   + cacheText
   + compare
   + checkerboard
-
-  r6
-
-  initial ImageBitmap support
 
 */
 
@@ -574,9 +573,9 @@
     a: function(a) {
 
       if (arguments.length) {
-        
+
         this.previousAlpha = this.globalAlpha();
-        
+
         return this.globalAlpha(a);
 
       } else {
@@ -688,13 +687,13 @@
     strokeRect: function() {
 
       if (this.alignX || this.alignY) {
-        
+
         this.context.strokeRect(arguments[0] - arguments[2] * this.alignX | 0, arguments[1] - arguments[3] * this.alignY | 0, arguments[2], arguments[3]);
 
       } else {
 
         this.context.strokeRect(arguments[0], arguments[1], arguments[2], arguments[3]);
-        
+
       }
 
       // cq.fastApply(this.context.strokeRect, this.context, arguments);
@@ -989,10 +988,13 @@
     },
 
     set: function(properties) {
+
       cq.extend(this.context, properties);
+
     },
 
     resize: function(width, height) {
+
       var w = width,
         h = height;
 
@@ -1006,21 +1008,29 @@
         if (height === false) {
 
           if (this.canvas.width > width) {
+
             h = this.canvas.height * (width / this.canvas.width) | 0;
             w = width;
+
           } else {
+
             w = this.canvas.width;
             h = this.canvas.height;
+
           }
 
         } else if (width === false) {
 
           if (this.canvas.width > width) {
+
             w = this.canvas.width * (height / this.canvas.height) | 0;
             h = height;
+
           } else {
+
             w = this.canvas.width;
             h = this.canvas.height;
+
           }
 
         }
@@ -1033,9 +1043,24 @@
       this.context = cqresized.context;
 
       return this;
+
+    },
+
+    resizeBounds: function(width, height) {
+
+      var temp = cq(width, height);
+
+      temp.drawImage(this.canvas, 0, 0);
+
+      this.canvas = temp.canvas;
+      this.context = temp.context;
+
+      return this;
+
     },
 
     imageLine: function(image, region, x, y, ex, ey, scale) {
+
       if (!region) region = [0, 0, image.width, image.height];
 
       var distance = cq.distance(x, y, ex, ey);
@@ -1056,6 +1081,7 @@
       this.restore();
 
       return this;
+
     },
 
     trim: function(color, changes) {
@@ -1189,6 +1215,13 @@
 
     polygon: function(array, x, y) {
 
+      if (x === undefined) {
+        x = 0;
+      }
+      if (y === undefined) {
+        y = 0;
+      }
+
       this.beginPath();
 
       this.moveTo(array[0][0] + x, array[0][1] + y);
@@ -1200,18 +1233,21 @@
       this.closePath();
 
       return this;
+
     },
 
     fillPolygon: function(polygon) {
-      this.beginPath();
+
       this.polygon(polygon);
       this.fill();
+
     },
 
     strokePolygon: function(polygon) {
-      this.beginPath();
+
       this.polygon(polygon);
       this.stroke();
+
     },
 
     colorToMask: function(color, inverted) {
@@ -1675,7 +1711,7 @@
         lines: lines.length,
         fontHeight: h
       }
-      
+
     },
 
     repeatImageRegion: function(image, sx, sy, sw, sh, dx, dy, dw, dh) {
@@ -1879,6 +1915,14 @@
 
     },
 
+    fill: function() {
+
+      this.context.fill();
+
+      return this;
+
+    },
+
     stroke: function() {
 
       this.context.stroke();
@@ -1937,12 +1981,23 @@
 
     },
 
+    noLineDash: [],
+    tempLineDash: [2, 2],
+
     setLineDash: function(dash) {
 
-      if (this.context.setLineDash) {
-        this.context.setLineDash(dash);
-        return this;
-      } else return this;
+      if (typeof dash === "number") {
+
+        this.tempLineDash[0] = dash;
+        this.tempLineDash[1] = dash;
+
+        dash = this.tempLineDash;
+
+      }
+
+      this.context.setLineDash(dash ? dash : this.noLineDash);
+
+      return this;
 
     },
 
@@ -1982,7 +2037,7 @@
 
     },
 
-    /* If you think that I am retarded because I use fillRect to set 
+    /* If you think that I am retarded because I use fillRect to set
        pixels - read about premultipled alpha in canvas */
 
     writeMeta: function(data) {

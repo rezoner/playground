@@ -43,8 +43,8 @@ PLAYGROUND.Pointer.prototype = {
 
     pointer.x = e.x;
     pointer.y = e.y;
-    pointer.touch = e.touch;
-    pointer.mouse = e.mouse;
+    // pointer.touch = e.touch;
+    // pointer.mouse = e.mouse;    
     pointer.id = e.id;
 
     return pointer;
@@ -63,9 +63,9 @@ PLAYGROUND.Pointer.prototype = {
 
     this.updatePointer(e);
 
-    this.app.emitGlobalEvent("pointerdown", e);
+    this.pointerdown(e);
 
-    this.tap(e);
+    this.app.emitGlobalEvent("pointerdown", e);
 
   },
 
@@ -74,6 +74,8 @@ PLAYGROUND.Pointer.prototype = {
     e.touch = true;
 
     this.removePointer(e);
+
+    this.pointerup(e);
 
     this.app.emitGlobalEvent("pointerup", e);
 
@@ -85,6 +87,8 @@ PLAYGROUND.Pointer.prototype = {
 
     this.updatePointer(e);
 
+    this.pointermove(e);
+
     this.app.emitGlobalEvent("pointermove", e);
 
   },
@@ -94,6 +98,8 @@ PLAYGROUND.Pointer.prototype = {
     e.mouse = true;
 
     this.updatePointer(e);
+
+    this.pointermove(e);
 
     this.app.emitGlobalEvent("pointermove", e);
 
@@ -105,13 +111,15 @@ PLAYGROUND.Pointer.prototype = {
 
     this.app.emitGlobalEvent("pointerdown", e);
 
-    this.tap(e);
+    this.pointerdown(e);
 
   },
 
   mouseup: function(e) {
 
     e.mouse = true;
+
+    this.pointerup(e);
 
     this.app.emitGlobalEvent("pointerup", e);
 
@@ -125,15 +133,17 @@ PLAYGROUND.Pointer.prototype = {
 
   },
 
-  tap: function(e) {
+  pointerdown: function(e) {
 
     var pointer = this.pointers[e.id];
+
+    pointer.pressed = true;
 
     var timeFrame = this.app.lifetime - pointer.lastTap;
 
     pointer.lastTap = this.app.lifetime;
-
-    if (timeFrame < 0.4 && pointer.lastTapPosition && Utils.distance(pointer, pointer.lastTapPosition) < 5) {
+    
+    if (timeFrame < 0.4 && pointer.tapPosition && PLAYGROUND.Utils.distance(pointer, pointer.tapPosition) < 5) {
 
       this.app.emitGlobalEvent("pointerdoubletap", pointer);
 
@@ -141,10 +151,35 @@ PLAYGROUND.Pointer.prototype = {
 
     }
 
-    pointer.lastTapPosition = {
+    pointer.tapPosition = {
       x: e.x,
       y: e.y
     };
+
+  },
+
+  pointermove: function(e) {
+
+    var pointer = this.pointers[e.id];
+
+
+    if (!pointer.dragging && pointer.pressed && Utils.distance(pointer.tapPosition, e) > 5) {
+
+      pointer.dragging = true;
+
+    }
+
+    e.dragging = pointer.dragging;
+
+
+  },
+
+  pointerup: function(e) {
+
+    var pointer = this.pointers[e.id];
+
+    pointer.pressed = false;
+    pointer.dragging = false;
 
   }
 

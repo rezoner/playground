@@ -142,7 +142,7 @@ PLAYGROUND.Events.prototype = {
 
     }
 
-    /* or subscribed to single event */
+    /* or subscribed to a single event */
 
     if (this.listeners[event]) {
       
@@ -155,7 +155,8 @@ PLAYGROUND.Events.prototype = {
         if (listener.once) {
           this.listeners[event].splice(i--, 1);
           len--;
-        }
+        } 
+
       }
       
     }
