@@ -2032,8 +2032,8 @@ PLAYGROUND.Gamepads.prototype = {
         if (stickChanged) {
 
           this.gamepadmoveEvent.old = [
-            Utils.extend({}, previous.sticks[0]),
-            Utils.extend({}, previous.sticks[1])
+            PLAYGROUND.Utils.extend({}, previous.sticks[0]),
+            PLAYGROUND.Utils.extend({}, previous.sticks[1])
           ];
 
           previous.sticks[0].x = current.axes[0];
@@ -2435,7 +2435,7 @@ PLAYGROUND.Pointer.prototype = {
     var pointer = this.pointers[e.id];
 
 
-    if (!pointer.dragging && pointer.pressed && Utils.distance(pointer.tapPosition, e) > 5) {
+    if (!pointer.dragging && pointer.pressed && PLAYGROUND.Utils.distance(pointer.tapPosition, e) > 5) {
 
       pointer.dragging = true;
 
