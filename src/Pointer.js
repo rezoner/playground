@@ -163,7 +163,7 @@ PLAYGROUND.Pointer.prototype = {
     var pointer = this.pointers[e.id];
 
 
-    if (!pointer.dragging && pointer.pressed && Utils.distance(pointer.tapPosition, e) > 5) {
+    if (!pointer.dragging && pointer.pressed && PLAYGROUND.Utils.distance(pointer.tapPosition, e) > 5) {
 
       pointer.dragging = true;
 

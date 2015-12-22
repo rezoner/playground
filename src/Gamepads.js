@@ -184,8 +184,8 @@ PLAYGROUND.Gamepads.prototype = {
         if (stickChanged) {
 
           this.gamepadmoveEvent.old = [
-            Utils.extend({}, previous.sticks[0]),
-            Utils.extend({}, previous.sticks[1])
+            PLAYGROUND.Utils.extend({}, previous.sticks[0]),
+            PLAYGROUND.Utils.extend({}, previous.sticks[1])
           ];
 
           previous.sticks[0].x = current.axes[0];
