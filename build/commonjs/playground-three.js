@@ -1563,7 +1563,19 @@ PLAYGROUND.Application.prototype = {
 
       } else {
 
-        app.data[entry.key] = request.responseText;
+        if (extend) {
+
+          var key = entry.key.split("/")[0];
+
+          if (!app.data[key]) app.data[key] = "";
+
+          app.data[entry.key] += request.responseText;
+
+        } else {
+
+          app.data[entry.key] = request.responseText;
+
+        }
 
       }
 
@@ -3701,18 +3713,20 @@ PLAYGROUND.Tween.prototype = {
         var value = this.context[key];
 
         if (typeof properties[key] === "number") {
-
+        
           this.before.push(value);
           this.change.push(properties[key] - value);
           this.types.push(0);
 
-        } else if (typeof properties[key] === "string" && properties[key].indexOf("rad" > -1)) {
+        } else if (typeof properties[key] === "string" && properties[key].indexOf("rad") > -1) {
 
           this.before.push(value);
           this.change.push(PLAYGROUND.Utils.circWrappedDistance(value, parseFloat(properties[key])));
           this.types.push(2);
 
         } else {
+
+          console.log("parsing", value)
 
           var before = cq.color(value);
 

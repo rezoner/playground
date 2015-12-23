@@ -486,7 +486,19 @@ PLAYGROUND.Application.prototype = {
 
       } else {
 
-        app.data[entry.key] = request.responseText;
+        if (extend) {
+
+          var key = entry.key.split("/")[0];
+
+          if (!app.data[key]) app.data[key] = "";
+
+          app.data[entry.key] += request.responseText;
+
+        } else {
+
+          app.data[entry.key] = request.responseText;
+
+        }
 
       }
 
