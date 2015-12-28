@@ -159,7 +159,8 @@ PLAYGROUND.Application.prototype = {
     smoothing: 1,
     paths: {
       base: "",
-      images: "images/"
+      images: "images/",
+      fonts: "fonts/"
     },
     offsetX: 0,
     offsetY: 0,
@@ -286,7 +287,7 @@ PLAYGROUND.Application.prototype = {
 
     if (this.state[event]) this.state[event](data);
 
-    this.trigger("post" + event, data);
+    this.trigger("after" + event, data);
 
     // if (this.state.proxy) this.state.proxy(event, data);
 
@@ -508,18 +509,19 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Loads a single image */
-
   loadImage: function() {
 
     return this.loadImages.apply(this, arguments);
 
   },
 
-  /** Loads images.
-   *
-   * The list may be nested.
-   */
+  /*
+
+    Loads images.
+   
+    The list may be nested.
+
+  */
 
   loadImages: function() {
 
@@ -628,19 +630,46 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load fonts. */
-
   loadFonts: function() {
 
     return this.loadFont.apply(this, arguments);
 
   },
 
-  /** Load a single font (internal).  
-      It actually doesn't load any font - just ensures it has been loaded (with css)
+  /* 
+
+    Load a single font (internal).  
+    It actually doesn't load any font - just ensures it has been loaded (with css)
+
   */
 
   loadFontItem: function(name) {
+
+    /* insert font into a stylesheet */
+
+    var lastStylesheet = document.styleSheets[document.styleSheets.length - 1];
+    var entry = this.getAssetEntry(name, "fonts", "ttf");
+
+    var format = {
+      woff: "woff",
+      otf: "opentype",
+      ttf: "truetype"
+    }[entry.ext];
+
+    if (lastStylesheet.insertRule) {
+
+      var raw = "@font-face { font-family: '{name}'; font-style: 'normal'; font-weight: 400, 800; src: url(fonts/{name}.{ext}) format('{format}'); }";
+      var rule = PLAYGROUND.Utils.sprintf(raw, {
+        name: name,
+        ext: entry.ext,
+        format: format
+      });
+
+      lastStylesheet.insertRule(rule, lastStylesheet.cssRules.length);
+
+    }
+
+    /* wait until font has been loaded */
 
     var app = this;
 
@@ -667,7 +696,7 @@ PLAYGROUND.Application.prototype = {
 
           }
 
-        });
+        }, 100);
 
       }
 

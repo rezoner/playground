@@ -470,34 +470,8 @@ function playground(args) {
 
 /* file: src/Utils.js */
 
-/** Utility functions
- */
 PLAYGROUND.Utils = {
 
-  /** Merge any number of associative arrays into first.
-   *
-   * All arguments are expected to be associative arrays.
-   * If same key appears multiple times the final value
-   * will come from last argument that contains it.
-   *
-   * @returns first argument
-   *
-   * Examples:
-   *
-   *     PLAYGROUND.Utils.extend({a: 1});
-   *     // simply returns {a: 1}
-   *
-   *     PLAYGROUND.Utils.extend({a: 1}, {b: 2});
-   *     // returns {a: 1, b: 2}
-   *
-   *     PLAYGROUND.Utils.extend({a: 1}, {a: 2});
-   *     // returns {a: 2}
-   *
-   * Common usage is to intialize an object with defaults and
-   * optional user arguments in a call like:
-   *
-   *     PLAYGROUND.Utils.extend(this, this.defaults, args);
-   */
   extend: function() {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -530,24 +504,8 @@ PLAYGROUND.Utils = {
 
   },
 
+  /* deep extend */
 
-  /** Merge any number of associative arrays into first.
-   *
-   * All arguments are expected to be associative arrays.
-   * If same key appears multiple times the final value
-   * will come from last argument that contains it.
-   *
-   * This function does the same thing as
-   * `PLAYGROUND.Utils.extend` but it also dives in nested
-   * objects.
-   *
-   * @returns first argument
-   *
-   * Examples:
-   *
-   *     PLAYGROUND.Utils.extend({a: {var_1: 1}}, {a: {var_1: 2}});
-   *     // returns {a: {var_1: 2}}
-   */
   merge: function(a) {
 
     for (var i = 1; i < arguments.length; i++) {
@@ -570,20 +528,6 @@ PLAYGROUND.Utils = {
 
   },
 
-  /** Call a method for all objects in first argument.
-   *
-   * The function simply ignores objects that don't have
-   * specified `methodName`.
-   *
-   * @param object an indexed array of objects
-   * @param methodName the name of the method to call
-   *
-   * The rest of the arguments are passed to the invoked method.
-   *
-   * Examples:
-   *
-   *     PLAYGROUND.Utils.invoke([obj1, obj2, obj3], 'someMethod', 'arg1', 'arg2');
-   */
   invoke: function(object, methodName) {
 
     var args = Array.prototype.slice.call(arguments, 2);
@@ -597,27 +541,8 @@ PLAYGROUND.Utils = {
 
   },
 
-  /** Ensures that the function argument is not called too often.
-   *
-   * On first invocation the `fn` argument is simply called and the
-   * time is recorded. On subsequent invocations the method checks if
-   * the time passed from last invocation is larger than the threshold
-   * or not. If is larger the function is called, otherwise
-   * a delayed call is added.
-   *
-   * @param fn function to call
-   * @param threshold (default is 250) in milliseconds
-   * @returns a function implementing the logic
-   *
-   * Example:
-   *
-   *     // ...
-   *     mousemove: PLAYGROUND.Utils.throttle(function(e) {
-   *       console.log(this.x, this.y);
-   *     }, 16),
-   *     // ...
-   */
   throttle: function(fn, threshold) {
+
     threshold || (threshold = 250);
     var last,
       deferTimer;
@@ -638,10 +563,9 @@ PLAYGROUND.Utils = {
         fn.apply(context, args);
       }
     };
+
   },
 
-  /** TBD
-   */
   wrapTo: function(value, target, max, step) {
     if (value === target) return target;
 
@@ -709,9 +633,6 @@ PLAYGROUND.Utils = {
 
   },
 
-
-  /** TBD
-   */
   wrappedDistance: function(a, b, max) {
 
     if (a === b) return 0;
@@ -728,8 +649,6 @@ PLAYGROUND.Utils = {
 
   },
 
-  /** TBD
-   */
   circWrappedDistance: function(a, b) {
 
     return this.wrappedDistance(a, b, Math.PI * 2)
@@ -777,6 +696,20 @@ PLAYGROUND.Utils = {
       return Math.sqrt(dx * dx + dy * dy);
 
     }
+
+  },
+
+  sprintf: function(string, replace) {
+
+    for (var key in replace) {
+
+      var find = new RegExp("{" + key + "}", "g");
+
+      string = string.replace(find, replace[key]);
+
+    }
+
+    return string;
 
   }
 
@@ -1236,7 +1169,8 @@ PLAYGROUND.Application.prototype = {
     smoothing: 1,
     paths: {
       base: "",
-      images: "images/"
+      images: "images/",
+      fonts: "fonts/"
     },
     offsetX: 0,
     offsetY: 0,
@@ -1363,7 +1297,7 @@ PLAYGROUND.Application.prototype = {
 
     if (this.state[event]) this.state[event](data);
 
-    this.trigger("post" + event, data);
+    this.trigger("after" + event, data);
 
     // if (this.state.proxy) this.state.proxy(event, data);
 
@@ -1585,18 +1519,19 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Loads a single image */
-
   loadImage: function() {
 
     return this.loadImages.apply(this, arguments);
 
   },
 
-  /** Loads images.
-   *
-   * The list may be nested.
-   */
+  /*
+
+    Loads images.
+   
+    The list may be nested.
+
+  */
 
   loadImages: function() {
 
@@ -1705,19 +1640,46 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  /** Load fonts. */
-
   loadFonts: function() {
 
     return this.loadFont.apply(this, arguments);
 
   },
 
-  /** Load a single font (internal).  
-      It actually doesn't load any font - just ensures it has been loaded (with css)
+  /* 
+
+    Load a single font (internal).  
+    It actually doesn't load any font - just ensures it has been loaded (with css)
+
   */
 
   loadFontItem: function(name) {
+
+    /* insert font into a stylesheet */
+
+    var lastStylesheet = document.styleSheets[document.styleSheets.length - 1];
+    var entry = this.getAssetEntry(name, "fonts", "ttf");
+
+    var format = {
+      woff: "woff",
+      otf: "opentype",
+      ttf: "truetype"
+    }[entry.ext];
+
+    if (lastStylesheet.insertRule) {
+
+      var raw = "@font-face { font-family: '{name}'; font-style: 'normal'; font-weight: 400, 800; src: url(fonts/{name}.{ext}) format('{format}'); }";
+      var rule = PLAYGROUND.Utils.sprintf(raw, {
+        name: name,
+        ext: entry.ext,
+        format: format
+      });
+
+      lastStylesheet.insertRule(rule, lastStylesheet.cssRules.length);
+
+    }
+
+    /* wait until font has been loaded */
 
     var app = this;
 
@@ -1744,7 +1706,7 @@ PLAYGROUND.Application.prototype = {
 
           }
 
-        });
+        }, 100);
 
       }
 

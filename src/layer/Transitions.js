@@ -8,7 +8,7 @@ PLAYGROUND.Transitions = function(app) {
   this.app = app;
 
   app.on("enterstate", this.enterstate.bind(this));
-  app.on("postrender", this.postrender.bind(this));
+  app.on("afterpostrender", this.postrender.bind(this));
   app.on("step", this.step.bind(this));
 
   this.progress = 1;
