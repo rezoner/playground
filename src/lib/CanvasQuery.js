@@ -1,12 +1,16 @@
 /*     
 
-  Canvas Query r6
+  Canvas Query r7
   
   http://canvasquery.com
   
   (c) 2012-2015 http://rezoner.net
   
   Canvas Query may be freely distributed under the MIT license.
+
+  r7
+
+  + filter
 
   r6
 
@@ -2132,6 +2136,24 @@
 
         return this;
       }
+
+    },
+
+    filter: function(filter) {
+
+      if (filter) {
+
+        this.context.filter = filter;
+
+        return this;
+
+      } else {
+
+        return this.context.filter;
+
+      }
+
+      return this;
 
     },
 

@@ -41,12 +41,6 @@ var builds = {
 
   "playground-base.js": [
 
-  ],
-
-  "playground-three.js": [
-    'treejs.idea/playground.three.js',
-    "treejs.idea/Transitions.js",
-    "treejs.idea/LoadingScreen.js"
   ]
 
 };

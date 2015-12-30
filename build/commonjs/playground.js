@@ -1657,7 +1657,16 @@ PLAYGROUND.Application.prototype = {
 
     /* insert font into a stylesheet */
 
-    var lastStylesheet = document.styleSheets[document.styleSheets.length - 1];
+    if (!this.fontStyleSheet) {
+
+      var style = document.createElement("style");
+
+      document.head.appendChild(style);
+
+      this.fontStyleSheet = style;
+
+    }
+
     var entry = this.getAssetEntry(name, "fonts", "ttf");
 
     var format = {
@@ -1666,18 +1675,15 @@ PLAYGROUND.Application.prototype = {
       ttf: "truetype"
     }[entry.ext];
 
-    if (lastStylesheet.insertRule) {
+    var raw = "@font-face { font-family: '{name}'; font-style: 'normal'; font-weight: 400, 800; src: url(fonts/{name}.{ext}) format('{format}'); }";
 
-      var raw = "@font-face { font-family: '{name}'; font-style: 'normal'; font-weight: 400, 800; src: url(fonts/{name}.{ext}) format('{format}'); }";
-      var rule = PLAYGROUND.Utils.sprintf(raw, {
-        name: name,
-        ext: entry.ext,
-        format: format
-      });
+    var rule = PLAYGROUND.Utils.sprintf(raw, {
+      name: name,
+      ext: entry.ext,
+      format: format
+    });
 
-      lastStylesheet.insertRule(rule, lastStylesheet.cssRules.length);
-
-    }
+    this.fontStyleSheet.innerHTML += rule;
 
     /* wait until font has been loaded */
 
@@ -4270,13 +4276,17 @@ PLAYGROUND.LoadingScreen = {
 
 /*     
 
-  Canvas Query r6
+  Canvas Query r7
   
   http://canvasquery.com
   
   (c) 2012-2015 http://rezoner.net
   
   Canvas Query may be freely distributed under the MIT license.
+
+  r7
+
+  + filter
 
   r6
 
@@ -6402,6 +6412,24 @@ PLAYGROUND.LoadingScreen = {
 
         return this;
       }
+
+    },
+
+    filter: function(filter) {
+
+      if (filter) {
+
+        this.context.filter = filter;
+
+        return this;
+
+      } else {
+
+        return this.context.filter;
+
+      }
+
+      return this;
 
     },
 
