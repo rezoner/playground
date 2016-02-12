@@ -50,15 +50,26 @@ PLAYGROUND.Mouse = function(app, element) {
   this.x = 0;
   this.y = 0;
 
-  element.addEventListener("mousemove", this.mousemove.bind(this));
-  element.addEventListener("mousedown", this.mousedown.bind(this));
-  element.addEventListener("mouseup", this.mouseup.bind(this));
+
+  this.mousemovelistener = this.mousemove.bind(this);
+  this.mousedownlistener = this.mousedown.bind(this);
+  this.mouseuplistener = this.mouseup.bind(this);
+  this.mouseoutlistener = this.mouseout.bind(this);
+  this.contextmenulistener = function(e) {
+
+    if (self.preventContextMenu && !e.metaKey) e.preventDefault();
+
+  };
+
+  element.addEventListener("mousemove", this.mousemovelistener);
+  element.addEventListener("mousedown", this.mousedownlistener);
+  element.addEventListener("mouseup", this.mouseuplistener);
+  element.addEventListener("mouseout", this.mouseoutlistener);
+  element.addEventListener("contextmenu", this.contextmenulistener);
+
+  this.app.on("kill", this.kill.bind(this));
 
   this.enableMousewheel();
-
-  this.element.addEventListener("contextmenu", function(e) {
-    if (self.preventContextMenu && !e.metaKey) e.preventDefault();
-  });
 
   element.requestPointerLock = element.requestPointerLock ||
     element.mozRequestPointerLock ||
@@ -70,9 +81,32 @@ PLAYGROUND.Mouse = function(app, element) {
 
 
   this.handleResize();
+
 };
 
 PLAYGROUND.Mouse.prototype = {
+
+  kill: function() {
+
+    this.element.removeEventListener("mousemove", this.mousemovelistener);
+    this.element.removeEventListener("mousedown", this.mousedownlistener);
+    this.element.removeEventListener("mouseup", this.mouseuplistener);
+    this.element.removeEventListener("mouseout", this.mouseoutlistener);
+    this.element.removeEventListener("contextmenu", this.contextmenulistener);
+
+  },
+
+  mouseout: function(button) {
+
+    for (var i = 0; i < 3; i++) {
+
+      this.mouseup({
+        button: i
+      });
+
+    }
+
+  },
 
   lock: function() {
 
@@ -123,7 +157,7 @@ PLAYGROUND.Mouse.prototype = {
     this.mousemoveEvent.original = e;
 
     if (this.locked) {
-      
+
       this.mousemoveEvent.movementX = e.movementX ||
         e.mozMovementX ||
         e.webkitMovementX ||
@@ -156,7 +190,7 @@ PLAYGROUND.Mouse.prototype = {
     this.mousedownEvent.x = this.mousemoveEvent.x;
     this.mousedownEvent.y = this.mousemoveEvent.y;
     this.mousedownEvent.button = buttonName;
-    this.mousedownEvent.original = e;    
+    this.mousedownEvent.original = e;
 
     this[buttonName] = true;
 
@@ -176,6 +210,8 @@ PLAYGROUND.Mouse.prototype = {
     if (!this.enabled) return;
 
     var buttonName = ["left", "middle", "right"][e.button];
+
+    if (!this[buttonName]) return;
 
     this.mouseupEvent.x = this.mousemoveEvent.x;
     this.mouseupEvent.y = this.mousemoveEvent.y;

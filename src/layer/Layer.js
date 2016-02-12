@@ -16,11 +16,19 @@ PLAYGROUND.Renderer = function(app) {
   app.on("create", this.create.bind(this));
   app.on("resize", this.resize.bind(this));
 
+  app.on("kill", this.kill.bind(this));
+
 };
 
 PLAYGROUND.Renderer.plugin = true;
 
 PLAYGROUND.Renderer.prototype = {
+
+  kill: function() {
+
+    this.app.layer.canvas.parentNode.removeChild(this.app.layer.canvas);
+
+  },
 
   create: function(data) {
 

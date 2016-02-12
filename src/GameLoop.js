@@ -41,6 +41,8 @@ PLAYGROUND.GameLoop = function(app) {
 
   function gameLoop() {
 
+    if (app.killed) return;
+
     requestAnimationFrame(gameLoop);
 
     if (app.frameskip) {

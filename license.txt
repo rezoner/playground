@@ -1,14 +1,20 @@
 /*     
 
-  PlaygroundJS r9
+  PlaygroundJS r10
   
   http://playgroundjs.com
   
-  (c) 2012-2015 http://rezoner.net
+  (c) 2012-2016 http://rezoner.net
   
   Playground may be freely distributed under the MIT license.
 
   latest major changes:
+
+  r10
+
+  + tween.call
+  + pointer now takes care of cursor that left the window
+  + this.keyboard.any (is any key pressed)
 
   r9
 

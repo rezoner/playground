@@ -76,9 +76,12 @@ PLAYGROUND.Utils = {
       deferTimer;
     return function() {
       var context = this;
+      var args = [];
 
-      var now = +new Date,
-        args = arguments;
+      for (var i = 0; i < arguments.length; i++) args.push(arguments[i]);
+
+      var now = Date.now();
+
       if (last && now < last + threshold) {
         // hold on to it
         clearTimeout(deferTimer);

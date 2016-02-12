@@ -73,11 +73,11 @@ PLAYGROUND.Pointer.prototype = {
 
     e.touch = true;
 
-    this.removePointer(e);
-
     this.pointerup(e);
 
-    this.app.emitGlobalEvent("pointerup", e);
+    this.removePointer(e);
+
+    this.app.emitGlobalEvent("pointerup", e);    
 
   },
 
@@ -142,7 +142,7 @@ PLAYGROUND.Pointer.prototype = {
     var timeFrame = this.app.lifetime - pointer.lastTap;
 
     pointer.lastTap = this.app.lifetime;
-    
+
     if (timeFrame < 0.4 && pointer.tapPosition && PLAYGROUND.Utils.distance(pointer, pointer.tapPosition) < 5) {
 
       this.app.emitGlobalEvent("pointerdoubletap", pointer);

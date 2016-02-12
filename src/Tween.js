@@ -1,5 +1,7 @@
 PLAYGROUND.Tween = function(manager, context) {
 
+  if(!context) debugger;
+
   PLAYGROUND.Events.call(this);
 
   this.manager = manager;
@@ -60,6 +62,20 @@ PLAYGROUND.Tween.prototype = {
   to: function(properties, duration, easing) {
 
     return this.add(properties, duration, easing);
+
+  },
+
+  /* Enqueue a method call */
+
+  call: function(methodName, context) {
+
+    var action = ["call", methodName, context || this.context];
+
+    for (var i = 2; i < arguments.length; i++) action.push(arguments[i]);
+
+    this.actions.push(action);
+
+    return this;
 
   },
 
@@ -197,7 +213,17 @@ PLAYGROUND.Tween.prototype = {
 
     this.current = this.actions[this.index];
 
-    if (this.current[0] === "wait") {
+    if (this.current[0] === "call") {
+
+      var args = this.current.slice(2);
+
+      var methodName = this.current[1];
+      var context = this.current[2];
+      var method = context[methodName];
+
+      method.apply(context, args);
+
+    } else if (this.current[0] === "wait") {
 
       this.duration = this.current[1];
       this.currentAction = "wait";
@@ -216,14 +242,13 @@ PLAYGROUND.Tween.prototype = {
       this.before = [];
       this.types = [];
 
-
       for (i = 0; i < this.keys.length; i++) {
 
         var key = this.keys[i];
         var value = this.context[key];
 
         if (typeof properties[key] === "number") {
-        
+
           this.before.push(value);
           this.change.push(properties[key] - value);
           this.types.push(0);
@@ -235,8 +260,6 @@ PLAYGROUND.Tween.prototype = {
           this.types.push(2);
 
         } else {
-
-          console.log("parsing", value)
 
           var before = cq.color(value);
 

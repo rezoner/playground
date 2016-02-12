@@ -41,13 +41,27 @@ PLAYGROUND.Touch = function(app, element) {
   this.x = 0;
   this.y = 0;
 
-  element.addEventListener("touchmove", this.touchmove.bind(this));
-  element.addEventListener("touchstart", this.touchstart.bind(this));
-  element.addEventListener("touchend", this.touchend.bind(this));
+  this.touchmovelistener = this.touchmove.bind(this);
+  this.touchstartlistener = this.touchstart.bind(this);
+  this.touchendlistener = this.touchend.bind(this);
+
+  element.addEventListener("touchmove", this.touchmovelistener);
+  element.addEventListener("touchstart", this.touchstartlistener);
+  element.addEventListener("touchend", this.touchendlistener);
+
+  this.app.on("kill", this.kill.bind(this));
 
 };
 
 PLAYGROUND.Touch.prototype = {
+
+  kill: function() {
+
+    this.element.removeEventListener("touchmove", this.touchmovelistener);
+    this.element.removeEventListener("touchstart", this.touchstartlistener);
+    this.element.removeEventListener("touchend", this.touchendlistener);
+
+  },
 
   getElementOffset: function(element) {
 

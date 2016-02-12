@@ -193,6 +193,7 @@
 
         var sign = 1;
         var signed = false;
+        var trimming = false;
 
         for (var i = 0; i < array.length; i++) {
 
@@ -205,6 +206,9 @@
           } else if (char === "+") {
             sign = 1;
             array.splice(i--, 1);
+          } else if (char === "t") {
+            trimming = !trimming;
+            array.splice(i--, 1);
           } else array[i] = parseInt(array[i], 16) * sign;
 
         }
@@ -216,13 +220,28 @@
         var normalized = [];
 
         for (var i = 0; i < array.length; i++) {
+
           if (signed) {
+
             var diff = Math.max(Math.abs(min), Math.abs(max))
-            normalized.push((array[i]) / diff);
+            var value = array[i] / diff;
+
           } else {
+
             var diff = max - min;
-            normalized.push((array[i] - min) / diff);
+            var value = (array[i] - min) / diff;
+
           }
+
+          if (trimming) {
+
+            if (value < 0) value = 0;
+            if (value > 1.0) value = 1.0;
+
+          }
+
+          normalized.push(value);
+
         }
 
         this.cache[key] = normalized;
@@ -391,6 +410,6 @@
     }
   });
 
-window.ease = ease;
+  window.ease = ease;
 
 })();

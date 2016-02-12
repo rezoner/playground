@@ -2,6 +2,8 @@ PLAYGROUND.Application = function(args) {
 
   var app = this;
 
+  this.killed = false;
+
   /* events */
 
   PLAYGROUND.Events.call(this);
@@ -50,7 +52,7 @@ PLAYGROUND.Application = function(args) {
 
   /* keyboard */
 
-  this.keyboard = new PLAYGROUND.Keyboard();
+  this.keyboard = new PLAYGROUND.Keyboard(this);
   this.keyboard.on("event", this.emitGlobalEvent, this);
 
   /* gamepads */
@@ -76,7 +78,9 @@ PLAYGROUND.Application = function(args) {
 
   /* window resize */
 
-  window.addEventListener("resize", this.handleResize.bind(this));
+  this.resizelistener = PLAYGROUND.Utils.throttle(this.handleResize.bind(this), 100);
+
+  window.addEventListener("resize", this.resizelistener);
 
   /* assets containers */
 
@@ -729,6 +733,16 @@ PLAYGROUND.Application.prototype = {
     this.mouse.enabled = false;
     this.touch.enabled = false;
     this.keyboard.enabled = false;
+
+  },
+
+  kill: function() {
+
+    this.killed = true;
+
+    this.trigger("kill");
+
+    window.removeEventListener("resize", this.resizelistener);
 
   }
 
