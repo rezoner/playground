@@ -5111,7 +5111,9 @@ PLAYGROUND.LoadingScreen = {
 
     fillText: function(text, x, y) {
 
-      if ('WebkitAppearance' in document.documentElement.style) {
+      var webkitHack = !cq.smoothing && (this.fontHeight() <= 64) && ('WebkitAppearance' in document.documentElement.style);
+
+      if (webkitHack) {
 
         var scale = 4;
 
@@ -6206,7 +6208,9 @@ PLAYGROUND.LoadingScreen = {
 
       if (!this.fontHeights[font]) {
 
-        var temp = cq(100, 100);
+        var fontStyleHeight = parseInt(font);
+
+        var temp = cq(100, 10 + fontStyleHeight * 2 | 0);
 
         cq.setContextSmoothing(temp.context, false);
 
