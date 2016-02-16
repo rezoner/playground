@@ -36,8 +36,6 @@ PLAYGROUND.SoundWebAudioAPI = function(app, audioContext) {
   this.pool = [];
   this.volume = 1.0;
 
-  this.setMasterPosition(0, 0, 0);
-
   this.loops = [];
 
   this.app.on("step", this.step.bind(this));
@@ -102,20 +100,6 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
     }
   },
 
-  setMasterPosition: function(x, y, z) {
-
-    this.masterPosition = {
-      x: x,
-      y: y,
-      z: z
-    };
-
-    this.context.listener.setPosition(x, y, z)
-      // this.context.listener.setOrientation(0, 0, -1, 0, 1, 0);
-      // this.context.listener.dopplerFactor = 1;
-      // this.context.listener.speedOfSound = 343.3;
-  },
-
   getSoundBuffer: function() {
 
     if (!this.pool.length) {
@@ -170,8 +154,6 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
 
     bufferSource.volumeLimit = 1;
 
-    this.setPosition(bufferSource, this.masterPosition.x, this.masterPosition.y, this.masterPosition.z);
-
     return bufferSource;
   },
 
@@ -190,21 +172,6 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
     if (sound.alias) rate *= sound.alias.rate;
 
     return sound.playbackRate.value = rate;
-  },
-
-  setPosition: function(sound, x, y, z) {
-
-    if (!sound) return;
-
-    sound.pannerNode.setPosition(x, y || 0, z || 0);
-  },
-
-  setVelocity: function(sound, x, y, z) {
-
-    if (!sound) return;
-
-    sound.pannerNode.setPosition(x, y || 0, z || 0);
-
   },
 
   getVolume: function(sound) {
