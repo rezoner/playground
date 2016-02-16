@@ -6185,7 +6185,7 @@ PLAYGROUND.LoadingScreen = {
 
         this.textAlign("left");
 
-        if (textAlign === "left")
+        if (textAlign === "left" || textAlign === "start")
           this.fillText(text, x, oy);
         else if (textAlign === "center")
           this.fillText(text, x + maxWidth * 0.5 - width * 0.5 | 0, oy);
