@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r10
+  PlaygroundJS r11 (WIP)
   
   http://playgroundjs.com
   
@@ -10,6 +10,10 @@
 
   latest major changes:
 
+  r11
+
+  + sound panning
+
   r10
 
   + tween.call
@@ -18,7 +22,7 @@
 
   r9
 
-  + json data extend
+  + json data cascade
   + tween step event
 
   r8

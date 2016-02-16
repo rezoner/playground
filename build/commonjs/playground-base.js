@@ -5,7 +5,7 @@ var PLAYGROUND;
 
 /*     
 
-  PlaygroundJS r10
+  PlaygroundJS r11 (WIP)
   
   http://playgroundjs.com
   
@@ -15,6 +15,10 @@ var PLAYGROUND;
 
   latest major changes:
 
+  r11
+
+  + sound panning
+
   r10
 
   + tween.call
@@ -23,7 +27,7 @@ var PLAYGROUND;
 
   r9
 
-  + json data extend
+  + json data cascade
   + tween step event
 
   r8
@@ -3109,6 +3113,7 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
   },
 
   getSoundBuffer: function() {
+
     if (!this.pool.length) {
       for (var i = 0; i < 100; i++) {
 
@@ -3117,25 +3122,14 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
         var nodes = [
           buffer = this.context.createBufferSource(),
           gain = this.context.createGain(),
-          panner = this.context.createPanner()
+          panner = this.context.createStereoPanner()
         ];
-
-        panner.distanceModel = "linear";
-
-        // 1 - rolloffFactor * (distance - refDistance) / (maxDistance - refDistance)
-        // refDistance / (refDistance + rolloffFactor * (distance - refDistance))
-        panner.refDistance = 1;
-        panner.maxDistance = 600;
-        panner.rolloffFactor = 1.0;
-
-
-        // panner.setOrientation(-1, -1, 0);
 
         this.pool.push(nodes);
 
         nodes[0].connect(nodes[1]);
-        // nodes[1].connect(nodes[2]);
-        nodes[1].connect(this.output);
+        nodes[1].connect(nodes[2]);
+        nodes[2].connect(this.output);
       }
     }
 
@@ -3224,6 +3218,18 @@ PLAYGROUND.SoundWebAudioAPI.prototype = {
     if (sound.alias) volume *= sound.alias.volume;
 
     return sound.gainNode.gain.value = Math.max(0, volume);
+  },
+
+  setPanning: function(sound, pan) {
+
+    sound.pannerNode.pan.value = pan;
+
+  },
+
+  getPanning: function(sound) {
+
+    return sound.pannerNode.pan.value;
+
   },
 
   fadeOut: function(sound) {
@@ -3386,6 +3392,10 @@ PLAYGROUND.SoundAudio.prototype = {
 
   setPosition: function() {
 
+  },
+
+  setPanning: function(sound, pan) {
+    
   }
 
 };
