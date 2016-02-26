@@ -2994,10 +2994,17 @@ PLAYGROUND.Application.prototype.loadSounds = function() {
 
 /* file: src/SoundWebAudioAPI.js */
 
+/* Stereo panner SHIM */
+
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){(function(global){"use strict";var AudioContext=global.AudioContext||global.webkitAudioContext;var StereoPannerNode=require("stereo-panner-node");if(AudioContext&&!AudioContext.prototype.createStereoPanner){AudioContext.prototype.createStereoPanner=function(){return new StereoPannerNode(this)}}}).call(this,typeof global!=="undefined"?global:typeof self!=="undefined"?self:typeof window!=="undefined"?window:{})},{"stereo-panner-node":4}],2:[function(require,module,exports){"use strict";var WS_CURVE_SIZE=4096;var curveL=new Float32Array(WS_CURVE_SIZE);var curveR=new Float32Array(WS_CURVE_SIZE);(function(){for(var i=0;i<WS_CURVE_SIZE;i++){curveL[i]=Math.cos(i/WS_CURVE_SIZE*Math.PI*.5);curveR[i]=Math.sin(i/WS_CURVE_SIZE*Math.PI*.5)}})();module.exports={L:curveL,R:curveR}},{}],3:[function(require,module,exports){(function(global){"use strict";var curve=require("./curve");function StereoPannerImpl(audioContext){this.audioContext=audioContext;this.inlet=audioContext.createChannelSplitter(2);this._pan=audioContext.createGain();this.pan=this._pan.gain;this._wsL=audioContext.createWaveShaper();this._wsR=audioContext.createWaveShaper();this._L=audioContext.createGain();this._R=audioContext.createGain();this.outlet=audioContext.createChannelMerger(2);this.inlet.channelCount=2;this.inlet.channelCountMode="explicit";this._pan.gain.value=0;this._wsL.curve=curve.L;this._wsR.curve=curve.R;this._L.gain.value=0;this._R.gain.value=0;this.inlet.connect(this._L,0);this.inlet.connect(this._R,1);this._L.connect(this.outlet,0,0);this._R.connect(this.outlet,0,1);this._pan.connect(this._wsL);this._pan.connect(this._wsR);this._wsL.connect(this._L.gain);this._wsR.connect(this._R.gain);this._isConnected=false;this._dc1buffer=null;this._dc1=null}StereoPannerImpl.prototype.connect=function(destination){var audioContext=this.audioContext;if(!this._isConnected){this._isConnected=true;this._dc1buffer=audioContext.createBuffer(1,2,audioContext.sampleRate);this._dc1buffer.getChannelData(0).set([1,1]);this._dc1=audioContext.createBufferSource();this._dc1.buffer=this._dc1buffer;this._dc1.loop=true;this._dc1.start(audioContext.currentTime);this._dc1.connect(this._pan)}global.AudioNode.prototype.connect.call(this.outlet,destination)};StereoPannerImpl.prototype.disconnect=function(){var audioContext=this.audioContext;if(this._isConnected){this._isConnected=false;this._dc1.stop(audioContext.currentTime);this._dc1.disconnect();this._dc1=null;this._dc1buffer=null}global.AudioNode.prototype.disconnect.call(this.outlet)};module.exports=StereoPannerImpl}).call(this,typeof global!=="undefined"?global:typeof self!=="undefined"?self:typeof window!=="undefined"?window:{})},{"./curve":2}],4:[function(require,module,exports){"use strict";var StereoPannerImpl=require("./stereo-panner-impl");function StereoPanner(audioContext){var impl=new StereoPannerImpl(audioContext);Object.defineProperties(impl.inlet,{pan:{value:impl.pan,enumerable:true},connect:{value:function(node){return impl.connect(node)}},disconnect:{value:function(){return impl.disconnect()}}});return impl.inlet}module.exports=StereoPanner},{"./stereo-panner-impl":3}]},{},[1]);
+
+
 /** Sound back-end using Web Audio API
  *
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
  */
+
+
 PLAYGROUND.SoundWebAudioAPI = function(app, audioContext) {
 
   this.app = app;
@@ -3549,7 +3556,7 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Touch.prototype, PLAYGROUND.Events.prototype)
 
 PLAYGROUND.Tween = function(manager, context) {
 
-  if(!context) debugger;
+  if (!context) debugger;
 
   PLAYGROUND.Events.call(this);
 
@@ -3644,6 +3651,8 @@ PLAYGROUND.Tween.prototype = {
 
     this.actions.push(["repeat", times]);
 
+    return this;
+
   },
 
   /* Add a wait action for specified number of miliseconds */
@@ -3661,6 +3670,8 @@ PLAYGROUND.Tween.prototype = {
   delay: function(time) {
 
     this.actions.push(["wait", time]);
+
+    return this;
 
   },
 
@@ -4390,13 +4401,18 @@ PLAYGROUND.LoadingScreen = {
 
 /*     
 
-  Canvas Query r7
+  Canvas Query r8
   
   http://canvasquery.com
   
   (c) 2012-2016 http://rezoner.net
   
   Canvas Query may be freely distributed under the MIT license.
+
+  r8
+
+  + improved matchPalette performance
+  + defaultFont
 
   r7
 
@@ -4430,6 +4446,7 @@ PLAYGROUND.LoadingScreen = {
   var COCOONJS = false;
 
   var Canvas = window.HTMLCanvasElement;
+  var orgImage = window.Image;
   var Image = window.HTMLImageElement;
   var ImageBitmap = window.ImageBitmap || window.HTMLImageElement;
   var COCOONJS = navigator.isCocoonJS;
@@ -4483,8 +4500,9 @@ PLAYGROUND.LoadingScreen = {
   };
 
   cq.lineSpacing = 1.0;
-  cq.defaultFont = "Arial";
+  cq.defaultFont = "";
   cq.textBaseline = "alphabetic";
+  cq.matchPalettePrecision = 10;
 
   cq.palettes = {
 
@@ -4498,6 +4516,116 @@ PLAYGROUND.LoadingScreen = {
 
   };
 
+  /*
+
+    cq.loadImages();
+
+    cq.run(function(){
+
+    });
+
+  */
+
+  /* Micro framework */
+
+  cq.images = {};
+  cq.atlases = {};
+  cq.loaderscount = 0;
+  cq.loadercallback = function() {
+
+    cq.loaderscount--;
+
+  };
+
+  cq.loadImages = function(keys) {
+
+    var promises = [];
+
+    for (var key in keys) {
+
+      cq.loaderscount++;
+
+      var path = keys[key];
+
+      var image = new orgImage();
+
+      cq.images[key] = image;
+      cq.loaderscount++;
+
+      var promise = new Promise(function(resolve, reject) {
+
+        image.addEventListener("load", function() {
+
+          cq.loadercallback();
+
+          resolve();
+
+        });
+
+        image.addEventListener("error", function() {
+
+          throw ("unable to load " + this.src);
+
+        });
+
+      });
+
+      image.src = path;
+
+    }
+
+    return Promise.all(promises);
+
+  };
+
+  cq.loadAtlases = function() {
+
+  };
+
+  /* WIP */
+
+  cq.run = function(callback) {
+
+    var lasTick = Date.now();
+
+    var frame = function() {
+
+      requestAnimationFrame(frame);
+
+      var dt = Date.now() - lastTick;
+      lastTick = Date.now();
+
+      if (cq.loaderscount === 0) callback(dt);
+
+    }
+
+    requestAnimationFrame(frame);
+
+  };
+
+  /* WIP */
+
+  cq.viewport = function() {
+
+    if (!cq.layer) {
+
+      cq.layer = cq();
+      cq.layer.appendTo(document.body);
+
+    }
+
+  };
+
+  /* WIP */
+  cq.mouse = function(callback) {
+
+    document.addEventListener('mousedown', function(e) {
+
+      console.log(e);
+
+    });
+
+  }
 
   cq.cocoon = function(selector) {
     if (arguments.length === 0) {
@@ -4969,6 +5097,9 @@ PLAYGROUND.LoadingScreen = {
       this.context.msImageSmoothingEnabled = smoothing;
       this.context.webkitImageSmoothingEnabled = smoothing;
       this.context.imageSmoothingEnabled = smoothing;
+
+      if (cq.defaultFont) this.context.font = cq.defaultFont;
+
       this.context.textBaseline = cq.textBaseline;
 
       if (COCOONJS) Cocoon.Utils.setAntialias(smoothing);
@@ -5408,8 +5539,10 @@ PLAYGROUND.LoadingScreen = {
       var f = this.fillStyle();
       var padding = padding || 2;
 
-      this.fillStyle(background).fillRect(x - w / 2 - padding * 2, y - padding, w + padding * 4, h + padding * 2)
-      this.fillStyle(f).textAlign("center").textBaseline("top").fillText(text, x, y);
+      var a = this.context.textAlign;
+
+      this.fillStyle(background).fillRect(x - padding * 2, y - padding, w + padding * 4, h + padding * 2)
+      this.fillStyle(f).textAlign("left").textBaseline("top").fillText(text, x, y);
 
       return this;
     },
@@ -5608,59 +5741,85 @@ PLAYGROUND.LoadingScreen = {
 
     matchPalette: function(palette) {
 
-      var imgData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      if (!palette.matches) palette.matches = new Map;
 
-      var rgbPalette = [];
+      if (!palette.colors) {
 
-      for (var i = 0; i < palette.length; i++) {
+        palette.colors = [];
 
-        rgbPalette.push(cq.color(palette[i]));
+        for (var i = 0; i < palette.length; i++) {
 
+          palette.colors.push(cq.color(palette[i]));
+
+        }
       }
 
-      for (var i = 0; i < imgData.data.length; i += 4) {
+      var imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = imageData.data;
+
+      for (var i = 0; i < pixels.length; i += 4) {
 
         var difList = [];
 
-        if (!imgData.data[i + 3]) continue;
+        if (!pixels[i + 3]) continue;
 
-        for (var j = 0; j < rgbPalette.length; j++) {
-          var rgbVal = rgbPalette[j];
-          var rDif = Math.abs(imgData.data[i] - rgbVal[0]),
-            gDif = Math.abs(imgData.data[i + 1] - rgbVal[1]),
-            bDif = Math.abs(imgData.data[i + 2] - rgbVal[2]);
-          difList.push(rDif + gDif + bDif);
-        }
+        var key =
+          (pixels[i + 0] / cq.matchPalettePrecision | 0) * cq.matchPalettePrecision +
+          (pixels[i + 1] / cq.matchPalettePrecision | 0) * cq.matchPalettePrecision * 1000 +
+          (pixels[i + 2] / cq.matchPalettePrecision | 0) * cq.matchPalettePrecision * 1000000;
 
-        var closestMatch = 0;
 
-        for (var j = 0; j < palette.length; j++) {
-          if (difList[j] < difList[closestMatch]) {
-            closestMatch = j;
+        if (!palette.matches.has(key)) {
+
+          for (var j = 0; j < palette.colors.length; j++) {
+
+            var rgb = palette.colors[j];
+            var rDif = Math.abs(pixels[i] - rgb[0]);
+            var gDif = Math.abs(pixels[i + 1] - rgb[1])
+            var bDif = Math.abs(pixels[i + 2] - rgb[2]);
+
+            difList.push(rDif + gDif + bDif);
+
           }
+
+          var closestMatch = 0;
+
+          for (var j = 0; j < palette.length; j++) {
+
+            if (difList[j] < difList[closestMatch]) {
+
+              closestMatch = j;
+
+            }
+
+          }
+
+          palette.matches.set(key, palette.colors[closestMatch]);
+
         }
 
-        var paletteRgb = cq.hexToRgb(palette[closestMatch]);
-        imgData.data[i] = paletteRgb[0];
-        imgData.data[i + 1] = paletteRgb[1];
-        imgData.data[i + 2] = paletteRgb[2];
+        var matchedColor = palette.matches.get(key);
+
+        pixels[i] = matchedColor[0];
+        pixels[i + 1] = matchedColor[1];
+        pixels[i + 2] = matchedColor[2];
 
         /* dithering */
 
-        //imgData.data[i + 3] = (255 * Math.random() < imgData.data[i + 3]) ? 255 : 0;
+        //imageData.data[i + 3] = (255 * Math.random() < imageData.data[i + 3]) ? 255 : 0;
 
-        //imgData.data[i + 3] = imgData.data[i + 3] > 128 ? 255 : 0;
+        //imageData.data[i + 3] = imageData.data[i + 3] > 128 ? 255 : 0;
         /*
         if (i % 3 === 0) {
-          imgData.data[i] -= cq.limitValue(imgData.data[i] - 50, 0, 255);
-          imgData.data[i + 1] -= cq.limitValue(imgData.data[i + 1] - 50, 0, 255);
-          imgData.data[i + 2] -= cq.limitValue(imgData.data[i + 2] - 50, 0, 255);
+          imageData.data[i] -= cq.limitValue(imageData.data[i] - 50, 0, 255);
+          imageData.data[i + 1] -= cq.limitValue(imageData.data[i + 1] - 50, 0, 255);
+          imageData.data[i + 2] -= cq.limitValue(imageData.data[i + 2] - 50, 0, 255);
         }
         */
 
       }
 
-      this.context.putImageData(imgData, 0, 0);
+      this.context.putImageData(imageData, 0, 0);
 
       return this;
 

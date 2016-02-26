@@ -1,6 +1,6 @@
 PLAYGROUND.Tween = function(manager, context) {
 
-  if(!context) debugger;
+  if (!context) debugger;
 
   PLAYGROUND.Events.call(this);
 
@@ -95,6 +95,8 @@ PLAYGROUND.Tween.prototype = {
 
     this.actions.push(["repeat", times]);
 
+    return this;
+
   },
 
   /* Add a wait action for specified number of miliseconds */
@@ -112,6 +114,8 @@ PLAYGROUND.Tween.prototype = {
   delay: function(time) {
 
     this.actions.push(["wait", time]);
+
+    return this;
 
   },
 
