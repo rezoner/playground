@@ -246,7 +246,7 @@ PLAYGROUND.Tween.prototype = {
       this.before = [];
       this.types = [];
 
-      for (i = 0; i < this.keys.length; i++) {
+      for (var i = 0; i < this.keys.length; i++) {
 
         var key = this.keys[i];
         var value = this.context[key];
