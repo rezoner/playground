@@ -41,6 +41,7 @@ PLAYGROUND.Keyboard = function(app) {
 
   this.keydownEvent = {};
   this.keyupEvent = {};
+  this.keypressEvent = {};
 
   this.preventDefault = true;
 
@@ -108,10 +109,6 @@ PLAYGROUND.Keyboard.prototype = {
     222: "singlequote"
   },
 
-  keypress: function(e) {
-
-  },
-
   bypassKeys: ["f12", "f5", "ctrl", "alt", "shift"],
 
   keydown: function(e) {
@@ -174,7 +171,22 @@ PLAYGROUND.Keyboard.prototype = {
 
     this.trigger("keyup", this.keyupEvent);
 
+  },
+
+  keypress: function(e) {
+
+    if (!this.enabled) return;
+
+    if (e.which >= 48 && e.which <= 90) var keyName = String.fromCharCode(e.which).toLowerCase();
+    else var keyName = this.keycodes[e.which];
+
+    this.keypressEvent.key = keyName;
+    this.keypressEvent.original = e;
+
+    this.trigger("keypress", this.keypressEvent);
+
   }
+
 
 };
 

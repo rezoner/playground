@@ -15,10 +15,14 @@ var PLAYGROUND;
 
   latest major changes:
 
+  r12
+
+  + fixed font loader and antialias
+
   r11
 
   + sound panning
-
+  
   r10
 
   + tween.call
@@ -490,6 +494,8 @@ var PLAYGROUND;
 /* file: src/Playground.js */
 
 PLAYGROUND = {};
+
+PLAYGROUND.MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 function playground(args) {
 
@@ -1735,8 +1741,11 @@ PLAYGROUND.Application.prototype = {
 
         var checkingTimer = setInterval(function() {
 
-          var base = cq(100, 32).font("14px somethingrandom").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
-          var test = cq(100, 32).font("14px '" + name + "'").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
+          var base = cq(100, 32).font("14px somethingrandom").fillStyle("#fff").textBaseline("top");
+          base.context.fillText("lorem ipsum dolores sit", 0, 4);
+
+          var test = cq(100, 32).font("14px '" + name + "'").fillStyle("#fff").textBaseline("top");
+          test.context.fillText("lorem ipsum dolores sit", 0, 4);
 
           if (!cq.compare(base, test)) {
 
@@ -2178,6 +2187,7 @@ PLAYGROUND.Keyboard = function(app) {
 
   this.keydownEvent = {};
   this.keyupEvent = {};
+  this.keypressEvent = {};
 
   this.preventDefault = true;
 
@@ -2245,10 +2255,6 @@ PLAYGROUND.Keyboard.prototype = {
     222: "singlequote"
   },
 
-  keypress: function(e) {
-
-  },
-
   bypassKeys: ["f12", "f5", "ctrl", "alt", "shift"],
 
   keydown: function(e) {
@@ -2311,7 +2317,22 @@ PLAYGROUND.Keyboard.prototype = {
 
     this.trigger("keyup", this.keyupEvent);
 
+  },
+
+  keypress: function(e) {
+
+    if (!this.enabled) return;
+
+    if (e.which >= 48 && e.which <= 90) var keyName = String.fromCharCode(e.which).toLowerCase();
+    else var keyName = this.keycodes[e.which];
+
+    this.keypressEvent.key = keyName;
+    this.keypressEvent.original = e;
+
+    this.trigger("keypress", this.keypressEvent);
+
   }
+
 
 };
 

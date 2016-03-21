@@ -10,10 +10,14 @@
 
   latest major changes:
 
+  r12
+
+  + fixed font loader and antialias
+
   r11
 
   + sound panning
-
+  
   r10
 
   + tween.call

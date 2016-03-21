@@ -693,8 +693,11 @@ PLAYGROUND.Application.prototype = {
 
         var checkingTimer = setInterval(function() {
 
-          var base = cq(100, 32).font("14px somethingrandom").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
-          var test = cq(100, 32).font("14px '" + name + "'").fillStyle("#fff").textBaseline("top").fillText("lorem ipsum dolores sit", 0, 4);
+          var base = cq(100, 32).font("14px somethingrandom").fillStyle("#fff").textBaseline("top");
+          base.context.fillText("lorem ipsum dolores sit", 0, 4);
+
+          var test = cq(100, 32).font("14px '" + name + "'").fillStyle("#fff").textBaseline("top");
+          test.context.fillText("lorem ipsum dolores sit", 0, 4);
 
           if (!cq.compare(base, test)) {
 
