@@ -9,7 +9,7 @@ PLAYGROUND.Sound = function(app) {
 
   var audioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
 
-  if (audioContext) {
+  if (audioContext && !app.forceAudioFallback) {
 
     if (!PLAYGROUND.audioContext) PLAYGROUND.audioContext = new audioContext;
 

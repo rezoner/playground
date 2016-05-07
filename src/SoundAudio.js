@@ -42,6 +42,8 @@ PLAYGROUND.SoundAudio.prototype = {
 
   load: function(file) {
 
+    console.log(file, this.audioFormat)
+
     var url = "sounds/" + file + "." + this.audioFormat;
 
     var loader = this.app.loader;
@@ -51,14 +53,40 @@ PLAYGROUND.SoundAudio.prototype = {
     var audio = this.samples[file] = new Audio;
 
     audio.addEventListener("canplay", function() {
-      loader.success(url);
-    });
 
+      console.log("CANPLAY");
+
+      this.pause();
+      loader.success(url);
+
+
+    });
+    /*
+        audio.addEventListener("canplaythrough", function() {
+
+          console.log("CANPLAYTHROUGH");
+
+          loader.success(url);
+
+        });
+
+        audio.addEventListener("load", function() {
+
+          console.log("LOAD");
+
+          loader.success(url);
+
+        });
+    */
     audio.addEventListener("error", function() {
+
       loader.error(url);
+
     });
 
     audio.src = url;
+    audio.play();
+
 
   },
 
@@ -102,7 +130,7 @@ PLAYGROUND.SoundAudio.prototype = {
   },
 
   setPanning: function(sound, pan) {
-    
+
   }
 
 };

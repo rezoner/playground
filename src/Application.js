@@ -76,6 +76,10 @@ PLAYGROUND.Application = function(args) {
 
   PLAYGROUND.Sound(this);
 
+  /* visibility API */
+
+  document.addEventListener("visibilitychange", this.handleVisibilityChange.bind(this));
+
   /* window resize */
 
   this.resizelistener = PLAYGROUND.Utils.throttle(this.handleResize.bind(this), 100);
@@ -357,6 +361,15 @@ PLAYGROUND.Application.prototype = {
       x: this.width / 2 | 0,
       y: this.height / 2 | 0
     };
+
+  },
+
+  handleVisibilityChange: function() {
+
+    this.emitGlobalEvent("visibilitychange", {
+      visible: !document.hidden,
+      hidden: document.hidden
+    });
 
   },
 

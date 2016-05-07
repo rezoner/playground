@@ -38,7 +38,15 @@ PLAYGROUND.Renderer.prototype = {
 
     /* disable interpolation when scaling canvas in DOM */
 
-    app.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+    if ('WebkitAppearance' in document.documentElement.style) {
+
+      app.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+
+    } else {
+
+      app.canvas.style.imageRendering = this.app.smoothing ? "auto" : "-moz-crisp-edges";
+
+    }
 
   }
 

@@ -62,7 +62,15 @@ PLAYGROUND.Renderer.prototype = {
 
     layer.update();
 
-    layer.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+    if ('WebkitAppearance' in document.documentElement.style) {
+
+      layer.canvas.style.imageRendering = this.app.smoothing ? "auto" : "pixelated";
+
+    } else {
+
+      layer.canvas.style.imageRendering = this.app.smoothing ? "auto" : "-moz-crisp-edges";
+
+    }
 
     layer.canvas.addEventListener("mousedown", function() {
 

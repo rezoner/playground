@@ -77,7 +77,7 @@ PLAYGROUND.Pointer.prototype = {
 
     this.removePointer(e);
 
-    this.app.emitGlobalEvent("pointerup", e);    
+    this.app.emitGlobalEvent("pointerup", e);
 
   },
 
@@ -108,6 +108,8 @@ PLAYGROUND.Pointer.prototype = {
   mousedown: function(e) {
 
     e.mouse = true;
+
+    this.updatePointer(e);
 
     this.app.emitGlobalEvent("pointerdown", e);
 
@@ -162,7 +164,6 @@ PLAYGROUND.Pointer.prototype = {
 
     var pointer = this.pointers[e.id];
 
-
     if (!pointer.dragging && pointer.pressed && PLAYGROUND.Utils.distance(pointer.tapPosition, e) > 5) {
 
       pointer.dragging = true;
@@ -170,7 +171,6 @@ PLAYGROUND.Pointer.prototype = {
     }
 
     e.dragging = pointer.dragging;
-
 
   },
 

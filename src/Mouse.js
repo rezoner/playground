@@ -179,7 +179,7 @@ PLAYGROUND.Mouse.prototype = {
       this.trigger("mousemove", this.mousemoveEvent);
     }
 
-  }, 16),
+  }, 15),
 
   mousedown: function(e) {
 

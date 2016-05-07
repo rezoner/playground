@@ -1,6 +1,6 @@
 /*     
 
-  PlaygroundJS r11 (WIP)
+  PlaygroundJS r12
   
   http://playgroundjs.com
   
@@ -13,6 +13,7 @@
   r12
 
   + fixed font loader and antialias
+  + updated canvasquery
 
   r11
 

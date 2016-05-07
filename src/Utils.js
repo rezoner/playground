@@ -69,30 +69,41 @@ PLAYGROUND.Utils = {
 
   },
 
-  throttle: function(fn, threshold) {
+  throttle: function(fn, delay) {
 
-    threshold || (threshold = 250);
-    var last,
-      deferTimer;
+    var timeout;
+    var last = 0;
+
     return function() {
-      var context = this;
+
       var args = [];
 
       for (var i = 0; i < arguments.length; i++) args.push(arguments[i]);
 
-      var now = Date.now();
+      var context = this;
 
-      if (last && now < last + threshold) {
-        // hold on to it
-        clearTimeout(deferTimer);
-        deferTimer = setTimeout(function() {
-          last = now;
-          fn.apply(context, args);
-        }, threshold);
-      } else {
-        last = now;
+      if (Date.now() - last > delay) {
+
+        last = Date.now();
+
         fn.apply(context, args);
+
+        clearTimeout(timeout);
+
+      } else {
+
+        clearTimeout(timeout);
+
+        timeout = setTimeout(function() {
+
+          fn.apply(context, args);
+
+          last = Date.now();
+
+        }, Date.now() - last);
+
       }
+
     };
 
   },

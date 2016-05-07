@@ -1,12 +1,17 @@
 /*     
 
-  Canvas Query r8
+  Canvas Query r9
   
   http://canvasquery.com
   
   (c) 2012-2016 http://rezoner.net
   
   Canvas Query may be freely distributed under the MIT license.
+
+  r9
+
+  + even more precise fontHeight and fontTop
+  + textBoundaries and wrappedText use same alg for maxWidth when newline is detected
 
   r8
 
@@ -80,6 +85,8 @@
 
     } else if (selector instanceof ImageBitmap) {
 
+      var canvas = cq.pool();
+
       canvas.width = selector.width;
       canvas.height = selector.height;
       canvas.getContext("2d").drawImage(selector, 0, 0);
@@ -124,107 +131,6 @@
     });
 
   */
-
-  /* Micro framework */
-
-  cq.images = {};
-  cq.atlases = {};
-  cq.loaderscount = 0;
-  cq.loadercallback = function() {
-
-    cq.loaderscount--;
-
-  };
-
-  cq.loadImages = function(keys) {
-
-    var promises = [];
-
-    for (var key in keys) {
-
-      cq.loaderscount++;
-
-      var path = keys[key];
-
-      var image = new orgImage();
-
-      cq.images[key] = image;
-      cq.loaderscount++;
-
-      var promise = new Promise(function(resolve, reject) {
-
-        image.addEventListener("load", function() {
-
-          cq.loadercallback();
-
-          resolve();
-
-        });
-
-        image.addEventListener("error", function() {
-
-          throw ("unable to load " + this.src);
-
-        });
-
-      });
-
-      image.src = path;
-
-    }
-
-    return Promise.all(promises);
-
-  };
-
-  cq.loadAtlases = function() {
-
-  };
-
-  /* WIP */
-
-  cq.run = function(callback) {
-
-    var lasTick = Date.now();
-
-    var frame = function() {
-
-      requestAnimationFrame(frame);
-
-      var dt = Date.now() - lastTick;
-      lastTick = Date.now();
-
-      if (cq.loaderscount === 0) callback(dt);
-
-    }
-
-    requestAnimationFrame(frame);
-
-  };
-
-  /* WIP */
-
-  cq.viewport = function() {
-
-    if (!cq.layer) {
-
-      cq.layer = cq();
-      cq.layer.appendTo(document.body);
-
-    }
-
-  };
-
-  /* WIP */
-  cq.mouse = function(callback) {
-
-    document.addEventListener('mousedown', function(e) {
-
-      console.log(e);
-
-    });
-
-  }
 
   cq.cocoon = function(selector) {
     if (arguments.length === 0) {
@@ -817,20 +723,29 @@
 
     },
 
-    fillText: function(text, x, y) {
+    webkit: ('WebkitAppearance' in document.documentElement.style),
+
+    fillText: function(text, x, y, gap) {
+
+      text = String(text);
+
+      if (!text.length) return;
 
       var webkitHack = !cq.smoothing && (this.fontHeight() <= 64) && ('WebkitAppearance' in document.documentElement.style);
 
       if (webkitHack) {
 
-        var scale = 4;
+        var scale = this.webkit ? 4 : 5;
 
         var canvas = cq.pool();
         var context = canvas.getContext("2d");
 
         context.font = this.context.font;
 
-        var width = Math.ceil(context.measureText(text).width);
+        var realWidth = context.measureText(text).width;
+        var width = Math.ceil(realWidth);
+        var gap = gap || (width - realWidth);
+
         var height = this.fontHeight();
 
         canvas.width = width * scale;
@@ -846,7 +761,7 @@
         context.textBaseline = "top";
 
         context.scale(scale, scale);
-        context.fillText(text, 0, -this.fontTop());
+        context.fillText(text, gap, -this.fontTop());
 
         if (this.context.textAlign === "center") x -= width * 0.5;
         else if (this.context.textAlign === "right") x -= width;
@@ -855,7 +770,9 @@
 
       } else {
 
+
         this.context.fillText(text, x, y - this.fontTop());
+
 
       }
 
@@ -1098,6 +1015,22 @@
       return this;
     },
 
+    posterizeAlpha: function(pc, inc) {
+      pc = pc || 32;
+      inc = inc || 4;
+      var imgdata = this.getImageData(0, 0, this.width, this.height);
+      var data = imgdata.data;
+
+      for (var i = 0; i < data.length; i += inc) {
+
+        data[i + 3] -= data[i + 3] % pc; // set value to nearest of 8 possibilities
+
+      }
+
+      this.putImageData(imgdata, 0, 0); // put image data to canvas
+
+      return this;
+    },
 
     bw: function(pc) {
       pc = 128;
@@ -1424,7 +1357,46 @@
 
     },
 
+    swapColors: function(colors) {
+
+      var colormap = {};
+
+      for (var key in colors) {
+
+        var color = cq.color(key);
+        var index = color[0] + color[1] * 1000 + color[2] * 1000000;
+
+        colormap[index] = cq.color(colors[key]);
+
+      }
+
+      var imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = imageData.data;
+
+      for (var i = 0; i < pixels.length; i += 4) {
+
+        if (!pixels[i + 3]) continue;
+
+        var index = pixels[i] + pixels[i + 1] * 1000 + pixels[i + 2] * 1000000;
+
+        if (colormap[index]) {
+
+          pixels[i] = colormap[index][0];
+          pixels[i + 1] = colormap[index][1];
+          pixels[i + 2] = colormap[index][2];
+
+        }
+
+      }
+
+      this.context.putImageData(imageData, 0, 0);
+
+      return this;
+
+    },
+
     getPalette: function() {
+
       var palette = [];
       var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
       var sourcePixels = sourceData.data;
@@ -1829,6 +1801,7 @@
 
     wrappedText: function(text, x, y, maxWidth, lineHeight) {
 
+
       if (maxWidth < 0) maxWidth = 0;
 
       var words = text.split(" ");
@@ -1844,6 +1817,13 @@
       this.textBaseline("top");
 
       var spaceWidth = this.context.measureText(" ").width | 0;
+      // var newlineOnly = !maxWidth && text.indexOf("\n") > -1;
+
+      if (!maxWidth && text.indexOf("\n") > -1) {
+
+        maxWidth = this.textBoundaries(text).width;
+
+      }
 
       if (maxWidth) {
 
@@ -1852,11 +1832,12 @@
         var linesWidth = [0];
 
         for (var i = 0; i < words.length; i++) {
+
           var word = words[i];
-          var wordWidth = this.context.measureText(word).width | 0;
 
+          var wordWidth = Math.ceil(this.context.measureText(word).width);
 
-          if (wordWidth > maxWidth) {
+          if (maxWidth && wordWidth > maxWidth) {
 
             /* 4 is still risky, it's valid as long as `-` is the delimiter */
 
@@ -1873,7 +1854,7 @@
             continue;
           }
 
-          if (ox + wordWidth > maxWidth || words[i] === "\n") {
+          if ((ox + wordWidth > maxWidth) || words[i] === "\n") {
 
             lines[line] = lines[line].substr(0, lines[line].length - 1);
             linesWidth[line] -= spaceWidth;
@@ -1895,6 +1876,12 @@
 
         }
 
+        if (words[i] !== "\n") {
+          lines[line] = lines[line].substr(0, lines[line].length - 1);
+          linesWidth[line] -= spaceWidth;
+        }
+
+
       } else {
 
         var lines = [text];
@@ -1914,9 +1901,9 @@
         if (textAlign === "left" || textAlign === "start")
           this.fillText(text, x, oy);
         else if (textAlign === "center")
-          this.fillText(text, x + maxWidth * 0.5 - width * 0.5 | 0, oy);
+          this.fillText(text, x - width * 0.5 | 0, oy);
         else
-          this.fillText(text, x + maxWidth - width, oy);
+          this.fillText(text, x - width, oy);
 
       }
 
@@ -1954,8 +1941,9 @@
         temp.textBaseline("top");
 
         /* Use direct fillText as internal inmplementation uses fontWidth() */
+        var oy = 10;
 
-        temp.context.fillText("Play Moog", 20, 10);
+        temp.context.fillText("Play Moog", 20, oy);
 
         var data = temp.getImageData(0, 0, temp.width, temp.height).data;
 
@@ -1967,15 +1955,17 @@
           var x = (i / 4 | 0) % temp.width;
           var y = (i / 4 | 0) / temp.width | 0;
 
-          if (!data[i + 3]) continue;
+          /* A little threshold for anti-alias */
+
+          if (data[i + 3] < 200) continue;
 
           if (y < top) top = y;
           if (y > bottom) bottom = y;
 
         }
 
-        this.fontHeights[font] = Math.abs(top - bottom) + 2;
-        this.fontTops[font] = top - 10;
+        this.fontHeights[font] = bottom - oy + 1;
+        this.fontTops[font] = top - oy;
 
       }
 
@@ -1996,62 +1986,68 @@
 
       var spaceWidth = this.context.measureText(" ").width;
 
+      var line = 0;
+      var lines = [""];
+
+      var width = 0;
+
+      for (var i = 0; i < words.length; i++) {
+
+        var word = words[i];
+        var wordWidth = Math.ceil(this.context.measureText(word).width);
+
+        if (maxWidth && (wordWidth > maxWidth)) {
+
+          if (word.length <= 5) continue;
+
+          var split = word.length / 2 | 0;
+
+          words.splice(i, 1);
+          words.splice(i, 0, "-" + word.substr(split));
+          words.splice(i, 0, word.substr(0, split) + "-");
+
+          i--;
+
+          continue;
+        }
+
+        if (((ox + wordWidth > maxWidth) && maxWidth) || words[i] === "\n") {
+
+          if (ox > width) width = ox;
+
+          lines[++line] = "";
+
+          ox = 0;
+
+        }
+
+        if (words[i] !== "\n") {
+
+          lines[line] += word;
+
+          ox += wordWidth + spaceWidth;
+
+        }
+
+      }
+
       if (maxWidth) {
-        var line = 0;
-        var lines = [""];
 
-        for (var i = 0; i < words.length; i++) {
-          var word = words[i];
-          var wordWidth = this.context.measureText(word).width;
-
-          if (wordWidth + spaceWidth > maxWidth) {
-
-            if (word.length <= 5) continue;
-
-            var split = word.length / 2 | 0;
-
-            words.splice(i, 1);
-            words.splice(i, 0, "-" + word.substr(split));
-            words.splice(i, 0, word.substr(0, split) + "-");
-
-            i--;
-
-            continue;
-          }
-
-          if (ox + wordWidth > maxWidth || words[i] === "\n") {
-            lines[++line] = "";
-            ox = 0;
-          }
-
-          if (words[i] !== "\n") {
-            lines[line] += word;
-            ox += wordWidth + spaceWidth;
-          }
-        }
-
-        if (lines.length > 1) {
-
-          var width = maxWidth;
-
-        } else {
-
-          var width = this.measureText(text).width | 0;
-
-        }
+        var width = maxWidth;
 
       } else {
 
-        var lines = [text];
+        if (!width) {
 
-        var width = this.measureText(text).width | 0;
+          width = this.context.measureText(text).width;
 
+        }
 
       }
 
       return {
         height: lines.length * h,
-        width: width | 0,
+        width: Math.ceil(width),
         lines: lines.length,
         fontHeight: h
       }
@@ -2114,19 +2110,27 @@
 
           if (w > outset * 2 && h > outset * 2) {
 
-            this.drawImage(image,
-              region[0] + outset,
-              region[1] + outset, (region[2] - outset * 2), (region[3] - outset * 2),
-              x + outset, y + outset,
-              w - outset * 2,
-              h - outset * 2
-            );
+            if (t.fill !== false) {
 
+              this.drawImage(image,
+                region[0] + outset,
+                region[1] + outset, (region[2] - outset * 2), (region[3] - outset * 2),
+                x + outset, y + outset,
+                w - outset * 2,
+                h - outset * 2
+              );
+
+            }
+
+
+            /* edges */
 
             this.drawImage(image, region[0], region[1] + outset, outset, region[3] - 2 * outset, x, y + outset, outset, h - outset * 2);
             this.drawImage(image, region[0] + region[2] - outset, region[1] + outset, outset, region[3] - 2 * outset, x + w - outset, y + outset, outset, h - outset * 2);
             this.drawImage(image, region[0] + outset, region[1], region[2] - outset * 2, outset, x + outset, y, w - outset * 2, outset);
             this.drawImage(image, region[0] + outset, region[1] + region[3] - outset, region[2] - outset * 2, outset, x + outset, y + h - outset, w - outset * 2, outset);
+
+            /* corners */
 
             this.drawImage(image, region[0], region[1], outset, outset, x, y, outset, outset);
             this.drawImage(image, region[0], region[1] + region[3] - outset, outset, outset, x, y + h - outset, outset, outset);
@@ -2740,12 +2744,35 @@
     },
 
     a: function(a) {
-      return this.alpha(a);
+
+      if (arguments.length === 1) {
+
+        this[3] = a;
+
+      } else {
+
+        return this[3];
+
+      }
+
+      return this;
+
     },
 
     alpha: function(a) {
-      this[3] = a;
+
+      if (arguments.length === 1) {
+
+        this[3] = a;
+
+      } else {
+
+        return this[3];
+
+      }
+
       return this;
+
     },
 
     fromHsl: function() {
