@@ -82,6 +82,21 @@ PLAYGROUND.Keyboard.prototype = {
     34: "pagedown",
     35: "end",
     36: "home",
+    96: "numpad0",
+    97: "numpad1",
+    98: "numpad2",
+    99: "numpad3",
+    100: "numpad4",
+    101: "numpad5",
+    102: "numpad6",
+    103: "numpad7",
+    104: "numpad8",
+    105: "numpad9",
+    106: "numpadmul",
+    107: "numpadadd",
+    109: "numpadsub",
+    110: "numpaddec",
+    111: "numpaddiv",
     112: "f1",
     113: "f2",
     114: "f3",
@@ -109,7 +124,7 @@ PLAYGROUND.Keyboard.prototype = {
     222: "singlequote"
   },
 
-  bypassKeys: ["f12", "f5", "ctrl", "alt", "shift"],
+  bypassKeys: ["f12", "f11", "f5", "ctrl", "alt", "shift"],
 
   keydown: function(e) {
 

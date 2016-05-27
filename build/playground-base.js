@@ -1360,7 +1360,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-
   /** Responds to a resize event by updating some internal variables.
    *
    * `offsetX`, `offsetY` and `center` are always updated.
@@ -1436,6 +1435,8 @@ PLAYGROUND.Application.prototype = {
 
   handleResize: function() {
 
+    this.emitGlobalEvent("beforeresize", {});
+    
     this.updateSize();
 
     this.mouse.handleResize();
@@ -2252,6 +2253,21 @@ PLAYGROUND.Keyboard.prototype = {
     34: "pagedown",
     35: "end",
     36: "home",
+    96: "numpad0",
+    97: "numpad1",
+    98: "numpad2",
+    99: "numpad3",
+    100: "numpad4",
+    101: "numpad5",
+    102: "numpad6",
+    103: "numpad7",
+    104: "numpad8",
+    105: "numpad9",
+    106: "numpadmul",
+    107: "numpadadd",
+    109: "numpadsub",
+    110: "numpaddec",
+    111: "numpaddiv",
     112: "f1",
     113: "f2",
     114: "f3",
@@ -2279,7 +2295,7 @@ PLAYGROUND.Keyboard.prototype = {
     222: "singlequote"
   },
 
-  bypassKeys: ["f12", "f5", "ctrl", "alt", "shift"],
+  bypassKeys: ["f12", "f11", "f5", "ctrl", "alt", "shift"],
 
   keydown: function(e) {
 
@@ -2911,54 +2927,74 @@ PLAYGROUND.Mouse.prototype = {
     var callback = this.mousewheel.bind(this);
     var self = this;
 
+    var throttled = PLAYGROUND.Utils.throttle(function(event) {
+
+      var orgEvent = event || window.event,
+        args = [].slice.call(arguments, 1),
+        delta = 0,
+        deltaX = 0,
+        deltaY = 0,
+        absDelta = 0,
+        absDeltaXY = 0,
+        fn;
+
+      // orgEvent.type = "mousewheel";
+
+      // Old school scrollwheel delta
+      if (orgEvent.wheelDelta) {
+        delta = orgEvent.wheelDelta;
+      }
+
+      if (orgEvent.detail) {
+        delta = orgEvent.detail * -1;
+      }
+
+      // New school wheel delta (wheel event)
+      if (orgEvent.deltaY) {
+        deltaY = orgEvent.deltaY * -1;
+        delta = deltaY;
+      }
+
+      // Webkit
+      if (orgEvent.wheelDeltaY !== undefined) {
+        deltaY = orgEvent.wheelDeltaY;
+      }
+
+      var result = delta ? delta : deltaY;
+
+      self.mousewheelEvent.x = self.mousemoveEvent.x;
+      self.mousewheelEvent.y = self.mousemoveEvent.y;
+      self.mousewheelEvent.delta = result / Math.abs(result);
+      self.mousewheelEvent.original = orgEvent;
+
+      callback(self.mousewheelEvent);
+
+      orgEvent.preventDefault();
+
+    }, 40);
+
     for (var i = eventNames.length; i;) {
 
-      self.element.addEventListener(eventNames[--i], PLAYGROUND.Utils.throttle(function(event) {
+      self.element.addEventListener(eventNames[--i], function(event) {
 
-        var orgEvent = event || window.event,
-          args = [].slice.call(arguments, 1),
-          delta = 0,
-          deltaX = 0,
-          deltaY = 0,
-          absDelta = 0,
-          absDeltaXY = 0,
-          fn;
+        throttled(event);
 
-        // orgEvent.type = "mousewheel";
+        event.preventDefault();
+        event.stopPropagation();
 
-        // Old school scrollwheel delta
-        if (orgEvent.wheelDelta) {
-          delta = orgEvent.wheelDelta;
-        }
+      }, false);
+      /*
+            self.element.addEventListener(eventNames[--i], function(event) {
 
-        if (orgEvent.detail) {
-          delta = orgEvent.detail * -1;
-        }
+              e.preventDefault();
+              e.stopPropagation();
 
-        // New school wheel delta (wheel event)
-        if (orgEvent.deltaY) {
-          deltaY = orgEvent.deltaY * -1;
-          delta = deltaY;
-        }
+            });
+            */
 
-        // Webkit
-        if (orgEvent.wheelDeltaY !== undefined) {
-          deltaY = orgEvent.wheelDeltaY;
-        }
-
-        var result = delta ? delta : deltaY;
-
-        self.mousewheelEvent.x = self.mousemoveEvent.x;
-        self.mousewheelEvent.y = self.mousemoveEvent.y;
-        self.mousewheelEvent.delta = result / Math.abs(result);
-        self.mousewheelEvent.original = orgEvent;
-
-        callback(self.mousewheelEvent);
-
-        orgEvent.preventDefault();
-
-      }, 40), false);
     }
+
+
 
   }
 
@@ -3786,8 +3822,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Touch.prototype, PLAYGROUND.Events.prototype)
 
 PLAYGROUND.Tween = function(manager, context) {
 
-  if (!context) debugger;
-
   PLAYGROUND.Events.call(this);
 
   this.manager = manager;
@@ -3795,14 +3829,12 @@ PLAYGROUND.Tween = function(manager, context) {
 
   PLAYGROUND.Utils.extend(this, {
 
-    actions: [],
-    index: -1,
     prevEasing: "045",
     prevDuration: 0.5
 
   });
 
-  this.current = false;
+  this.clear();
 
 };
 
@@ -3828,6 +3860,18 @@ PLAYGROUND.Tween.prototype = {
     else easing = "045";
 
     this.actions.push([properties, duration, easing]);
+
+    return this;
+
+  },
+
+  /* Clear animations */
+
+  clear: function() {
+
+    this.actions = [];
+    this.index = -1;
+    this.current = false;
 
     return this;
 
@@ -4039,17 +4083,23 @@ PLAYGROUND.Tween.prototype = {
 
         if (typeof properties[key] === "number") {
 
+          value = value || 0;
+
           this.before.push(value);
           this.change.push(properties[key] - value);
           this.types.push(0);
 
         } else if (typeof properties[key] === "string" && properties[key].indexOf("rad") > -1) {
 
+          value = value || 0;
+
           this.before.push(value);
           this.change.push(PLAYGROUND.Utils.circWrappedDistance(value, parseFloat(properties[key])));
           this.types.push(2);
 
         } else {
+
+          value = value || "#000";
 
           var before = cq.color(value);
 
@@ -4346,7 +4396,6 @@ PLAYGROUND.TweenManager.prototype = {
   }
 
 };
-
 
 /* file: src/Atlases.js */
 

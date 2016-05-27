@@ -301,7 +301,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-
   /** Responds to a resize event by updating some internal variables.
    *
    * `offsetX`, `offsetY` and `center` are always updated.
@@ -377,6 +376,8 @@ PLAYGROUND.Application.prototype = {
 
   handleResize: function() {
 
+    this.emitGlobalEvent("beforeresize", {});
+    
     this.updateSize();
 
     this.mouse.handleResize();

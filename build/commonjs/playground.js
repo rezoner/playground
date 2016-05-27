@@ -1361,7 +1361,6 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-
   /** Responds to a resize event by updating some internal variables.
    *
    * `offsetX`, `offsetY` and `center` are always updated.
@@ -1437,6 +1436,8 @@ PLAYGROUND.Application.prototype = {
 
   handleResize: function() {
 
+    this.emitGlobalEvent("beforeresize", {});
+    
     this.updateSize();
 
     this.mouse.handleResize();
@@ -2253,6 +2254,21 @@ PLAYGROUND.Keyboard.prototype = {
     34: "pagedown",
     35: "end",
     36: "home",
+    96: "numpad0",
+    97: "numpad1",
+    98: "numpad2",
+    99: "numpad3",
+    100: "numpad4",
+    101: "numpad5",
+    102: "numpad6",
+    103: "numpad7",
+    104: "numpad8",
+    105: "numpad9",
+    106: "numpadmul",
+    107: "numpadadd",
+    109: "numpadsub",
+    110: "numpaddec",
+    111: "numpaddiv",
     112: "f1",
     113: "f2",
     114: "f3",
@@ -2280,7 +2296,7 @@ PLAYGROUND.Keyboard.prototype = {
     222: "singlequote"
   },
 
-  bypassKeys: ["f12", "f5", "ctrl", "alt", "shift"],
+  bypassKeys: ["f12", "f11", "f5", "ctrl", "alt", "shift"],
 
   keydown: function(e) {
 
@@ -2912,54 +2928,74 @@ PLAYGROUND.Mouse.prototype = {
     var callback = this.mousewheel.bind(this);
     var self = this;
 
+    var throttled = PLAYGROUND.Utils.throttle(function(event) {
+
+      var orgEvent = event || window.event,
+        args = [].slice.call(arguments, 1),
+        delta = 0,
+        deltaX = 0,
+        deltaY = 0,
+        absDelta = 0,
+        absDeltaXY = 0,
+        fn;
+
+      // orgEvent.type = "mousewheel";
+
+      // Old school scrollwheel delta
+      if (orgEvent.wheelDelta) {
+        delta = orgEvent.wheelDelta;
+      }
+
+      if (orgEvent.detail) {
+        delta = orgEvent.detail * -1;
+      }
+
+      // New school wheel delta (wheel event)
+      if (orgEvent.deltaY) {
+        deltaY = orgEvent.deltaY * -1;
+        delta = deltaY;
+      }
+
+      // Webkit
+      if (orgEvent.wheelDeltaY !== undefined) {
+        deltaY = orgEvent.wheelDeltaY;
+      }
+
+      var result = delta ? delta : deltaY;
+
+      self.mousewheelEvent.x = self.mousemoveEvent.x;
+      self.mousewheelEvent.y = self.mousemoveEvent.y;
+      self.mousewheelEvent.delta = result / Math.abs(result);
+      self.mousewheelEvent.original = orgEvent;
+
+      callback(self.mousewheelEvent);
+
+      orgEvent.preventDefault();
+
+    }, 40);
+
     for (var i = eventNames.length; i;) {
 
-      self.element.addEventListener(eventNames[--i], PLAYGROUND.Utils.throttle(function(event) {
+      self.element.addEventListener(eventNames[--i], function(event) {
 
-        var orgEvent = event || window.event,
-          args = [].slice.call(arguments, 1),
-          delta = 0,
-          deltaX = 0,
-          deltaY = 0,
-          absDelta = 0,
-          absDeltaXY = 0,
-          fn;
+        throttled(event);
 
-        // orgEvent.type = "mousewheel";
+        event.preventDefault();
+        event.stopPropagation();
 
-        // Old school scrollwheel delta
-        if (orgEvent.wheelDelta) {
-          delta = orgEvent.wheelDelta;
-        }
+      }, false);
+      /*
+            self.element.addEventListener(eventNames[--i], function(event) {
 
-        if (orgEvent.detail) {
-          delta = orgEvent.detail * -1;
-        }
+              e.preventDefault();
+              e.stopPropagation();
 
-        // New school wheel delta (wheel event)
-        if (orgEvent.deltaY) {
-          deltaY = orgEvent.deltaY * -1;
-          delta = deltaY;
-        }
+            });
+            */
 
-        // Webkit
-        if (orgEvent.wheelDeltaY !== undefined) {
-          deltaY = orgEvent.wheelDeltaY;
-        }
-
-        var result = delta ? delta : deltaY;
-
-        self.mousewheelEvent.x = self.mousemoveEvent.x;
-        self.mousewheelEvent.y = self.mousemoveEvent.y;
-        self.mousewheelEvent.delta = result / Math.abs(result);
-        self.mousewheelEvent.original = orgEvent;
-
-        callback(self.mousewheelEvent);
-
-        orgEvent.preventDefault();
-
-      }, 40), false);
     }
+
+
 
   }
 
@@ -3787,8 +3823,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Touch.prototype, PLAYGROUND.Events.prototype)
 
 PLAYGROUND.Tween = function(manager, context) {
 
-  if (!context) debugger;
-
   PLAYGROUND.Events.call(this);
 
   this.manager = manager;
@@ -3796,14 +3830,12 @@ PLAYGROUND.Tween = function(manager, context) {
 
   PLAYGROUND.Utils.extend(this, {
 
-    actions: [],
-    index: -1,
     prevEasing: "045",
     prevDuration: 0.5
 
   });
 
-  this.current = false;
+  this.clear();
 
 };
 
@@ -3829,6 +3861,18 @@ PLAYGROUND.Tween.prototype = {
     else easing = "045";
 
     this.actions.push([properties, duration, easing]);
+
+    return this;
+
+  },
+
+  /* Clear animations */
+
+  clear: function() {
+
+    this.actions = [];
+    this.index = -1;
+    this.current = false;
 
     return this;
 
@@ -4040,17 +4084,23 @@ PLAYGROUND.Tween.prototype = {
 
         if (typeof properties[key] === "number") {
 
+          value = value || 0;
+
           this.before.push(value);
           this.change.push(properties[key] - value);
           this.types.push(0);
 
         } else if (typeof properties[key] === "string" && properties[key].indexOf("rad") > -1) {
 
+          value = value || 0;
+
           this.before.push(value);
           this.change.push(PLAYGROUND.Utils.circWrappedDistance(value, parseFloat(properties[key])));
           this.types.push(2);
 
         } else {
+
+          value = value || "#000";
 
           var before = cq.color(value);
 
@@ -4347,7 +4397,6 @@ PLAYGROUND.TweenManager.prototype = {
   }
 
 };
-
 
 /* file: src/Atlases.js */
 
@@ -5615,13 +5664,13 @@ PLAYGROUND.LoadingScreen = {
 
       return this.clone().canvas;
 
-      /* FFS .... image.src is no longer synchronous when assigning dataURL */
+    },
 
-      var image = new Image;
+    popup: function() {
 
-      image.src = this.canvas.toDataURL();
+      window.open(this.canvas.toDataURL());
 
-      return image;
+      return this;
 
     },
 
@@ -5998,6 +6047,7 @@ PLAYGROUND.LoadingScreen = {
 
         var color = cq.color(key);
         var index = color[0] + color[1] * 1000 + color[2] * 1000000;
+        // var index = String(color[0]) + "," + String(color[1]) + "," + String(color[2]);
 
         colormap[index] = cq.color(colors[key]);
 
@@ -6011,6 +6061,7 @@ PLAYGROUND.LoadingScreen = {
         if (!pixels[i + 3]) continue;
 
         var index = pixels[i] + pixels[i + 1] * 1000 + pixels[i + 2] * 1000000;
+        // var index = String(pixels[i + 0]) + "," + String(pixels[i + 1]) + "," + String(pixels[i + 2]);
 
         if (colormap[index]) {
 
@@ -6431,6 +6482,65 @@ PLAYGROUND.LoadingScreen = {
 
     },
 
+    charWidth: function(char) {
+
+      if (!cq.charWidthCache) cq.charWidthCache = new Map();
+
+      if (!cq.charWidthCache.has(this.context.font + char)) {
+
+        var width = this.measureText(char).width;
+
+        cq.charWidthCache.set(this.context.font + char, width);
+
+      }
+
+      return cq.charWidthCache.get(this.context.font + char);
+
+    },
+
+    pixelText: function(text, x, y) {
+
+      var prevTextAlign = this.context.textAlign;
+
+      this.context.textAlign = "left";
+
+      var textWidth = 0;
+
+      if (prevTextAlign === "center") {
+
+        for (var i = 0; i < text.length; i++) {
+
+          var w = this.charWidth(text[i]);
+
+          var o = w - (w | 0);
+
+          textWidth += w + (o > 0.5 ? 1 : 0) | 0;
+
+        }
+
+        x -= textWidth / 2 | 0;
+
+      }
+
+      for (var i = 0; i < text.length; i++) {
+
+        var c = text[i];
+
+        var w = this.charWidth(c);
+
+        var o = w - (w | 0);
+
+        this.context.fillText(c, x, y);
+
+        x += w + (o > 0.5 ? 1 : 0) | 0;
+
+      }
+
+      this.context.textAlign = prevTextAlign;
+
+      return this;
+
+    },
 
     wrappedText: function(text, x, y, maxWidth, lineHeight) {
 
@@ -7567,11 +7677,25 @@ PLAYGROUND.Renderer.prototype = {
     layer.width = app.width;
     layer.height = app.height;
 
-    layer.canvas.style.transformOrigin = "0 0";
+    if (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    ) {
+
+      layer.canvas.style.transformOrigin = "center";
+      layer.canvas.style.webkitTransformOrigin = "center";
+
+    } else {
+
+      layer.canvas.style.transformOrigin = "0 0";
+      layer.canvas.style.webkitTransformOrigin = "0 0";
+
+    }
     layer.canvas.style.transform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
     layer.canvas.style.transformStyle = "preserve-3d";
 
-    layer.canvas.style.webkitTransformOrigin = "0 0";
     layer.canvas.style.webkitTransform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
     layer.canvas.style.webkitTransformStyle = "preserve-3d";
 

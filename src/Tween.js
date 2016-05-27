@@ -1,7 +1,5 @@
 PLAYGROUND.Tween = function(manager, context) {
 
-  if (!context) debugger;
-
   PLAYGROUND.Events.call(this);
 
   this.manager = manager;
@@ -9,14 +7,12 @@ PLAYGROUND.Tween = function(manager, context) {
 
   PLAYGROUND.Utils.extend(this, {
 
-    actions: [],
-    index: -1,
     prevEasing: "045",
     prevDuration: 0.5
 
   });
 
-  this.current = false;
+  this.clear();
 
 };
 
@@ -42,6 +38,18 @@ PLAYGROUND.Tween.prototype = {
     else easing = "045";
 
     this.actions.push([properties, duration, easing]);
+
+    return this;
+
+  },
+
+  /* Clear animations */
+
+  clear: function() {
+
+    this.actions = [];
+    this.index = -1;
+    this.current = false;
 
     return this;
 
@@ -253,17 +261,23 @@ PLAYGROUND.Tween.prototype = {
 
         if (typeof properties[key] === "number") {
 
+          value = value || 0;
+
           this.before.push(value);
           this.change.push(properties[key] - value);
           this.types.push(0);
 
         } else if (typeof properties[key] === "string" && properties[key].indexOf("rad") > -1) {
 
+          value = value || 0;
+
           this.before.push(value);
           this.change.push(PLAYGROUND.Utils.circWrappedDistance(value, parseFloat(properties[key])));
           this.types.push(2);
 
         } else {
+
+          value = value || "#000";
 
           var before = cq.color(value);
 

@@ -255,54 +255,74 @@ PLAYGROUND.Mouse.prototype = {
     var callback = this.mousewheel.bind(this);
     var self = this;
 
+    var throttled = PLAYGROUND.Utils.throttle(function(event) {
+
+      var orgEvent = event || window.event,
+        args = [].slice.call(arguments, 1),
+        delta = 0,
+        deltaX = 0,
+        deltaY = 0,
+        absDelta = 0,
+        absDeltaXY = 0,
+        fn;
+
+      // orgEvent.type = "mousewheel";
+
+      // Old school scrollwheel delta
+      if (orgEvent.wheelDelta) {
+        delta = orgEvent.wheelDelta;
+      }
+
+      if (orgEvent.detail) {
+        delta = orgEvent.detail * -1;
+      }
+
+      // New school wheel delta (wheel event)
+      if (orgEvent.deltaY) {
+        deltaY = orgEvent.deltaY * -1;
+        delta = deltaY;
+      }
+
+      // Webkit
+      if (orgEvent.wheelDeltaY !== undefined) {
+        deltaY = orgEvent.wheelDeltaY;
+      }
+
+      var result = delta ? delta : deltaY;
+
+      self.mousewheelEvent.x = self.mousemoveEvent.x;
+      self.mousewheelEvent.y = self.mousemoveEvent.y;
+      self.mousewheelEvent.delta = result / Math.abs(result);
+      self.mousewheelEvent.original = orgEvent;
+
+      callback(self.mousewheelEvent);
+
+      orgEvent.preventDefault();
+
+    }, 40);
+
     for (var i = eventNames.length; i;) {
 
-      self.element.addEventListener(eventNames[--i], PLAYGROUND.Utils.throttle(function(event) {
+      self.element.addEventListener(eventNames[--i], function(event) {
 
-        var orgEvent = event || window.event,
-          args = [].slice.call(arguments, 1),
-          delta = 0,
-          deltaX = 0,
-          deltaY = 0,
-          absDelta = 0,
-          absDeltaXY = 0,
-          fn;
+        throttled(event);
 
-        // orgEvent.type = "mousewheel";
+        event.preventDefault();
+        event.stopPropagation();
 
-        // Old school scrollwheel delta
-        if (orgEvent.wheelDelta) {
-          delta = orgEvent.wheelDelta;
-        }
+      }, false);
+      /*
+            self.element.addEventListener(eventNames[--i], function(event) {
 
-        if (orgEvent.detail) {
-          delta = orgEvent.detail * -1;
-        }
+              e.preventDefault();
+              e.stopPropagation();
 
-        // New school wheel delta (wheel event)
-        if (orgEvent.deltaY) {
-          deltaY = orgEvent.deltaY * -1;
-          delta = deltaY;
-        }
+            });
+            */
 
-        // Webkit
-        if (orgEvent.wheelDeltaY !== undefined) {
-          deltaY = orgEvent.wheelDeltaY;
-        }
-
-        var result = delta ? delta : deltaY;
-
-        self.mousewheelEvent.x = self.mousemoveEvent.x;
-        self.mousewheelEvent.y = self.mousemoveEvent.y;
-        self.mousewheelEvent.delta = result / Math.abs(result);
-        self.mousewheelEvent.original = orgEvent;
-
-        callback(self.mousewheelEvent);
-
-        orgEvent.preventDefault();
-
-      }, 40), false);
     }
+
+
 
   }
 

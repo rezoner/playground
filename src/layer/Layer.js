@@ -50,11 +50,25 @@ PLAYGROUND.Renderer.prototype = {
     layer.width = app.width;
     layer.height = app.height;
 
-    layer.canvas.style.transformOrigin = "0 0";
+    if (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    ) {
+
+      layer.canvas.style.transformOrigin = "center";
+      layer.canvas.style.webkitTransformOrigin = "center";
+
+    } else {
+
+      layer.canvas.style.transformOrigin = "0 0";
+      layer.canvas.style.webkitTransformOrigin = "0 0";
+
+    }
     layer.canvas.style.transform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
     layer.canvas.style.transformStyle = "preserve-3d";
 
-    layer.canvas.style.webkitTransformOrigin = "0 0";
     layer.canvas.style.webkitTransform = "translate(" + app.offsetX + "px," + app.offsetY + "px) scale(" + app.scale + ", " + app.scale + ")";
     layer.canvas.style.webkitTransformStyle = "preserve-3d";
 
