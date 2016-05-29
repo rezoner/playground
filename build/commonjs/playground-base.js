@@ -1,4 +1,4 @@
-var PLAYGROUND;
+var PLAYGROUND = {};
 
 
 /* file: license.txt */
