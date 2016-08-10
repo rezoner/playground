@@ -51,6 +51,12 @@ PLAYGROUND.Mouse = function(app, element) {
   this.y = 0;
 
 
+  if (app.mouseThrottling) {
+
+    this.mousemove = PLAYGROUND.Utils.throttle(this.mousemove, app.mouseThrottling);
+
+  }
+
   this.mousemovelistener = this.mousemove.bind(this);
   this.mousedownlistener = this.mousedown.bind(this);
   this.mouseuplistener = this.mouseup.bind(this);
@@ -81,6 +87,7 @@ PLAYGROUND.Mouse = function(app, element) {
 
 
   this.handleResize();
+
 
 };
 
@@ -147,7 +154,7 @@ PLAYGROUND.Mouse.prototype = {
 
   },
 
-  mousemove: PLAYGROUND.Utils.throttle(function(e) {
+  mousemove: function(e) {
 
     if (!this.enabled) return;
 
@@ -179,7 +186,7 @@ PLAYGROUND.Mouse.prototype = {
       this.trigger("mousemove", this.mousemoveEvent);
     }
 
-  }, 15),
+  },
 
   mousedown: function(e) {
 

@@ -26,7 +26,8 @@ var files = [
   "src/Atlases.js",
   "src/Fonts.js",
   "src/DefaultState.js",
-  "src/LoadingScreen.js"
+  "src/LoadingScreen.js",
+  "src/Pool.js"
 
 ];
 

@@ -139,15 +139,17 @@ PLAYGROUND.Gamepads.prototype = {
 
       if (current.axes) {
 
-        if (Math.abs(current.axes[0]) > 0.01) {
-          if (current.axes[0] < 0) buttons[14].pressed = true;
-          if (current.axes[0] > 0) buttons[15].pressed = true;
-        }
+        /*
+                if (Math.abs(current.axes[0]) > 0.01) {
+                  if (current.axes[0] < 0) buttons[14].pressed = true;
+                  if (current.axes[0] > 0) buttons[15].pressed = true;
+                }
 
-        if (Math.abs(current.axes[1]) > 0.01) {
-          if (current.axes[1] < 0) buttons[12].pressed = true;
-          if (current.axes[1] > 0) buttons[13].pressed = true;
-        }
+                if (Math.abs(current.axes[1]) > 0.01) {
+                  if (current.axes[1] < 0) buttons[12].pressed = true;
+                  if (current.axes[1] > 0) buttons[13].pressed = true;
+                }
+                */
 
         var stickChanged = false;
         var stickA = false;
@@ -194,15 +196,24 @@ PLAYGROUND.Gamepads.prototype = {
           previous.sticks[1].y = current.axes[3];
 
           this.gamepadmoveEvent.sticks = previous.sticks;
-
-          if (stickA) this.gamepadmoveEvent.a = previous.sticks[0];
-          else this.gamepadmoveEvent.a = false;
-
-          if (stickB) this.gamepadmoveEvent.b = previous.sticks[1];
-          else this.gamepadmoveEvent.b = false;
-
           this.gamepadmoveEvent.gamepad = i;
-          this.trigger("gamepadmove", this.gamepadmoveEvent);
+
+          if (stickA) {
+
+            this.gamepadmoveEvent.b = false;
+            this.gamepadmoveEvent.a = previous.sticks[0];
+            this.trigger("gamepadmove", this.gamepadmoveEvent);
+
+          }
+
+          if (stickB) {
+
+            this.gamepadmoveEvent.a = false;
+            this.gamepadmoveEvent.b = previous.sticks[1];
+            this.trigger("gamepadmove", this.gamepadmoveEvent);
+
+          }
+
 
         }
 

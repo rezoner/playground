@@ -9,20 +9,19 @@
 
 */
 
-PLAYGROUND.Renderer = function(app) {
+PLAYGROUND.Canvas = function(app) {
 
   this.app = app;
 
   app.on("create", this.create.bind(this));
   app.on("resize", this.resize.bind(this));
-
   app.on("kill", this.kill.bind(this));
 
 };
 
-PLAYGROUND.Renderer.plugin = true;
+PLAYGROUND.Canvas.plugin = true;
 
-PLAYGROUND.Renderer.prototype = {
+PLAYGROUND.Canvas.prototype = {
 
   kill: function() {
 
@@ -46,6 +45,10 @@ PLAYGROUND.Renderer.prototype = {
     var app = this.app;
 
     var layer = app.layer;
+
+    layer.useAlpha = false;
+
+    if (!layer) return;
 
     layer.width = app.width;
     layer.height = app.height;

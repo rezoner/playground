@@ -4,6 +4,8 @@ PLAYGROUND.Application = function(args) {
 
   this.killed = false;
 
+  this.dataSource = {};
+
   /* events */
 
   PLAYGROUND.Events.call(this);
@@ -88,9 +90,9 @@ PLAYGROUND.Application = function(args) {
 
   /* assets containers */
 
-  this.images = {};
-  this.atlases = {};
-  this.data = {};
+  this.images = PLAYGROUND.images;
+  this.atlases = PLAYGROUND.atlases;
+  this.data = PLAYGROUND.data;
 
   this.loader = new PLAYGROUND.Loader(this);
 
@@ -152,9 +154,7 @@ PLAYGROUND.Application = function(args) {
 
     });
 
-
   };
-
 
   this.loader.once("ready", onPreloadEnd);
 
@@ -168,12 +168,15 @@ PLAYGROUND.Application.prototype = {
     paths: {
       base: "",
       images: "images/",
-      fonts: "fonts/"
+      fonts: "fonts/",
+      rewrite: {},
+      rewriteURL: {}
     },
     offsetX: 0,
     offsetY: 0,
     skipEvents: false,
-    disabledUntilLoaded: true
+    disabledUntilLoaded: true,
+    mouseThrottling: 15
   },
 
   /**
@@ -239,6 +242,12 @@ PLAYGROUND.Application.prototype = {
    * @returns a dictionary with standardised information
    */
 
+  rewriteURL: function(url) {
+
+    return this.paths.rewriteURL[url] || url;
+
+  },
+
   getAssetEntry: function(path, folder, defaultExtension) {
 
     /* translate folder according to user provided paths
@@ -260,9 +269,18 @@ PLAYGROUND.Application.prototype = {
       basename += "." + defaultExtension;
     }
 
+    var url = this.rewriteURL(this.paths.base + folder + basename);
+
+    /*
+      key: key to store
+      url: url to load
+      path: url without extension.. pretty much useless?
+      ext: extension
+    */
+
     return {
       key: key,
-      url: this.paths.base + folder + basename,
+      url: url,
       path: this.paths.base + folder + path,
       ext: ext
     };
@@ -376,9 +394,9 @@ PLAYGROUND.Application.prototype = {
 
   handleResize: function() {
 
-    this.emitGlobalEvent("beforeresize", {});
-    
     this.updateSize();
+
+    this.emitGlobalEvent("beforeresize", {});
 
     this.mouse.handleResize();
     this.touch.handleResize();
@@ -396,11 +414,21 @@ PLAYGROUND.Application.prototype = {
 
   request: function(url) {
 
-    function promise(success, fail) {
+    var app = this;
+
+    function promise(resolve, reject) {
+
+      var baseurl = url.split("?")[0];
+
+      if (app.dataSource[baseurl]) {
+
+        return resolve({
+          responseText: app.dataSource[baseurl]
+        });
+
+      }
 
       var request = new XMLHttpRequest();
-
-      var app = this;
 
       request.open("GET", url, true);
 
@@ -410,11 +438,11 @@ PLAYGROUND.Application.prototype = {
 
         if (xhr.status !== 200 && xhr.status !== 0) {
 
-          return fail(new Error("Failed to get " + url));
+          return reject(new Error("Failed to get " + url));
 
         }
 
-        success(xhr);
+        resolve(xhr);
 
       }
 
@@ -477,7 +505,7 @@ PLAYGROUND.Application.prototype = {
 
     this.loader.add();
 
-    this.request(entry.url).then(processData);
+    this.request(entry.url + (this.purgeCache ? ("?" + Date.now()) : "")).then(processData);
 
     function processData(request) {
 
@@ -485,7 +513,17 @@ PLAYGROUND.Application.prototype = {
 
       if (entry.ext === "json") {
 
-        var data = JSON.parse(request.responseText);
+        try {
+
+          var data = JSON.parse(request.responseText);
+
+        } catch (e) {
+
+          console.error("JSON file corrupt " + name);
+
+          return;
+
+        }
 
         if (extend) {
 
@@ -586,7 +624,7 @@ PLAYGROUND.Application.prototype = {
 
         var entry = app.getAssetEntry(name, "images", "png");
 
-        app.loader.add(entry.path);
+        app.loader.add(entry.url);
 
         var image = new Image;
 

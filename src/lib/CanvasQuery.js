@@ -577,6 +577,7 @@
 
   cq.Layer = function(canvas) {
 
+    this.useAlpha = true;
     this.context = canvas.getContext("2d");
     this.canvas = canvas;
     this.prevAlignX = [];
@@ -597,6 +598,13 @@
       var smoothing = cq.smoothing;
 
       if (typeof this.smoothing !== "undefined") smoothing = this.smoothing;
+      if (!this.useAlpha) {
+
+        this.context = this.canvas.getContext("2d", {
+          alpha: false
+        });
+
+      }
 
       this.context.mozImageSmoothingEnabled = smoothing;
       this.context.msImageSmoothingEnabled = smoothing;
@@ -1877,7 +1885,7 @@
 
       this.textBaseline("top");
 
-      var spaceWidth = this.context.measureText(" ").width | 0;
+      var spaceWidth = this.context.measureText(" ").width + 0.5 | 0;
       // var newlineOnly = !maxWidth && text.indexOf("\n") > -1;
 
       if (!maxWidth && text.indexOf("\n") > -1) {
@@ -1946,7 +1954,7 @@
       } else {
 
         var lines = [text];
-        var linesWidth = [this.context.measureText(text).width];
+        var linesWidth = [this.context.measureText(text).width + 0.5 | 0];
 
       }
 
@@ -2045,7 +2053,7 @@
       var ox = 0;
       var oy = 0;
 
-      var spaceWidth = this.context.measureText(" ").width;
+      var spaceWidth = this.context.measureText(" ").width + 0.5 | 0;
 
       var line = 0;
       var lines = [""];
@@ -2100,7 +2108,7 @@
 
         if (!width) {
 
-          width = this.context.measureText(text).width;
+          width = this.context.measureText(text).width + 0.5 | 0;
 
         }
 

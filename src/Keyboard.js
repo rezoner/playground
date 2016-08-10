@@ -49,6 +49,8 @@ PLAYGROUND.Keyboard = function(app) {
 
   this.app.on("kill", this.kill.bind(this));
 
+  this.mapping = {};
+
 };
 
 PLAYGROUND.Keyboard.prototype = {
@@ -133,6 +135,8 @@ PLAYGROUND.Keyboard.prototype = {
     if (e.which >= 48 && e.which <= 90) var keyName = String.fromCharCode(e.which).toLowerCase();
     else var keyName = this.keycodes[e.which];
 
+    if (this.mapping[keyName]) keyName = this.mapping[keyName];
+
     if (this.keys[keyName]) return;
 
     this.any++;
@@ -177,6 +181,8 @@ PLAYGROUND.Keyboard.prototype = {
     if (e.which >= 48 && e.which <= 90) var keyName = String.fromCharCode(e.which).toLowerCase();
     else var keyName = this.keycodes[e.which];
 
+    if (this.mapping[keyName]) keyName = this.mapping[keyName];
+
     this.any--;
 
     this.keyupEvent.key = keyName;
@@ -194,6 +200,8 @@ PLAYGROUND.Keyboard.prototype = {
 
     if (e.which >= 48 && e.which <= 90) var keyName = String.fromCharCode(e.which).toLowerCase();
     else var keyName = this.keycodes[e.which];
+
+    if (this.mapping[keyName]) keyName = this.mapping[keyName];
 
     this.keypressEvent.key = keyName;
     this.keypressEvent.original = e;
