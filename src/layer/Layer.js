@@ -46,10 +46,9 @@ PLAYGROUND.Canvas.prototype = {
 
     var layer = app.layer;
 
-    layer.useAlpha = false;
-
     if (!layer) return;
-
+    
+    layer.useAlpha = false;
     layer.width = app.width;
     layer.height = app.height;
 
