@@ -589,7 +589,16 @@ PLAYGROUND.Application.prototype = {
 
       /* polymorphism at its finest */
 
-      if (typeof arg === "object") {
+      if (arg.constructor === Array) {
+
+        for(var key = 0; key < arg.length; key++) {
+
+            promises = promises.concat(this.loadImages(arg[key]));
+
+        }
+
+      }
+      else if (typeof arg === "object") {
 
         for (var key in arg) promises = promises.concat(this.loadImages(arg[key]));
 
