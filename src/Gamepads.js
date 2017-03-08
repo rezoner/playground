@@ -56,10 +56,13 @@ PLAYGROUND.Gamepads.prototype = {
     7: "r2",
     8: "select",
     9: "start",
+    10: "stick1",
+    11: "stick2",
     12: "up",
     13: "down",
     14: "left",
-    15: "right"
+    15: "right",
+    16: "super"
   },
 
   zeroState: function() {
@@ -122,17 +125,17 @@ PLAYGROUND.Gamepads.prototype = {
       var buttons = [].concat(current.buttons);
 
       /* hack for missing  dpads */
+      /*
+            for (var h = 12; h <= 15; h++) {
 
-      for (var h = 12; h <= 15; h++) {
+              // if (!buttons[h]) 
 
-        // if (!buttons[h]) 
-
-        buttons[h] = {
-          pressed: false,
-          value: 0
-        };
-      }
-
+              buttons[h] = {
+                pressed: false,
+                value: 0
+              };
+            }
+      */
       var previous = this[i];
 
       /* axes (sticks) to buttons */
@@ -234,6 +237,10 @@ PLAYGROUND.Gamepads.prototype = {
           this.gamepaddownEvent.button = this.buttons[j];
           this.gamepaddownEvent.gamepad = i;
           this.trigger("gamepaddown", this.gamepaddownEvent);
+          this.trigger("keydown", {
+            key: "gamepad" + this.gamepaddownEvent.button,
+            gamepad: i
+          });
 
         }
 
@@ -255,6 +262,10 @@ PLAYGROUND.Gamepads.prototype = {
           this.gamepadupEvent.button = this.buttons[j];
           this.gamepadupEvent.gamepad = i;
           this.trigger("gamepadup", this.gamepadupEvent);
+          this.trigger("keyup", {
+            key: "gamepad" + this.gamepadupEvent.button,
+            gamepad: i
+          });
 
         }
 

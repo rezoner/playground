@@ -123,6 +123,8 @@ SoundOnDemand.prototype = {
 
   load: function(key) {
 
+    console.log("LOAD")
+
     var engine = this;
     var entry = engine.getAssetEntry(key, engine.audioFormat);
 

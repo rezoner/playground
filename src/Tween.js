@@ -4,10 +4,11 @@ PLAYGROUND.Tween = function(manager, context) {
 
   this.manager = manager;
   this.context = context;
+  this.auto = true;
 
   PLAYGROUND.Utils.extend(this, {
 
-    prevEasing: "045",
+    prevEasing: "linear",
     prevDuration: 0.5
 
   });
@@ -18,13 +19,21 @@ PLAYGROUND.Tween = function(manager, context) {
 
 PLAYGROUND.Tween.prototype = {
 
+  manual: function() {
+
+    this.auto = false;
+
+    return this;
+
+  },
+
   /* 
 
     Add an action to the end of the list
      
     @param properties
     @param duration in miliseconds (optional, default is 0.5)
-    @param easing (optional, default is 045)
+    @param easing (optional, default is linear)
     @returns `this` object so that calls can be chained.
 
   */
@@ -35,7 +44,7 @@ PLAYGROUND.Tween.prototype = {
     else duration = 0.5;
 
     if (easing) this.prevEasing = easing;
-    else easing = "045";
+    else easing = "linear";
 
     this.actions.push([properties, duration, easing]);
 
@@ -540,6 +549,8 @@ PLAYGROUND.TweenManager.prototype = {
     for (var i = 0; i < this.tweens.length; i++) {
 
       var tween = this.tweens[i];
+
+      if (!tween.auto) continue;
 
       if (!tween._remove) tween.step(delta);
 

@@ -2,6 +2,8 @@
 
 Out-of-box access to essentials like mouse, keyboard, sound and well designed architecture that you can expand to your needs.
 
+Need instant help? [Join our official slack](https://playgroundjs.slack.com/messages/general/)
+
 ## Core feature
 
 Playground lets you establish a new application and bind essential events in one shot.

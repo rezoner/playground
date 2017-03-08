@@ -29,7 +29,9 @@ PLAYGROUND.Keyboard = function(app) {
 
   this.app = app;
   this.keys = {};
+  this.timestamps = {};
   this.any = false;
+  this.lastKey = -1;
 
   this.keydownlistener = this.keydown.bind(this);
   this.keyuplistener = this.keyup.bind(this);
@@ -48,12 +50,19 @@ PLAYGROUND.Keyboard = function(app) {
   this.enabled = true;
 
   this.app.on("kill", this.kill.bind(this));
+  this.app.on("blur", this.blur.bind(this));
 
   this.mapping = {};
+
+  this.keyToCode = {};
+
+  for (var code in this.keycodes) this.keyToCode[this.keycodes[code]] = code;
 
 };
 
 PLAYGROUND.Keyboard.prototype = {
+
+  doubleTimeframe: 0.25,
 
   kill: function() {
 
@@ -122,7 +131,7 @@ PLAYGROUND.Keyboard.prototype = {
     192: "graveaccent",
     219: "openbracket",
     220: "backslash",
-    221: "closebraket",
+    221: "closebracket",
     222: "singlequote"
   },
 
@@ -146,6 +155,19 @@ PLAYGROUND.Keyboard.prototype = {
 
     this.keys[keyName] = true;
 
+    if (keyName === this.lastKey && Date.now() - this.timestamps[keyName] < this.doubleTimeframe * 1000) {
+
+      this.timestamps[keyName] = Date.now() - this.doubleTimeframe;
+      this.keydownEvent.double = true;
+
+    } else {
+
+      this.timestamps[keyName] = Date.now();
+      this.keydownEvent.double = false;
+
+    }
+
+
     this.trigger("keydown", this.keydownEvent);
 
     if (this.preventDefault && document.activeElement === document.body) {
@@ -153,6 +175,7 @@ PLAYGROUND.Keyboard.prototype = {
       var bypass = e.metaKey;
 
       if (!bypass) {
+
         for (var i = 0; i < this.bypassKeys.length; i++) {
 
           if (this.keys[this.bypassKeys[i]]) {
@@ -161,6 +184,7 @@ PLAYGROUND.Keyboard.prototype = {
           }
 
         }
+
       }
 
       if (!bypass) {
@@ -171,6 +195,8 @@ PLAYGROUND.Keyboard.prototype = {
       }
 
     }
+
+    this.lastKey = keyName;
 
   },
 
@@ -207,6 +233,22 @@ PLAYGROUND.Keyboard.prototype = {
     this.keypressEvent.original = e;
 
     this.trigger("keypress", this.keypressEvent);
+
+  },
+
+  blur: function(e) {
+
+    for (var key in this.keys) {
+
+      var state = this.keys[key];
+
+      if (!state) continue;
+
+      this.keyup({
+        which: this.keyToCode[key]
+      });
+
+    }
 
   }
 

@@ -253,6 +253,26 @@ PLAYGROUND.Utils = {
 
     return string;
 
+  },
+
+  classInParents: function(element, className) {
+
+    var parent = element;
+
+    while (parent) {
+
+      if (parent.classList.contains(className)) {
+
+        return true;
+
+      }
+
+      parent = parent.parentElement;
+
+    }
+
+    return false;
+
   }
 
 

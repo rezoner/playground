@@ -109,6 +109,8 @@
   cq.defaultFont = "";
   cq.textBaseline = "alphabetic";
   cq.matchPalettePrecision = 10;
+  cq.strokeStyle = false;
+  cq.fillStyle = false;
 
   cq.palettes = {
 
@@ -121,16 +123,6 @@
     nes: ["#7C7C7C", "#0000FC", "#0000BC", "#4428BC", "#940084", "#A80020", "#A81000", "#881400", "#503000", "#007800", "#006800", "#005800", "#004058", "#000000", "#000000", "#000000", "#BCBCBC", "#0078F8", "#0058F8", "#6844FC", "#D800CC", "#E40058", "#F83800", "#E45C10", "#AC7C00", "#00B800", "#00A800", "#00A844", "#008888", "#000000", "#000000", "#000000", "#F8F8F8", "#3CBCFC", "#6888FC", "#9878F8", "#F878F8", "#F85898", "#F87858", "#FCA044", "#F8B800", "#B8F818", "#58D854", "#58F898", "#00E8D8", "#787878", "#000000", "#000000", "#FCFCFC", "#A4E4FC", "#B8B8F8", "#D8B8F8", "#F8B8F8", "#F8A4C0", "#F0D0B0", "#FCE0A8", "#F8D878", "#D8F878", "#B8F8B8", "#B8F8D8", "#00FCFC", "#F8D8F8", "#000000"],
 
   };
-
-  /*
-
-    cq.loadImages();
-
-    cq.run(function(){
-
-    });
-
-  */
 
   cq.cocoon = function(selector) {
     if (arguments.length === 0) {
@@ -578,7 +570,6 @@
   cq.Layer = function(canvas) {
 
     this.useAlpha = true;
-    this.context = canvas.getContext("2d");
     this.canvas = canvas;
     this.prevAlignX = [];
     this.prevAlignY = [];
@@ -598,13 +589,10 @@
       var smoothing = cq.smoothing;
 
       if (typeof this.smoothing !== "undefined") smoothing = this.smoothing;
-      if (!this.useAlpha) {
 
-        this.context = this.canvas.getContext("2d", {
-          alpha: false
-        });
-
-      }
+      this.context = this.canvas.getContext("2d", {
+        alpha: Boolean(this.useAlpha)
+      });
 
       this.context.mozImageSmoothingEnabled = smoothing;
       this.context.msImageSmoothingEnabled = smoothing;
@@ -616,6 +604,9 @@
       this.context.textBaseline = cq.textBaseline;
 
       if (COCOONJS) Cocoon.Utils.setAntialias(smoothing);
+
+      if (cq.strokeStyle) this.context.strokeStyle = cq.strokeStyle;
+      if (cq.fillStyle) this.context.fillStyle = cq.fillStyle;
     },
 
     appendTo: function(selector) {
@@ -629,6 +620,11 @@
         var element = document.querySelector(selector);
 
       }
+
+      /*
+            this.width = element.clientWidth;
+            this.height = element.clientHeight;
+      */
 
       element.appendChild(this.canvas);
 
@@ -800,8 +796,6 @@
 
       }
 
-      // cq.fastApply(this.context.fillRect, this.context, arguments);
-
       return this;
 
     },
@@ -818,8 +812,6 @@
 
       }
 
-      // cq.fastApply(this.context.strokeRect, this.context, arguments);
-
       return this;
 
     },
@@ -828,7 +820,7 @@
 
       if (this.alignX || this.alignY) {
 
-        if (sWidth == null) {
+        if (typeof sWidth === "undefined") {
           sx -= image.width * this.alignX | 0;
           sy -= image.height * this.alignY | 0;
         } else {
@@ -838,11 +830,11 @@
 
       }
 
-      if (sWidth == null) {
+      if (typeof sWidth === "undefined") {
 
         this.context.drawImage(image, sx, sy);
 
-      } else if (dx == null) {
+      } else if (typeof dx === "undefined") {
 
         this.context.drawImage(image, sx, sy, sWidth, sHeight);
 
@@ -851,8 +843,6 @@
         this.context.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
 
       }
-
-      // cq.fastApply(this.context.drawImage, this.context, arguments);
 
       return this;
 
@@ -952,8 +942,10 @@
 
     },
 
+    coverImage: function(image, width, height) {
 
-    imageFill: function(image, width, height) {
+      if (typeof width === "undefined") width = this.width;
+      if (typeof height === "undefined") height = this.height;
 
       var scale = Math.max(width / image.width, height / image.height);
 
@@ -963,6 +955,21 @@
       this.restore();
 
     },
+
+    fitImage: function(image, width, height) {
+
+      if (typeof width === "undefined") width = this.width;
+      if (typeof height === "undefined") height = this.height;
+
+      var scale = Math.min(width / image.width, height / image.height);
+
+      this.save();
+      this.scale(scale, scale);
+      this.drawImage(image, 0, 0);
+      this.restore();
+
+    },
+
 
     drawRegion: function(image, region, x, y, scale) {
 
@@ -1102,7 +1109,6 @@
     },
 
     circle: function(x, y, r) {
-      this.context.beginPath();
       this.context.arc(x, y, r, 0, Math.PI * 2);
       return this;
     },
@@ -1246,8 +1252,11 @@
       var height = this.canvas.height;
 
       for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
+
         if (transparent) {
+
           if (!sourcePixels[i + 3]) continue;
+
         } else if (sourcePixels[i + 0] === color[0] && sourcePixels[i + 1] === color[1] && sourcePixels[i + 2] === color[2]) continue;
 
         var x = (i / 4 | 0) % this.canvas.width | 0;
@@ -1261,12 +1270,16 @@
       }
 
 
-      if (bound[2] === 0 && bound[3] === 0) {} else {
+      if (bound[2] === 0 && bound[3] === 0) {
+
+        if (changes) changes.none = true;
+
+      } else {
         if (changes) {
           changes.left = bound[0];
           changes.top = bound[1];
 
-          changes.bottom = height - bound[3];
+          changes.bottom = height - bound[3] - bound[1];
           changes.right = width - bound[2] - bound[0];
 
           changes.width = bound[2] - bound[0];
@@ -1425,6 +1438,18 @@
 
     },
 
+    lines: function() {
+
+      for (var i = 0; i < arguments.length; i += 2) {
+
+        this.lineTo(arguments[i], arguments[i + 1]);
+
+      }
+
+      return this;
+
+    },
+
     polygon: function(array, x, y) {
 
       if (x === undefined) {
@@ -1459,6 +1484,30 @@
 
       this.polygon(polygon);
       this.stroke();
+
+    },
+
+    rotate: function(angle) {
+
+      this.context.rotate(angle);
+
+      return this;
+
+    },
+
+    scale: function(x, y) {
+
+      this.context.scale(x, y);
+
+      return this;
+
+    },
+
+    translate: function(x, y) {
+
+      this.context.translate(x, y);
+
+      return this;
 
     },
 
@@ -1633,7 +1682,23 @@
       return this;
     },
 
-    outline: function() {
+    _outlineCheck: function check(x, y, width, height, pixels) {
+
+      if (x < 0) return 0;
+      if (x >= width) return 0;
+      if (y < 0) return 0;
+      if (y >= height) return 0;
+
+      var i = (x + y * width) * 4;
+
+      return pixels[i + 3] > 0;
+
+    },
+
+    outline: function(color) {
+
+      var color = cq.color(color || "#fff");
+
       var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
       var pixels = data.data;
 
@@ -1642,18 +1707,6 @@
 
       var canvas = this.canvas;
 
-      function check(x, y) {
-
-        if (x < 0) return 0;
-        if (x >= canvas.width) return 0;
-        if (y < 0) return 0;
-        if (y >= canvas.height) return 0;
-
-        var i = (x + y * canvas.width) * 4;
-
-        return pixels[i + 3] > 0;
-
-      }
 
       for (var x = 0; x < this.canvas.width; x++) {
         for (var y = 0; y < this.canvas.height; y++) {
@@ -1663,17 +1716,18 @@
 
           if (!pixels[i + 3]) continue;
 
-          full += check(x - 1, y);
-          full += check(x + 1, y);
-          full += check(x, y - 1);
-          full += check(x, y + 1);
+          full += this._outlineCheck(x - 1, y, canvas.width, canvas.height, pixels);
+          full += this._outlineCheck(x + 1, y, canvas.width, canvas.height, pixels);
+          full += this._outlineCheck(x, y - 1, canvas.width, canvas.height, pixels);
+          full += this._outlineCheck(x, y + 1, canvas.width, canvas.height, pixels);
 
           if (full !== 4) {
 
-            newPixels[i] = 255;
-            newPixels[i + 1] = 255;
-            newPixels[i + 2] = 255;
+            newPixels[i] = color[0];
+            newPixels[i + 1] = color[1];
+            newPixels[i + 2] = color[2];
             newPixels[i + 3] = 255;
+
           }
 
         }
@@ -1788,7 +1842,6 @@
 
     roundRect: function(x, y, width, height, radius) {
 
-      this.beginPath();
       this.moveTo(x + radius, y);
       this.lineTo(x + width - radius, y);
       this.quadraticCurveTo(x + width, y, x + width, y + radius);
@@ -1994,13 +2047,21 @@
 
     },
 
+    parseFontHeight: function(font) {
+
+      var match = font.match(/([0-9]+)(px|pt)/);
+
+      return match[2] === "px" ? (match[1] | 0) : (math[1] * 1.33 | 0);
+
+    },
+
     fontHeight: function() {
 
       var font = this.font();
 
       if (!this.fontHeights[font]) {
 
-        var fontStyleHeight = parseInt(font);
+        var fontStyleHeight = this.parseFontHeight(font);
 
         var temp = cq(100, 10 + fontStyleHeight * 2 | 0);
 
@@ -2942,6 +3003,64 @@
     }
 
   };
+
+  /* Utilities / Framework */
+
+  cq.images = {};
+
+  cq.loadImages = function() {
+
+    var promises = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+
+      var current = arguments[i];
+      var keys;
+
+      keys = current;
+
+      for (var key in keys) {
+
+        cq.loaderscount++;
+
+        var path = keys[key];
+
+        var image = new orgImage();
+
+        cq.images[key] = image;
+        cq.loaderscount++;
+
+        var promise = new Promise(function(resolve, reject) {
+
+          image.addEventListener("load", function() {
+
+            // cq.loadercallback();
+
+            resolve();
+
+          });
+
+          image.addEventListener("error", function() {
+
+            throw ("unable to load " + this.src);
+
+          });
+
+        });
+
+        image.src = path;
+
+      }
+
+      promises.push(promise);
+
+    }
+
+    return Promise.all(promises);
+
+  };
+
+  cq.fn = cq.Layer.prototype;
 
   window["cq"] = window["CanvasQuery"] = cq;
 

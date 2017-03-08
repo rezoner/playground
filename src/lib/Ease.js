@@ -1,12 +1,20 @@
 /*     
 
-  Ease 1.0
+  Ease 1.1
   
   http://canvasquery.com
   
   (c) 2015 by Rezoner - http://rezoner.net
 
   `ease` may be freely distributed under the MIT license.
+     
+  Cubic-spline interpolation by Ivan Kuckir
+
+  http://blog.ivank.net/interpolation-with-cubic-splines.html
+
+  With slight modifications by Morgan Herlocker
+
+  https://github.com/morganherlocker/cubic-spline
 
 */
 
@@ -251,18 +259,6 @@
       return this.cache[key]
 
     },
-
-    /* 
-      
-      Cubic-spline interpolation by Ivan Kuckir
-
-      http://blog.ivank.net/interpolation-with-cubic-splines.html
-
-      With slight modifications by Morgan Herlocker
-
-      https://github.com/morganherlocker/cubic-spline
-
-    */
 
     splineK: {},
     splineX: {},

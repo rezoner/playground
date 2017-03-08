@@ -78,13 +78,21 @@ var PLAYGROUND = {};
 
 /*     
 
-  Ease 1.0
+  Ease 1.1
   
   http://canvasquery.com
   
   (c) 2015 by Rezoner - http://rezoner.net
 
   `ease` may be freely distributed under the MIT license.
+     
+  Cubic-spline interpolation by Ivan Kuckir
+
+  http://blog.ivank.net/interpolation-with-cubic-splines.html
+
+  With slight modifications by Morgan Herlocker
+
+  https://github.com/morganherlocker/cubic-spline
 
 */
 
@@ -329,18 +337,6 @@ var PLAYGROUND = {};
       return this.cache[key]
 
     },
-
-    /* 
-      
-      Cubic-spline interpolation by Ivan Kuckir
-
-      http://blog.ivank.net/interpolation-with-cubic-splines.html
-
-      With slight modifications by Morgan Herlocker
-
-      https://github.com/morganherlocker/cubic-spline
-
-    */
 
     splineK: {},
     splineX: {},
@@ -765,6 +761,26 @@ PLAYGROUND.Utils = {
 
     return string;
 
+  },
+
+  classInParents: function(element, className) {
+
+    var parent = element;
+
+    while (parent) {
+
+      if (parent.classList.contains(className)) {
+
+        return true;
+
+      }
+
+      parent = parent.parentElement;
+
+    }
+
+    return false;
+
   }
 
 
@@ -1144,7 +1160,14 @@ PLAYGROUND.Application = function(args) {
 
   /* visibility API */
 
-  document.addEventListener("visibilitychange", this.handleVisibilityChange.bind(this));
+  document.addEventListener("visibilitychange", function() {
+
+    app.handleVisibilityChange(document.hidden);
+
+  });
+
+  window.addEventListener("blur", this.handleBlur.bind(this));
+  window.addEventListener("focus", this.handleFocus.bind(this));
 
   /* window resize */
 
@@ -1280,6 +1303,8 @@ PLAYGROUND.Application.prototype = {
 
     current[pathArray.pop()] = asset;
 
+    collection[path] = asset;
+
   },
 
   /* Compute a fully qualified path.
@@ -1317,23 +1342,46 @@ PLAYGROUND.Application.prototype = {
     /* translate folder according to user provided paths
        or leave it as is */
 
+    var key;
+    var url;
+    var absolute = false;
+
+    if (path[0] === "<") {
+
+      absolute = true;
+
+      var abslimit = path.indexOf(">");
+
+      url = path.substr(1, abslimit - 1);
+      key = path.substr(abslimit + 1).trim();
+      path = url;
+
+      url = this.rewriteURL(url);
+
+    }
+
     var folder = this.paths[folder] || (folder + "/");
 
     var fileinfo = path.match(/(.*)\..*/);
-    var key = fileinfo ? fileinfo[1] : path;
+
+    if (!key) key = fileinfo ? fileinfo[1] : path;
 
     var temp = path.split(".");
     var basename = path;
 
     if (temp.length > 1) {
+
       var ext = temp.pop();
       path = temp.join(".");
+
     } else {
+
       var ext = defaultExtension;
       basename += "." + defaultExtension;
+
     }
 
-    var url = this.rewriteURL(this.paths.base + folder + basename);
+    if (!url) url = this.rewriteURL(this.paths.base + folder + basename);
 
     /*
       key: key to store
@@ -1445,12 +1493,24 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  handleVisibilityChange: function() {
+  handleVisibilityChange: function(e) {
 
     this.emitGlobalEvent("visibilitychange", {
-      visible: !document.hidden,
-      hidden: document.hidden
+      visible: !e.hidden,
+      hidden: e.hidden
     });
+
+  },
+
+  handleBlur: function(e) {
+
+    this.emitGlobalEvent("blur", {});
+
+  },
+
+  handleFocus: function(e) {
+
+    this.emitGlobalEvent("focus", {});
 
   },
 
@@ -1573,7 +1633,7 @@ PLAYGROUND.Application.prototype = {
 
     function processData(request) {
 
-      var extend = entry.key.indexOf("/") > -1;
+      // entry.ext === "json" && entry.key.indexOf("/") > -1;
 
       if (entry.ext === "json") {
 
@@ -1589,37 +1649,11 @@ PLAYGROUND.Application.prototype = {
 
         }
 
-        if (extend) {
-
-          var key = entry.key.split("/")[0];
-
-          if (!app.data[key]) app.data[key] = {};
-
-          PLAYGROUND.Utils.extend(app.data[key], data);
-
-        } else {
-
-          if (!app.data[entry.key]) app.data[entry.key] = {};
-
-          PLAYGROUND.Utils.defaults(app.data[entry.key], data);
-
-        }
+        app.insertAsset(data, app.data, entry.key);
 
       } else {
 
-        if (extend) {
-
-          var key = entry.key.split("/")[0];
-
-          if (!app.data[key]) app.data[key] = "";
-
-          app.data[entry.key] += request.responseText;
-
-        } else {
-
-          app.data[entry.key] = request.responseText;
-
-        }
+        app.insertAsset(request.responseText, app.data, entry.key);
 
       }
 
@@ -1873,24 +1907,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Application.prototype, PLAYGROUND.Events.prot
 
 /* file: src/GameLoop.js */
 
-/** Game loop.
- *
- * The application object is updated with following properties:
- * - lifetime: number of seconds since the game loop was entered
- * - opcost: seconds last opperation took
- * - ops: opperations per second.
- *
- * The game loop requests updats using standard
- * `requestAnimationFrame()` function. On each callback
- * time-related values are updated, logical update is requested using
- * `step()` and display update using `render()`.
- *
- * A number of (global) events are raised on behalf of the application:
- * - step: update the logic on each frame
- * - prerender: first step in refreshing the screen
- * - render: second step in refreshing the screen
- * - postrender: third step in refreshing the screen
- */
 PLAYGROUND.GameLoop = function(app) {
 
   app.lifetime = 0;
@@ -2010,10 +2026,13 @@ PLAYGROUND.Gamepads.prototype = {
     7: "r2",
     8: "select",
     9: "start",
+    10: "stick1",
+    11: "stick2",
     12: "up",
     13: "down",
     14: "left",
-    15: "right"
+    15: "right",
+    16: "super"
   },
 
   zeroState: function() {
@@ -2076,17 +2095,17 @@ PLAYGROUND.Gamepads.prototype = {
       var buttons = [].concat(current.buttons);
 
       /* hack for missing  dpads */
+      /*
+            for (var h = 12; h <= 15; h++) {
 
-      for (var h = 12; h <= 15; h++) {
+              // if (!buttons[h]) 
 
-        // if (!buttons[h]) 
-
-        buttons[h] = {
-          pressed: false,
-          value: 0
-        };
-      }
-
+              buttons[h] = {
+                pressed: false,
+                value: 0
+              };
+            }
+      */
       var previous = this[i];
 
       /* axes (sticks) to buttons */
@@ -2188,6 +2207,10 @@ PLAYGROUND.Gamepads.prototype = {
           this.gamepaddownEvent.button = this.buttons[j];
           this.gamepaddownEvent.gamepad = i;
           this.trigger("gamepaddown", this.gamepaddownEvent);
+          this.trigger("keydown", {
+            key: "gamepad" + this.gamepaddownEvent.button,
+            gamepad: i
+          });
 
         }
 
@@ -2209,6 +2232,10 @@ PLAYGROUND.Gamepads.prototype = {
           this.gamepadupEvent.button = this.buttons[j];
           this.gamepadupEvent.gamepad = i;
           this.trigger("gamepadup", this.gamepadupEvent);
+          this.trigger("keyup", {
+            key: "gamepad" + this.gamepadupEvent.button,
+            gamepad: i
+          });
 
         }
 
@@ -2254,7 +2281,9 @@ PLAYGROUND.Keyboard = function(app) {
 
   this.app = app;
   this.keys = {};
+  this.timestamps = {};
   this.any = false;
+  this.lastKey = -1;
 
   this.keydownlistener = this.keydown.bind(this);
   this.keyuplistener = this.keyup.bind(this);
@@ -2273,12 +2302,19 @@ PLAYGROUND.Keyboard = function(app) {
   this.enabled = true;
 
   this.app.on("kill", this.kill.bind(this));
+  this.app.on("blur", this.blur.bind(this));
 
   this.mapping = {};
+
+  this.keyToCode = {};
+
+  for (var code in this.keycodes) this.keyToCode[this.keycodes[code]] = code;
 
 };
 
 PLAYGROUND.Keyboard.prototype = {
+
+  doubleTimeframe: 0.25,
 
   kill: function() {
 
@@ -2347,7 +2383,7 @@ PLAYGROUND.Keyboard.prototype = {
     192: "graveaccent",
     219: "openbracket",
     220: "backslash",
-    221: "closebraket",
+    221: "closebracket",
     222: "singlequote"
   },
 
@@ -2371,6 +2407,19 @@ PLAYGROUND.Keyboard.prototype = {
 
     this.keys[keyName] = true;
 
+    if (keyName === this.lastKey && Date.now() - this.timestamps[keyName] < this.doubleTimeframe * 1000) {
+
+      this.timestamps[keyName] = Date.now() - this.doubleTimeframe;
+      this.keydownEvent.double = true;
+
+    } else {
+
+      this.timestamps[keyName] = Date.now();
+      this.keydownEvent.double = false;
+
+    }
+
+
     this.trigger("keydown", this.keydownEvent);
 
     if (this.preventDefault && document.activeElement === document.body) {
@@ -2378,6 +2427,7 @@ PLAYGROUND.Keyboard.prototype = {
       var bypass = e.metaKey;
 
       if (!bypass) {
+
         for (var i = 0; i < this.bypassKeys.length; i++) {
 
           if (this.keys[this.bypassKeys[i]]) {
@@ -2386,6 +2436,7 @@ PLAYGROUND.Keyboard.prototype = {
           }
 
         }
+
       }
 
       if (!bypass) {
@@ -2396,6 +2447,8 @@ PLAYGROUND.Keyboard.prototype = {
       }
 
     }
+
+    this.lastKey = keyName;
 
   },
 
@@ -2432,6 +2485,22 @@ PLAYGROUND.Keyboard.prototype = {
     this.keypressEvent.original = e;
 
     this.trigger("keypress", this.keypressEvent);
+
+  },
+
+  blur: function(e) {
+
+    for (var key in this.keys) {
+
+      var state = this.keys[key];
+
+      if (!state) continue;
+
+      this.keyup({
+        which: this.keyToCode[key]
+      });
+
+    }
 
   }
 
@@ -2732,36 +2801,6 @@ PLAYGROUND.Utils.extend(PLAYGROUND.Loader.prototype, PLAYGROUND.Events.prototype
 
 /* file: src/Mouse.js */
 
-/** 
-
-  Mouse related functionality.
-
-  Properties:
-  - app: the main application object
-  - element: the DOM element we're handling events for
-  - preventContextMenu: don't show default menu
-  - mousemoveEvent: last mouse move event is cached in this
-      - id, identifier: event id for compatibility with touches
-      - x, y: the absolute position in pixels
-      - original: original event
-      - mozMovementX, mozMovementY: change in position from previous event
-  - mousedownEvent and mouseupEvent: last button press or release event
-      - id, identifier: event id for compatibility with touches
-      - x, y: the absolute position in pixels
-      - original: original event
-      - button: one of `left`, `middle`, `right`
-  - x, y: alias for mousemoveEvent.x, .y
-  Events generated by this object (PLAYGROUND.Application.mouseToTouch
-  decides the variant to trigger):
-  - touchmove or mousemove: change in position
-  - touchstart or mousedown: action starts
-  - touchend or mouseup: action ends
-  - mousewheel: wheel event
- 
-  Reference: http://playgroundjs.com/playground-mouse
-
- */
-
 PLAYGROUND.Mouse = function(app, element) {
 
   var self = this;
@@ -2869,8 +2908,10 @@ PLAYGROUND.Mouse.prototype = {
     var offsetY = 0;
 
     do {
+
       offsetX += element.offsetLeft;
       offsetY += element.offsetTop;
+
     }
 
     while ((element = element.offsetParent));
@@ -2944,6 +2985,10 @@ PLAYGROUND.Mouse.prototype = {
       this.trigger("mousedown", this.mousedownEvent);
     }
 
+    this.trigger("keydown", {
+      key: "mouse" + buttonName
+    });
+
   },
 
   mouseup: function(e) {
@@ -2971,6 +3016,12 @@ PLAYGROUND.Mouse.prototype = {
 
     }
 
+    this.trigger("keyup", {
+
+      key: "mouse" + buttonName
+
+    });
+
     this[buttonName] = false;
 
   },
@@ -2986,6 +3037,10 @@ PLAYGROUND.Mouse.prototype = {
     this[e.button] = false;
 
     this.trigger("mousewheel", this.mousewheelEvent);
+
+    this.trigger("keydown", {
+      key: e.delta > 0 ? "mousewheelup" : "mousewheeldown"
+    });
 
   },
 
@@ -3048,8 +3103,14 @@ PLAYGROUND.Mouse.prototype = {
 
         throttled(event);
 
-        event.preventDefault();
-        event.stopPropagation();
+        var prevent = !PLAYGROUND.Utils.classInParents(event.target, "scroll");
+
+        if (prevent) {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+        }
 
       }, false);
       /*
@@ -3062,9 +3123,7 @@ PLAYGROUND.Mouse.prototype = {
             */
 
     }
-
-
-
+  
   }
 
 };
@@ -3824,7 +3883,9 @@ PLAYGROUND.Touch.prototype = {
 
     }
 
-    e.preventDefault();
+    var prevent = !PLAYGROUND.Utils.classInParents(e.target, "ui");
+
+    if (prevent) e.preventDefault();
 
   },
 
@@ -3854,7 +3915,9 @@ PLAYGROUND.Touch.prototype = {
 
     }
 
-    e.preventDefault();
+    var prevent = !PLAYGROUND.Utils.classInParents(e.target, "ui");
+
+    if (prevent) e.preventDefault();
 
   },
 
@@ -3879,8 +3942,10 @@ PLAYGROUND.Touch.prototype = {
 
     }
 
-    e.preventDefault();
+    var prevent = !PLAYGROUND.Utils.classInParents(e.target, "ui");
 
+    if (prevent) e.preventDefault();
+    
   }
 
 };
@@ -3895,10 +3960,11 @@ PLAYGROUND.Tween = function(manager, context) {
 
   this.manager = manager;
   this.context = context;
+  this.auto = true;
 
   PLAYGROUND.Utils.extend(this, {
 
-    prevEasing: "045",
+    prevEasing: "linear",
     prevDuration: 0.5
 
   });
@@ -3909,13 +3975,21 @@ PLAYGROUND.Tween = function(manager, context) {
 
 PLAYGROUND.Tween.prototype = {
 
+  manual: function() {
+
+    this.auto = false;
+
+    return this;
+
+  },
+
   /* 
 
     Add an action to the end of the list
      
     @param properties
     @param duration in miliseconds (optional, default is 0.5)
-    @param easing (optional, default is 045)
+    @param easing (optional, default is linear)
     @returns `this` object so that calls can be chained.
 
   */
@@ -3926,7 +4000,7 @@ PLAYGROUND.Tween.prototype = {
     else duration = 0.5;
 
     if (easing) this.prevEasing = easing;
-    else easing = "045";
+    else easing = "linear";
 
     this.actions.push([properties, duration, easing]);
 
@@ -4432,6 +4506,8 @@ PLAYGROUND.TweenManager.prototype = {
 
       var tween = this.tweens[i];
 
+      if (!tween.auto) continue;
+
       if (!tween._remove) tween.step(delta);
 
       if (tween._remove) this.tweens.splice(i--, 1);
@@ -4754,6 +4830,8 @@ PLAYGROUND.LoadingScreen = {
 
     pools: new Map,
 
+    resetMethod: "reset",
+
     getPool: function(constructor) {
 
       var pool = this.pools.get(constructor);
@@ -4778,7 +4856,7 @@ PLAYGROUND.LoadingScreen = {
 
         for (var i = 0; i < 10; i++) {
 
-          pool.push(new constructor);
+          pool.push(new constructor());
 
         }
 
@@ -4786,7 +4864,7 @@ PLAYGROUND.LoadingScreen = {
 
       var result = pool.pop();
 
-      result._reset(args);
+      result[this.resetMethod](args);
 
       return result;
 
@@ -4804,7 +4882,7 @@ PLAYGROUND.LoadingScreen = {
 
   /* API */
 
-  PLAYGROUND.Application.prototype.pool = function() {
+  var api = function() {
 
     if (typeof arguments[0] === "function") {
 
@@ -4817,6 +4895,11 @@ PLAYGROUND.LoadingScreen = {
     }
 
   };
+
+  api.pull = lib.pull.bind(lib);
+  api.push = lib.push.bind(lib);
+
+  PLAYGROUND.Application.prototype.pool = api;
 
 })();
 module.exports = playground;playground.Application = PLAYGROUND.Application;

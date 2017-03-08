@@ -80,7 +80,14 @@ PLAYGROUND.Application = function(args) {
 
   /* visibility API */
 
-  document.addEventListener("visibilitychange", this.handleVisibilityChange.bind(this));
+  document.addEventListener("visibilitychange", function() {
+
+    app.handleVisibilityChange(document.hidden);
+
+  });
+
+  window.addEventListener("blur", this.handleBlur.bind(this));
+  window.addEventListener("focus", this.handleFocus.bind(this));
 
   /* window resize */
 
@@ -216,6 +223,8 @@ PLAYGROUND.Application.prototype = {
 
     current[pathArray.pop()] = asset;
 
+    collection[path] = asset;
+
   },
 
   /* Compute a fully qualified path.
@@ -253,23 +262,46 @@ PLAYGROUND.Application.prototype = {
     /* translate folder according to user provided paths
        or leave it as is */
 
+    var key;
+    var url;
+    var absolute = false;
+
+    if (path[0] === "<") {
+
+      absolute = true;
+
+      var abslimit = path.indexOf(">");
+
+      url = path.substr(1, abslimit - 1);
+      key = path.substr(abslimit + 1).trim();
+      path = url;
+
+      url = this.rewriteURL(url);
+
+    }
+
     var folder = this.paths[folder] || (folder + "/");
 
     var fileinfo = path.match(/(.*)\..*/);
-    var key = fileinfo ? fileinfo[1] : path;
+
+    if (!key) key = fileinfo ? fileinfo[1] : path;
 
     var temp = path.split(".");
     var basename = path;
 
     if (temp.length > 1) {
+
       var ext = temp.pop();
       path = temp.join(".");
+
     } else {
+
       var ext = defaultExtension;
       basename += "." + defaultExtension;
+
     }
 
-    var url = this.rewriteURL(this.paths.base + folder + basename);
+    if (!url) url = this.rewriteURL(this.paths.base + folder + basename);
 
     /*
       key: key to store
@@ -381,12 +413,24 @@ PLAYGROUND.Application.prototype = {
 
   },
 
-  handleVisibilityChange: function() {
+  handleVisibilityChange: function(e) {
 
     this.emitGlobalEvent("visibilitychange", {
-      visible: !document.hidden,
-      hidden: document.hidden
+      visible: !e.hidden,
+      hidden: e.hidden
     });
+
+  },
+
+  handleBlur: function(e) {
+
+    this.emitGlobalEvent("blur", {});
+
+  },
+
+  handleFocus: function(e) {
+
+    this.emitGlobalEvent("focus", {});
 
   },
 
@@ -509,7 +553,7 @@ PLAYGROUND.Application.prototype = {
 
     function processData(request) {
 
-      var extend = entry.key.indexOf("/") > -1;
+      // entry.ext === "json" && entry.key.indexOf("/") > -1;
 
       if (entry.ext === "json") {
 
@@ -525,37 +569,11 @@ PLAYGROUND.Application.prototype = {
 
         }
 
-        if (extend) {
-
-          var key = entry.key.split("/")[0];
-
-          if (!app.data[key]) app.data[key] = {};
-
-          PLAYGROUND.Utils.extend(app.data[key], data);
-
-        } else {
-
-          if (!app.data[entry.key]) app.data[entry.key] = {};
-
-          PLAYGROUND.Utils.defaults(app.data[entry.key], data);
-
-        }
+        app.insertAsset(data, app.data, entry.key);
 
       } else {
 
-        if (extend) {
-
-          var key = entry.key.split("/")[0];
-
-          if (!app.data[key]) app.data[key] = "";
-
-          app.data[entry.key] += request.responseText;
-
-        } else {
-
-          app.data[entry.key] = request.responseText;
-
-        }
+        app.insertAsset(request.responseText, app.data, entry.key);
 
       }
 

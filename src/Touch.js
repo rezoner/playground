@@ -111,7 +111,9 @@ PLAYGROUND.Touch.prototype = {
 
     }
 
-    e.preventDefault();
+    var prevent = !PLAYGROUND.Utils.classInParents(e.target, "ui");
+
+    if (prevent) e.preventDefault();
 
   },
 
@@ -141,7 +143,9 @@ PLAYGROUND.Touch.prototype = {
 
     }
 
-    e.preventDefault();
+    var prevent = !PLAYGROUND.Utils.classInParents(e.target, "ui");
+
+    if (prevent) e.preventDefault();
 
   },
 
@@ -166,8 +170,10 @@ PLAYGROUND.Touch.prototype = {
 
     }
 
-    e.preventDefault();
+    var prevent = !PLAYGROUND.Utils.classInParents(e.target, "ui");
 
+    if (prevent) e.preventDefault();
+    
   }
 
 };

@@ -4,6 +4,8 @@
 
     pools: new Map,
 
+    resetMethod: "reset",
+
     getPool: function(constructor) {
 
       var pool = this.pools.get(constructor);
@@ -28,7 +30,7 @@
 
         for (var i = 0; i < 10; i++) {
 
-          pool.push(new constructor);
+          pool.push(new constructor());
 
         }
 
@@ -36,7 +38,7 @@
 
       var result = pool.pop();
 
-      result._reset(args);
+      result[this.resetMethod](args);
 
       return result;
 
@@ -54,7 +56,7 @@
 
   /* API */
 
-  PLAYGROUND.Application.prototype.pool = function() {
+  var api = function() {
 
     if (typeof arguments[0] === "function") {
 
@@ -67,5 +69,10 @@
     }
 
   };
+
+  api.pull = lib.pull.bind(lib);
+  api.push = lib.push.bind(lib);
+
+  PLAYGROUND.Application.prototype.pool = api;
 
 })();
