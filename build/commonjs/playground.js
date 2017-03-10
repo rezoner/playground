@@ -1954,8 +1954,15 @@ PLAYGROUND.GameLoop = function(app) {
     app.lifetime += dt;
     app.elapsed = dt;
 
+    // app.emitLocalEvent("framestart", dt);
+
     step(dt);
+
+    // app.emitLocalEvent("framemid", dt);
+
     render(dt);
+
+    // app.emitLocalEvent("frameend", dt);
 
     app.opcost = delta / 1000;
     app.ops = 1000 / app.opcost;
@@ -2508,6 +2515,7 @@ PLAYGROUND.Keyboard.prototype = {
 };
 
 PLAYGROUND.Utils.extend(PLAYGROUND.Keyboard.prototype, PLAYGROUND.Events.prototype);
+
 
 /* file: src/Pointer.js */
 
@@ -8077,6 +8085,7 @@ PLAYGROUND.Canvas.prototype = {
   }
 
 };
+
 
 /* file: src/layer/Transitions.js */
 

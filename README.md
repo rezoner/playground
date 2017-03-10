@@ -2,7 +2,7 @@
 
 Out-of-box access to essentials like mouse, keyboard, sound and well designed architecture that you can expand to your needs.
 
-Need instant help? [Join our official slack](https://playgroundjs.slack.com/messages/general/)
+Need instant help? [Join our official slack](https://playgroundjs.signup.team/)
 
 ## Core feature
 
