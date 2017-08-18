@@ -28,7 +28,7 @@ PLAYGROUND.Application = function(args) {
 
   if (typeof this.container === "string") this.container = document.querySelector(this.container);
 
-  this.container.style.background = this.background;
+  if (args.background !== false) this.container.style.background = this.background;
 
   this.updateSize();
 
@@ -69,6 +69,10 @@ PLAYGROUND.Application = function(args) {
   /* ease */
 
   this.ease = PLAYGROUND.Utils.ease;
+
+  /* local storage event */
+
+  window.addEventListener("storage", this.handleLocalStorage.bind(this));
 
   /* video recorder */
 
@@ -385,7 +389,6 @@ PLAYGROUND.Application.prototype = {
 
       this.height = Math.ceil(containerHeight / this.scale);
 
-
     } else if (this.autoWidth && this.autoHeight && this.autoScale) {
 
       this.scale = 1;
@@ -410,6 +413,13 @@ PLAYGROUND.Application.prototype = {
       x: this.width / 2 | 0,
       y: this.height / 2 | 0
     };
+
+
+  },
+
+  handleLocalStorage(e) {
+
+    this.emitGlobalEvent("localstorage", e);
 
   },
 

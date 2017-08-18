@@ -16,6 +16,9 @@ PLAYGROUND.Pointer = function(app) {
 
   this.app = app;
 
+  this.x = 0;
+  this.y = 0;
+
   app.on("touchstart", this.touchstart, this);
   app.on("touchend", this.touchend, this);
   app.on("touchmove", this.touchmove, this);
@@ -26,6 +29,8 @@ PLAYGROUND.Pointer = function(app) {
   app.on("mousewheel", this.mousewheel, this);
 
   this.pointers = app.pointers = {};
+
+  this.app.pointer = this;
 
   this.lastTap = 0;
 
@@ -89,6 +94,9 @@ PLAYGROUND.Pointer.prototype = {
 
     this.pointermove(e);
 
+    this.x = this.app.touch.x;
+    this.y = this.app.touch.y;
+
     this.app.emitGlobalEvent("pointermove", e);
 
   },
@@ -101,6 +109,9 @@ PLAYGROUND.Pointer.prototype = {
 
     this.pointermove(e);
 
+    this.x = this.app.mouse.x;
+    this.y = this.app.mouse.y;
+
     this.app.emitGlobalEvent("pointermove", e);
 
   },
@@ -108,6 +119,8 @@ PLAYGROUND.Pointer.prototype = {
   mousedown: function(e) {
 
     e.mouse = true;
+
+    this.pressed = true;
 
     this.updatePointer(e);
 
@@ -120,6 +133,8 @@ PLAYGROUND.Pointer.prototype = {
   mouseup: function(e) {
 
     e.mouse = true;
+
+    this.pressed = false;
 
     this.pointerup(e);
 
@@ -140,6 +155,7 @@ PLAYGROUND.Pointer.prototype = {
     var pointer = this.pointers[e.id];
 
     pointer.pressed = true;
+    this.pressed = true;
 
     var timeFrame = this.app.lifetime - pointer.lastTap;
 
@@ -180,6 +196,7 @@ PLAYGROUND.Pointer.prototype = {
 
     pointer.pressed = false;
     pointer.dragging = false;
+    this.pressed = false;
 
   }
 

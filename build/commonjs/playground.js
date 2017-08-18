@@ -1108,7 +1108,7 @@ PLAYGROUND.Application = function(args) {
 
   if (typeof this.container === "string") this.container = document.querySelector(this.container);
 
-  this.container.style.background = this.background;
+  if (args.background !== false) this.container.style.background = this.background;
 
   this.updateSize();
 
@@ -1149,6 +1149,10 @@ PLAYGROUND.Application = function(args) {
   /* ease */
 
   this.ease = PLAYGROUND.Utils.ease;
+
+  /* local storage event */
+
+  window.addEventListener("storage", this.handleLocalStorage.bind(this));
 
   /* video recorder */
 
@@ -1465,7 +1469,6 @@ PLAYGROUND.Application.prototype = {
 
       this.height = Math.ceil(containerHeight / this.scale);
 
-
     } else if (this.autoWidth && this.autoHeight && this.autoScale) {
 
       this.scale = 1;
@@ -1490,6 +1493,13 @@ PLAYGROUND.Application.prototype = {
       x: this.width / 2 | 0,
       y: this.height / 2 | 0
     };
+
+
+  },
+
+  handleLocalStorage(e) {
+
+    this.emitGlobalEvent("localstorage", e);
 
   },
 
@@ -2537,6 +2547,9 @@ PLAYGROUND.Pointer = function(app) {
 
   this.app = app;
 
+  this.x = 0;
+  this.y = 0;
+
   app.on("touchstart", this.touchstart, this);
   app.on("touchend", this.touchend, this);
   app.on("touchmove", this.touchmove, this);
@@ -2547,6 +2560,8 @@ PLAYGROUND.Pointer = function(app) {
   app.on("mousewheel", this.mousewheel, this);
 
   this.pointers = app.pointers = {};
+
+  this.app.pointer = this;
 
   this.lastTap = 0;
 
@@ -2610,6 +2625,9 @@ PLAYGROUND.Pointer.prototype = {
 
     this.pointermove(e);
 
+    this.x = this.app.touch.x;
+    this.y = this.app.touch.y;
+
     this.app.emitGlobalEvent("pointermove", e);
 
   },
@@ -2622,6 +2640,9 @@ PLAYGROUND.Pointer.prototype = {
 
     this.pointermove(e);
 
+    this.x = this.app.mouse.x;
+    this.y = this.app.mouse.y;
+
     this.app.emitGlobalEvent("pointermove", e);
 
   },
@@ -2629,6 +2650,8 @@ PLAYGROUND.Pointer.prototype = {
   mousedown: function(e) {
 
     e.mouse = true;
+
+    this.pressed = true;
 
     this.updatePointer(e);
 
@@ -2641,6 +2664,8 @@ PLAYGROUND.Pointer.prototype = {
   mouseup: function(e) {
 
     e.mouse = true;
+
+    this.pressed = false;
 
     this.pointerup(e);
 
@@ -2661,6 +2686,7 @@ PLAYGROUND.Pointer.prototype = {
     var pointer = this.pointers[e.id];
 
     pointer.pressed = true;
+    this.pressed = true;
 
     var timeFrame = this.app.lifetime - pointer.lastTap;
 
@@ -2701,6 +2727,7 @@ PLAYGROUND.Pointer.prototype = {
 
     pointer.pressed = false;
     pointer.dragging = false;
+    this.pressed = false;
 
   }
 
@@ -3825,9 +3852,9 @@ PLAYGROUND.Touch = function(app, element) {
   this.touchstartlistener = this.touchstart.bind(this);
   this.touchendlistener = this.touchend.bind(this);
 
-  element.addEventListener("touchmove", this.touchmovelistener);
-  element.addEventListener("touchstart", this.touchstartlistener);
-  element.addEventListener("touchend", this.touchendlistener);
+  element.addEventListener("touchmove", this.touchmovelistener, {passive: false});
+  element.addEventListener("touchstart", this.touchstartlistener, {passive: false});
+  element.addEventListener("touchend", this.touchendlistener, {passive: false});
 
   this.app.on("kill", this.kill.bind(this));
 

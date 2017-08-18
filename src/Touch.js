@@ -45,9 +45,9 @@ PLAYGROUND.Touch = function(app, element) {
   this.touchstartlistener = this.touchstart.bind(this);
   this.touchendlistener = this.touchend.bind(this);
 
-  element.addEventListener("touchmove", this.touchmovelistener);
-  element.addEventListener("touchstart", this.touchstartlistener);
-  element.addEventListener("touchend", this.touchendlistener);
+  element.addEventListener("touchmove", this.touchmovelistener, {passive: false});
+  element.addEventListener("touchstart", this.touchstartlistener, {passive: false});
+  element.addEventListener("touchend", this.touchendlistener, {passive: false});
 
   this.app.on("kill", this.kill.bind(this));
 
